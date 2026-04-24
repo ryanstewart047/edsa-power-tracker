@@ -4,7 +4,7 @@ import { FREETOWN_AREAS } from '@/lib/areas';
 
 export const dynamic = 'force-dynamic';
 
-const MAX_DISTANCE_KM = 3;
+const MAX_DISTANCE_KM = 10;
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;

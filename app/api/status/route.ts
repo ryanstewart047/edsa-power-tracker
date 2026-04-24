@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 const EXPIRY_HOURS = 6;
 const MIN_REPORTS_TO_CONFIRM = 3; // Updated to 3 reports as requested
 const DUPLICATE_WINDOW_HOURS = 2; 
-const MAX_DISTANCE_KM = 3; // Reverted to 3km as requested
+const MAX_DISTANCE_KM = 10; // Increased radius to account for GPS inaccuracies
 
 // Haversine formula to calculate distance between two points in km
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
