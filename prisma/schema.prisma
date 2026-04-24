@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model OutageReport {
+  id        String   @id @default(cuid())
+  area      String   // e.g. "Lumley", "Wellington"
+  city      String   @default("Freetown")
+  status    String   // "out" | "on"
+  reportedAt DateTime @default(now())
+  expiresAt  DateTime
+  confirmed  Boolean  @default(false)
+  reportCount Int     @default(1)
+
+  @@index([area, city])
+  @@index([expiresAt])
+}
+
+model AreaStatus {
+  id          String   @id @default(cuid())
+  area        String   @unique
+  city        String   @default("Freetown")
+  status      String   @default("unknown") // "on" | "out" | "unknown"
+  confidence  Int      @default(0) // 0-100
+  reportCount Int      @default(0)
+  lastUpdated DateTime @default(now())
+  confirmedAt DateTime?
+}
