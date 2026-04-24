@@ -58,6 +58,8 @@ export default function Home() {
   // Hazard Report State
   const [hazardType, setHazardType] = useState('Falling Pole');
   const [hazardDesc, setHazardDesc] = useState('');
+  const [hazardStreet, setHazardStreet] = useState('');
+  const [hazardHouse, setHazardHouse] = useState('');
   const [hazardImage, setHazardImage] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -160,6 +162,8 @@ export default function Home() {
           area: hazardModal.name,
           type: hazardType,
           description: hazardDesc,
+          streetName: hazardStreet,
+          houseNumber: hazardHouse,
           imageUrl: hazardImage || 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=300', // Placeholder
           deviceId: getDeviceId(),
           lat: location.lat,
@@ -169,7 +173,7 @@ export default function Home() {
 
       if (res.ok) {
         setReportResult({ success: true, confirmed: true, reportsNeeded: 0 });
-        setTimeout(() => { setHazardModal(null); setReportResult(null); setHazardDesc(''); setHazardImage(null); }, 3000);
+        setTimeout(() => { setHazardModal(null); setReportResult(null); setHazardDesc(''); setHazardStreet(''); setHazardHouse(''); setHazardImage(null); }, 3000);
       } else {
         const data = await res.json();
         setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: data.message || 'Failed to report.' });
@@ -386,6 +390,27 @@ export default function Home() {
                     <option value="Illegal Connection">Illegal Connection</option>
                     <option value="Other Danger">Other Danger</option>
                   </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name (Optional)</label>
+                    <input
+                      value={hazardStreet}
+                      onChange={e => setHazardStreet(e.target.value)}
+                      placeholder="e.g. Main St"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No (Optional)</label>
+                    <input
+                      value={hazardHouse}
+                      onChange={e => setHazardHouse(e.target.value)}
+                      placeholder="e.g. 12B"
+                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
+                    />
+                  </div>
                 </div>
 
                 <div className="space-y-2">

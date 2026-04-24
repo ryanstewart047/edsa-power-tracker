@@ -35,7 +35,7 @@ export async function GET() {
 // POST /api/hazards — submit a hazard report (falling poles, sparking cables)
 export async function POST(req: NextRequest) {
   try {
-    const { type, description, imageUrl, area, lat, lng, deviceId } = await req.json();
+    const { type, description, streetName, houseNumber, imageUrl, area, lat, lng, deviceId } = await req.json();
 
     if (!type || !area) {
       return NextResponse.json({ error: 'Type and area are required' }, { status: 400 });
@@ -66,6 +66,8 @@ export async function POST(req: NextRequest) {
       data: {
         type,
         description,
+        streetName,
+        houseNumber,
         imageUrl,
         area,
         city: 'Freetown',

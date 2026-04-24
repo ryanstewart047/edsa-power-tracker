@@ -26,6 +26,8 @@ interface Stats {
     id: string;
     type: string;
     description: string;
+    streetName: string | null;
+    houseNumber: string | null;
     imageUrl: string;
     area: string;
     reportedAt: string;
@@ -236,7 +238,14 @@ export default function AdminDashboard() {
                     </div>
                   </div>
                   <div className="p-6 space-y-4">
-                    <h4 className="font-bold text-lg">{hazard.area}</h4>
+                    <div className="flex items-start justify-between gap-2">
+                      <h4 className="font-bold text-lg">{hazard.area}</h4>
+                      {(hazard.streetName || hazard.houseNumber) && (
+                        <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-md text-right">
+                          {hazard.houseNumber} {hazard.streetName}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
                       <Clock className="w-3 h-3" />
                       {new Date(hazard.reportedAt).toLocaleString()}

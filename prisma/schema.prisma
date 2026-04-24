@@ -40,6 +40,8 @@ model HazardReport {
   id          String   @id @default(cuid())
   type        String   // "Falling Pole", "Sparking Cable", "Other"
   description String?
+  streetName  String?
+  houseNumber String?
   imageUrl    String?  // URL to pictorial evidence
   area        String
   city        String   @default("Freetown")
