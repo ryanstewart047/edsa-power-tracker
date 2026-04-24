@@ -12,7 +12,8 @@ export async function GET() {
       where: { city: 'Freetown' },
     });
 
-    const statusMap = new Map(statuses.map(s => [s.area, s]));
+    type AreaRecord = (typeof statuses)[number];
+    const statusMap = new Map(statuses.map((s: AreaRecord) => [s.area, s]));
 
     const areas: AreaWithStatus[] = FREETOWN_AREAS.map(area => {
       const record = statusMap.get(area.name);
