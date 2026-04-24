@@ -12,14 +12,19 @@ export async function GET() {
       where: { city: 'Freetown' },
     });
 
-    type AreaRecord = (typeof statuses)[number];
-    const statusMap = new Map(statuses.map((s: AreaRecord) => [s.area, s]));
+    // Build a lookup record — avoids Map generic inference issues
+    const statusLookup: Record<string, typeof statuses[0]> = {};
+    for (const s of statuses) {
+      statusLookup[s.area] = s;
+    }
 
     const areas: AreaWithStatus[] = FREETOWN_AREAS.map(area => {
-      const record = statusMap.get(area.name);
+      const record = statusLookup[area.name];
       return {
-        ...area,
-        status: (record?.status ?? 'unknown') as 'on' | 'out' | 'unknown',
+        name: area.name,
+        lat: area.lat,
+        lng: area.lng,
+        status: ((record?.status) ?? 'unknown') as 'on' | 'out' | 'unknown',
         confidence: record?.confidence ?? 0,
         reportCount: record?.reportCount ?? 0,
         lastUpdated: record?.lastUpdated?.toISOString() ?? null,
