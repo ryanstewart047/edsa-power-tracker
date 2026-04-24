@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X } from 'lucide-react';
 import { AreaWithStatus } from '@/lib/areas';
 
-const MAX_DISTANCE_KM = 10;
+const TOLERANCE_KM = 2.5;
+const MAX_ABSOLUTE_KM = 15;
 
 const STATUS_META = {
   on:      { label: 'Power ON',  icon: Zap,         dot: 'bg-green-400', ring: 'ring-green-500/30', card: 'border-green-500/30 bg-green-500/5',  text: 'text-green-400' },
@@ -199,10 +200,24 @@ export default function Home() {
   };
 
   const areasWithProximity = useMemo(() => {
-    return areas.map(area => {
-      const distance = location ? calculateDistance(location.lat, location.lng, area.lat, area.lng) : null;
-      const isNearby = distance !== null && distance <= MAX_DISTANCE_KM;
-      return { ...area, isNearby, distance };
+    if (!location) {
+      return areas.map(area => ({ ...area, isNearby: false, distance: null }));
+    }
+    
+    // First calculate distances to all areas
+    const withDist = areas.map(area => ({
+      ...area,
+      distance: calculateDistance(location.lat, location.lng, area.lat, area.lng)
+    }));
+    
+    // Find the smallest distance among all areas
+    const minDistance = Math.min(...withDist.map(a => a.distance));
+    
+    return withDist.map(area => {
+      // You can only report for areas that are the absolute closest to you, OR within 2.5km of the closest one.
+      // Additionally, must be within MAX_ABSOLUTE_KM to prevent reporting from entirely out-of-country/region.
+      const isNearby = area.distance <= minDistance + TOLERANCE_KM && area.distance <= MAX_ABSOLUTE_KM;
+      return { ...area, isNearby };
     });
   }, [areas, location]);
 

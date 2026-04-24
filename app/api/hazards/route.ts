@@ -4,7 +4,8 @@ import { FREETOWN_AREAS } from '@/lib/areas';
 
 export const dynamic = 'force-dynamic';
 
-const MAX_DISTANCE_KM = 10;
+const TOLERANCE_KM = 2.5; 
+const MAX_ABSOLUTE_KM = 15;
 
 function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371;
@@ -60,11 +61,22 @@ export async function POST(req: NextRequest) {
       }, { status: 403 });
     }
 
-    const distance = calculateDistance(lat, lng, validArea.lat, validArea.lng);
-    if (distance > MAX_DISTANCE_KM) {
+    const distances = FREETOWN_AREAS.map(a => ({
+      name: a.name,
+      dist: calculateDistance(lat, lng, a.lat, a.lng)
+    })).sort((a, b) => a.dist - b.dist);
+
+    const closestArea = distances[0];
+    const targetArea = distances.find(a => a.name === area);
+
+    if (!targetArea || targetArea.dist > MAX_ABSOLUTE_KM) {
+      return NextResponse.json({ error: 'Out of bounds', message: 'You are too far away.' }, { status: 403 });
+    }
+
+    if (targetArea.dist > closestArea.dist + TOLERANCE_KM) {
       return NextResponse.json({ 
         error: 'Location mismatch', 
-        message: `You are too far from ${area} to report a hazard. (Distance: ${distance.toFixed(2)}km)` 
+        message: `You appear to be closer to ${closestArea.name}. You can only report for your actual location.` 
       }, { status: 403 });
     }
 
