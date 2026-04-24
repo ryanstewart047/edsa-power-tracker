@@ -42,6 +42,7 @@ model HazardReport {
   description String?
   streetName  String?
   houseNumber String?
+  areaName    String? // Specific local area or community name
   imageUrl    String?  // URL to pictorial evidence
   area        String
   city        String   @default("Freetown")

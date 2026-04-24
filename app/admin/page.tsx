@@ -28,6 +28,7 @@ interface Stats {
     description: string;
     streetName: string | null;
     houseNumber: string | null;
+    areaName: string | null;
     imageUrl: string;
     area: string;
     reportedAt: string;
@@ -239,7 +240,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="p-6 space-y-4">
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-bold text-lg">{hazard.area}</h4>
+                      <h4 className="font-bold text-lg">{hazard.areaName || hazard.area}</h4>
                       {(hazard.streetName || hazard.houseNumber) && (
                         <span className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded-md text-right">
                           {hazard.houseNumber} {hazard.streetName}

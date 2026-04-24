@@ -60,6 +60,7 @@ export default function Home() {
   const [hazardDesc, setHazardDesc] = useState('');
   const [hazardStreet, setHazardStreet] = useState('');
   const [hazardHouse, setHazardHouse] = useState('');
+  const [hazardAreaName, setHazardAreaName] = useState('');
   const [hazardImage, setHazardImage] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -152,6 +153,17 @@ export default function Home() {
 
   const handleHazardReport = async () => {
     if (!hazardModal || !location) return;
+
+    if (!hazardAreaName.trim()) {
+      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Please enter the Area/Community Name.' });
+      return;
+    }
+
+    if (hazardType === 'Illegal Connection' && (!hazardStreet.trim() || !hazardHouse.trim())) {
+      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Street Name and House Number are mandatory for wrong connections.' });
+      return;
+    }
+
     setReporting(true);
     
     try {
@@ -164,6 +176,7 @@ export default function Home() {
           description: hazardDesc,
           streetName: hazardStreet,
           houseNumber: hazardHouse,
+          areaName: hazardAreaName,
           imageUrl: hazardImage || 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?auto=format&fit=crop&q=80&w=300', // Placeholder
           deviceId: getDeviceId(),
           lat: location.lat,
@@ -173,7 +186,7 @@ export default function Home() {
 
       if (res.ok) {
         setReportResult({ success: true, confirmed: true, reportsNeeded: 0 });
-        setTimeout(() => { setHazardModal(null); setReportResult(null); setHazardDesc(''); setHazardStreet(''); setHazardHouse(''); setHazardImage(null); }, 3000);
+        setTimeout(() => { setHazardModal(null); setReportResult(null); setHazardDesc(''); setHazardStreet(''); setHazardHouse(''); setHazardAreaName(''); setHazardImage(null); }, 3000);
       } else {
         const data = await res.json();
         setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: data.message || 'Failed to report.' });
@@ -392,9 +405,19 @@ export default function Home() {
                   </select>
                 </div>
 
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Specific Area Name <span className="text-red-400">*</span></label>
+                  <input
+                    value={hazardAreaName}
+                    onChange={e => setHazardAreaName(e.target.value)}
+                    placeholder="e.g. Jui Junction"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
+                  />
+                </div>
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name (Optional)</label>
+                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name {hazardType === 'Illegal Connection' && <span className="text-red-400">*</span>}</label>
                     <input
                       value={hazardStreet}
                       onChange={e => setHazardStreet(e.target.value)}
@@ -403,7 +426,7 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No (Optional)</label>
+                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No {hazardType === 'Illegal Connection' && <span className="text-red-400">*</span>}</label>
                     <input
                       value={hazardHouse}
                       onChange={e => setHazardHouse(e.target.value)}

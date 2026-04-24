@@ -35,10 +35,16 @@ export async function GET() {
 // POST /api/hazards — submit a hazard report (falling poles, sparking cables)
 export async function POST(req: NextRequest) {
   try {
-    const { type, description, streetName, houseNumber, imageUrl, area, lat, lng, deviceId } = await req.json();
+    const { type, description, streetName, houseNumber, areaName, imageUrl, area, lat, lng, deviceId } = await req.json();
 
-    if (!type || !area) {
-      return NextResponse.json({ error: 'Type and area are required' }, { status: 400 });
+    if (!type || !area || !areaName) {
+      return NextResponse.json({ error: 'Type, Area, and Specific Area Name are required' }, { status: 400 });
+    }
+
+    if (type === 'Illegal Connection') {
+      if (!streetName || !houseNumber) {
+        return NextResponse.json({ error: 'Street Name and House Number are required for illegal connection reports.' }, { status: 400 });
+      }
     }
 
     const validArea = FREETOWN_AREAS.find(a => a.name === area);
@@ -68,6 +74,7 @@ export async function POST(req: NextRequest) {
         description,
         streetName,
         houseNumber,
+        areaName,
         imageUrl,
         area,
         city: 'Freetown',
