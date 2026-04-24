@@ -8,17 +8,21 @@ datasource db {
 }
 
 model OutageReport {
-  id        String   @id @default(cuid())
-  area      String   // e.g. "Lumley", "Wellington"
-  city      String   @default("Freetown")
-  status    String   // "out" | "on"
-  reportedAt DateTime @default(now())
-  expiresAt  DateTime
-  confirmed  Boolean  @default(false)
-  reportCount Int     @default(1)
+  id          String   @id @default(cuid())
+  area        String   // e.g. "Lumley", "Wellington"
+  city        String   @default("Freetown")
+  status      String   // "out" | "on"
+  reportedAt  DateTime @default(now())
+  expiresAt   DateTime
+  confirmed   Boolean  @default(false)
+  reportCount Int      @default(1)
+  deviceId    String?  // To prevent duplicate reports from the same device
+  reporterLat Float?   // For location validation
+  reporterLng Float?   // For location validation
 
   @@index([area, city])
   @@index([expiresAt])
+  @@index([deviceId, area, reportedAt])
 }
 
 model AreaStatus {
@@ -30,4 +34,20 @@ model AreaStatus {
   reportCount Int      @default(0)
   lastUpdated DateTime @default(now())
   confirmedAt DateTime?
+}
+
+model HazardReport {
+  id          String   @id @default(cuid())
+  type        String   // "Falling Pole", "Sparking Cable", "Other"
+  description String?
+  imageUrl    String?  // URL to pictorial evidence
+  area        String
+  city        String   @default("Freetown")
+  reportedAt  DateTime @default(now())
+  deviceId    String?
+  lat         Float?
+  lng         Float?
+
+  @@index([area, city])
+  @@index([reportedAt])
 }
