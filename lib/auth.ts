@@ -2,6 +2,7 @@ import { randomBytes, createHmac, scryptSync, timingSafeEqual } from 'node:crypt
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { NextResponse } from 'next/server';
+import nodemailer from 'nodemailer';
 import { prisma } from '@/lib/prisma';
 
 const SESSION_COOKIE_NAME = 'edsa_admin_session';
@@ -120,22 +121,29 @@ export function verifyPassword(password: string, storedHash: string) {
 }
 
 async function sendResetEmail(to: string, resetUrl: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.RESEND_FROM_EMAIL;
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
-  if (!apiKey || !from) {
+  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
     return { sent: false };
   }
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from,
-      to: [to],
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: parseInt(smtpPort, 10),
+      secure: false, // Use TLS (not SSL) for port 587
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+
+    await transporter.sendMail({
+      from: smtpUser,
+      to,
       subject: 'Reset your EDSA admin password',
       html: `
         <div style="font-family: Inter, Arial, sans-serif; color: #111827; line-height: 1.6;">
@@ -147,15 +155,13 @@ async function sendResetEmail(to: string, resetUrl: string) {
         </div>
       `,
       text: `Reset your EDSA admin password: ${resetUrl}\n\nThis link expires in 1 hour.`,
-    }),
-  });
+    });
 
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Failed to send reset email: ${errorText}`);
+    return { sent: true };
+  } catch (error) {
+    console.error('Failed to send reset email:', error);
+    return { sent: false };
   }
-
-  return { sent: true };
 }
 
 export async function ensureBootstrapAdminUser() {
