@@ -350,3 +350,77 @@ export async function requireAdminSession() {
 
   return admin;
 }
+
+// Admin management functions
+export async function listAllAdmins() {
+  return prisma.adminUser.findMany({
+    select: {
+      id: true,
+      email: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+}
+
+export async function createAdminUser(email: string, password: string) {
+  const normalizedEmail = normalizeAdminEmail(email);
+  
+  // Check if admin already exists
+  const existingAdmin = await prisma.adminUser.findUnique({
+    where: { email: normalizedEmail },
+  });
+  
+  if (existingAdmin) {
+    return { success: false, error: 'Admin with this email already exists' };
+  }
+
+  const passwordHash = hashPassword(password);
+  
+  try {
+    const admin = await prisma.adminUser.create({
+      data: {
+        email: normalizedEmail,
+        passwordHash,
+      },
+      select: {
+        id: true,
+        email: true,
+        createdAt: true,
+      },
+    });
+
+    return { success: true, admin };
+  } catch (error) {
+    console.error('Failed to create admin:', error);
+    return { success: false, error: 'Failed to create admin user' };
+  }
+}
+
+export async function deleteAdminUser(adminId: string) {
+  try {
+    await prisma.adminUser.delete({
+      where: { id: adminId },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to delete admin:', error);
+    return { success: false, error: 'Failed to delete admin user' };
+  }
+}
+
+export async function updateAdminPassword(adminId: string, newPassword: string) {
+  const passwordHash = hashPassword(newPassword);
+  
+  try {
+    await prisma.adminUser.update({
+      where: { id: adminId },
+      data: { passwordHash },
+    });
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update admin password:', error);
+    return { success: false, error: 'Failed to update admin password' };
+  }
+}
