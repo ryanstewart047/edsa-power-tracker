@@ -1,5 +1,15 @@
+export interface AreaDefinition {
+  name: string;
+  lat: number;
+  lng: number;
+}
+
+export const FREETOWN_CITY = 'Freetown';
+export const REPORTING_TOLERANCE_KM = 2.5;
+export const MAX_REPORTING_DISTANCE_KM = 15;
+
 // Freetown neighbourhoods with approximate coordinates for map display
-export const FREETOWN_AREAS = [
+export const FREETOWN_AREAS: AreaDefinition[] = [
   { name: "Aberdeen",        lat: 8.4697, lng: -13.2889 },
   { name: "Lumley",          lat: 8.4701, lng: -13.2800 },
   { name: "Goderich",        lat: 8.4503, lng: -13.3001 },
@@ -42,4 +52,53 @@ export interface AreaWithStatus {
   confidence: number;
   reportCount: number;
   lastUpdated: string | null;
+}
+
+export interface AreaDistance extends AreaDefinition {
+  distanceKm: number;
+}
+
+export interface AreaProximity {
+  closestArea: AreaDistance | null;
+  targetArea: AreaDistance | null;
+}
+
+export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const earthRadiusKm = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c;
+}
+
+export function findAreaByName(name: string): AreaDefinition | undefined {
+  const normalized = name.trim().toLowerCase();
+  return FREETOWN_AREAS.find((area) => area.name.toLowerCase() === normalized);
+}
+
+export function getAreaDistances(lat: number, lng: number): AreaDistance[] {
+  return FREETOWN_AREAS
+    .map((area) => ({
+      ...area,
+      distanceKm: calculateDistanceKm(lat, lng, area.lat, area.lng),
+    }))
+    .sort((a, b) => a.distanceKm - b.distanceKm);
+}
+
+export function getClosestArea(lat: number, lng: number): AreaDistance | null {
+  return getAreaDistances(lat, lng)[0] ?? null;
+}
+
+export function getAreaProximity(areaName: string, lat: number, lng: number): AreaProximity {
+  const distances = getAreaDistances(lat, lng);
+  return {
+    closestArea: distances[0] ?? null,
+    targetArea: distances.find((area) => area.name === areaName) ?? null,
+  };
 }

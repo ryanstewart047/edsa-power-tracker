@@ -1,42 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { FREETOWN_AREAS, AreaWithStatus } from '@/lib/areas';
+import { AreaStatus, FREETOWN_AREAS, AreaWithStatus, FREETOWN_CITY } from '@/lib/areas';
+import {
+  DUPLICATE_WINDOW_HOURS,
+  MIN_REPORTS_TO_CONFIRM,
+  RECENT_REPORT_WINDOW_MINUTES,
+  REPORT_EXPIRY_HOURS,
+  normalizePowerStatus,
+  parseDeviceId,
+  validateReporterLocation,
+} from '@/lib/reporting';
 
 export const dynamic = 'force-dynamic';
-
-const EXPIRY_HOURS = 6;
-const MIN_REPORTS_TO_CONFIRM = 3; // Updated to 3 reports as requested
-const DUPLICATE_WINDOW_HOURS = 2; 
-const TOLERANCE_KM = 2.5; 
-const MAX_ABSOLUTE_KM = 15;
-
-// Haversine formula to calculate distance between two points in km
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Radius of the earth in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 // GET /api/status — returns all Freetown areas with their current status
 export async function GET() {
   try {
     const statuses = await prisma.areaStatus.findMany({
-      where: { city: 'Freetown' },
+      where: { city: FREETOWN_CITY },
     });
 
-    const statusLookup: Record<string, typeof statuses[0]> = {};
-    for (const s of statuses) {
-      statusLookup[s.area] = s;
-    }
+    const statusLookup = new Map(statuses.map((status) => [status.area, status]));
 
     const areas: AreaWithStatus[] = FREETOWN_AREAS.map(area => {
-      const record = statusLookup[area.name];
+      const record = statusLookup.get(area.name);
       return {
         name: area.name,
         lat: area.lat,
@@ -63,48 +50,27 @@ export async function GET() {
 // POST /api/status — submit a power report for an area
 export async function POST(req: NextRequest) {
   try {
-    const { area, status, deviceId, lat, lng } = await req.json();
+    const body = await req.json() as Record<string, unknown>;
+    const status = normalizePowerStatus(body.status);
 
-    if (!area || !['on', 'out'].includes(status)) {
-      return NextResponse.json({ error: 'Invalid area or status' }, { status: 400 });
+    if (status !== 'on' && status !== 'out') {
+      return NextResponse.json(
+        {
+          error: 'Invalid status',
+          message: 'Power reports must be submitted as either "on" or "out".',
+        },
+        { status: 400 },
+      );
     }
 
-    const validArea = FREETOWN_AREAS.find(a => a.name === area);
-    if (!validArea) {
-      return NextResponse.json({ error: 'Unknown area' }, { status: 400 });
+    const locationValidation = validateReporterLocation(body.area, body.lat, body.lng);
+    if (!locationValidation.ok) {
+      return NextResponse.json(locationValidation.body, { status: locationValidation.status });
     }
 
-    // 1. MANDATORY Location Validation
-    if (!lat || !lng) {
-      return NextResponse.json({ 
-        error: 'Location required', 
-        message: 'Your GPS location is required to verify your report.' 
-      }, { status: 403 });
-    }
+    const area = locationValidation.area;
+    const deviceId = parseDeviceId(body.deviceId);
 
-    const distances = FREETOWN_AREAS.map(a => ({
-      name: a.name,
-      dist: calculateDistance(lat, lng, a.lat, a.lng)
-    })).sort((a, b) => a.dist - b.dist);
-
-    const closestArea = distances[0];
-    const targetArea = distances.find(a => a.name === area);
-
-    if (!targetArea || targetArea.dist > MAX_ABSOLUTE_KM) {
-      return NextResponse.json({ 
-        error: 'Out of bounds', 
-        message: 'You are too far from Freetown to submit a report.' 
-      }, { status: 403 });
-    }
-
-    if (targetArea.dist > closestArea.dist + TOLERANCE_KM) {
-      return NextResponse.json({ 
-        error: 'Location mismatch', 
-        message: `You appear to be closer to ${closestArea.name}. You can only report for your actual location.` 
-      }, { status: 403 });
-    }
-
-    // 2. Device Validation (Duplicate Check for SAME status)
     if (deviceId) {
       const recentSameStatusReport = await prisma.outageReport.findFirst({
         where: {
@@ -118,70 +84,106 @@ export async function POST(req: NextRequest) {
       });
 
       if (recentSameStatusReport) {
-        return NextResponse.json({ 
-          error: 'Duplicate report', 
-          message: `You have already reported "${status === 'on' ? 'Power ON' : 'Power OUT'}" recently. If the status changed, please try again.` 
-        }, { status: 429 });
+        return NextResponse.json(
+          {
+            error: 'Duplicate report',
+            message: `You already reported Power ${status.toUpperCase()} for ${area} recently. If the situation changed, please wait a little and try again.`,
+          },
+          { status: 429 },
+        );
       }
     }
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + EXPIRY_HOURS * 60 * 60 * 1000);
+    const expiresAt = new Date(now.getTime() + REPORT_EXPIRY_HOURS * 60 * 60 * 1000);
 
-    // Record the individual report
     await prisma.outageReport.create({
-      data: { 
-        area, 
-        city: 'Freetown', 
-        status, 
+      data: {
+        area,
+        city: FREETOWN_CITY,
+        status,
         expiresAt,
         deviceId,
-        reporterLat: lat,
-        reporterLng: lng
+        reporterLat: locationValidation.lat,
+        reporterLng: locationValidation.lng,
       },
     });
 
-    // Count recent reports for this area (last 30 minutes)
-    const recentWindow = new Date(now.getTime() - 30 * 60 * 1000);
-    const recentReports = await prisma.outageReport.count({
-      where: {
-        area,
-        status,
-        reportedAt: { gte: recentWindow },
-        expiresAt: { gte: now },
-      },
-    });
+    const recentWindow = new Date(now.getTime() - RECENT_REPORT_WINDOW_MINUTES * 60 * 1000);
+    const [recentReportGroups, existingAreaStatus] = await Promise.all([
+      prisma.outageReport.groupBy({
+        by: ['status'],
+        where: {
+          area,
+          reportedAt: { gte: recentWindow },
+          expiresAt: { gte: now },
+        },
+        _count: { _all: true },
+      }),
+      prisma.areaStatus.findUnique({ where: { area } }),
+    ]);
 
-    // Consensus Logic: Only update public status if reports >= MIN_REPORTS_TO_CONFIRM
-    const isConfirmed = recentReports >= MIN_REPORTS_TO_CONFIRM;
-    const confidence = Math.min(100, recentReports * 33); // Updated to match 3 reports (33% each)
+    const counts: Record<'on' | 'out', number> = { on: 0, out: 0 };
+    for (const group of recentReportGroups) {
+      if (group.status === 'on' || group.status === 'out') {
+        counts[group.status] = group._count._all;
+      }
+    }
 
-    // Upsert the area status
+    const competingStatus: Exclude<AreaStatus, 'unknown'> = status === 'on' ? 'out' : 'on';
+    const submittedCount = counts[status];
+    const competingCount = counts[competingStatus];
+    const leadingStatus: Exclude<AreaStatus, 'unknown'> =
+      submittedCount >= competingCount ? status : competingStatus;
+    const leadingCount = Math.max(submittedCount, competingCount);
+    const isConfirmed = submittedCount >= MIN_REPORTS_TO_CONFIRM && submittedCount > competingCount;
+    const currentStatus = isConfirmed
+      ? status
+      : (existingAreaStatus?.status as AreaStatus | undefined) ?? 'unknown';
+    const confidence = Math.min(
+      100,
+      Math.round((leadingCount / MIN_REPORTS_TO_CONFIRM) * 100),
+    );
+
     await prisma.areaStatus.upsert({
       where: { area },
       create: {
         area,
-        city: 'Freetown',
-        status,
+        city: FREETOWN_CITY,
+        status: currentStatus,
         confidence,
-        reportCount: recentReports,
+        reportCount: leadingCount,
         lastUpdated: now,
         confirmedAt: isConfirmed ? now : null,
       },
       update: {
-        status,
+        status: currentStatus,
         confidence,
-        reportCount: recentReports,
+        reportCount: leadingCount,
         lastUpdated: now,
-        confirmedAt: isConfirmed ? now : undefined,
+        confirmedAt: isConfirmed ? now : existingAreaStatus?.confirmedAt ?? null,
       },
     });
+
+    const reportsNeeded = Math.max(0, MIN_REPORTS_TO_CONFIRM - submittedCount);
+    const statusLabel = `Power ${status.toUpperCase()}`;
+    const message = isConfirmed
+      ? `${area} is now marked as ${statusLabel}.`
+      : competingCount > submittedCount
+        ? `Your report was saved, but Power ${competingStatus.toUpperCase()} currently has more recent reports in ${area}.`
+        : `Your report was saved. ${reportsNeeded} more ${statusLabel} report${reportsNeeded === 1 ? '' : 's'} needed to update ${area}.`;
 
     return NextResponse.json({
       success: true,
       confirmed: isConfirmed,
-      reportsNeeded: Math.max(0, MIN_REPORTS_TO_CONFIRM - recentReports),
-      totalReports: recentReports,
+      currentStatus,
+      pendingStatus: isConfirmed ? null : leadingStatus,
+      reportsNeeded,
+      totalReports: submittedCount,
+      competingReports: competingCount,
+      distanceKm: locationValidation.distanceKm,
+      closestArea: locationValidation.closestAreaName,
+      message,
     });
   } catch (error) {
     console.error('POST /api/status error:', error);

@@ -1,6 +1,7 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Zap, ZapOff, AlertTriangle, Clock, MapPin, Search, CheckCircle, RefreshCw, BarChart3, LucideIcon } from 'lucide-react';
 
 interface Stats {
@@ -18,22 +19,22 @@ interface Stats {
     area: string;
     status: string;
     reportedAt: string;
-    deviceId: string;
-    reporterLat: number;
-    reporterLng: number;
+    deviceId: string | null;
+    reporterLat: number | null;
+    reporterLng: number | null;
   }[];
   recentHazards: {
     id: string;
     type: string;
-    description: string;
+    description: string | null;
     streetName: string | null;
     houseNumber: string | null;
     areaName: string | null;
-    imageUrl: string;
+    imageUrl: string | null;
     area: string;
     reportedAt: string;
-    lat: number;
-    lng: number;
+    lat: number | null;
+    lng: number | null;
   }[];
 }
 
@@ -69,16 +70,23 @@ function SidebarItem({ label, icon: Icon, active, onClick, badge }: SidebarItemP
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'hazards' | 'feed'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
 
   const fetchStats = async () => {
     try {
       const res = await fetch('/api/admin/stats', { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error('Unable to load admin statistics right now.');
+      }
+
       const data = await res.json();
       setStats(data);
+      setError(null);
     } catch (e) {
       console.error('Failed to fetch admin stats', e);
+      setError(e instanceof Error ? e.message : 'Failed to fetch admin stats.');
     } finally {
       setLoading(false);
     }
@@ -89,6 +97,42 @@ export default function AdminDashboard() {
     const interval = setInterval(fetchStats, 30_000);
     return () => clearInterval(interval);
   }, []);
+
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  const filteredHazards = useMemo(() => {
+    if (!stats) return [];
+
+    return stats.recentHazards.filter((hazard) => {
+      if (!normalizedSearch) return true;
+
+      return [
+        hazard.type,
+        hazard.area,
+        hazard.areaName,
+        hazard.streetName,
+        hazard.description,
+      ]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(normalizedSearch));
+    });
+  }, [normalizedSearch, stats]);
+
+  const filteredReports = useMemo(() => {
+    if (!stats) return [];
+
+    return stats.recentReports.filter((report) => {
+      if (!normalizedSearch) return true;
+
+      return [
+        report.area,
+        report.status,
+        report.deviceId,
+      ]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(normalizedSearch));
+    });
+  }, [normalizedSearch, stats]);
 
   if (loading) {
     return (
@@ -142,6 +186,12 @@ export default function AdminDashboard() {
             </button>
           </div>
         </header>
+
+        {error && (
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
 
         {activeTab === 'overview' && (
           <div className="space-y-8">
@@ -221,16 +271,24 @@ export default function AdminDashboard() {
 
         {activeTab === 'hazards' && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stats.recentHazards.length === 0 ? (
+            {filteredHazards.length === 0 ? (
               <div className="col-span-full py-20 text-center space-y-4">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto opacity-20" />
-                <p className="text-gray-500 font-medium">No active danger reports. Everything looks safe.</p>
+                <p className="text-gray-500 font-medium">
+                  {normalizedSearch ? 'No hazard reports matched your search.' : 'No active danger reports. Everything looks safe.'}
+                </p>
               </div>
             ) : (
-              stats.recentHazards.map(hazard => (
+              filteredHazards.map(hazard => (
                 <div key={hazard.id} className="bg-gray-900 border border-white/10 rounded-3xl overflow-hidden group">
                   <div className="aspect-video relative overflow-hidden">
-                    <img src={hazard.imageUrl} alt={hazard.type} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    {hazard.imageUrl ? (
+                      <img src={hazard.imageUrl} alt={hazard.type} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full bg-gray-950 flex items-center justify-center text-gray-500 text-sm">
+                        No photo provided
+                      </div>
+                    )}
                     <div className="absolute top-4 left-4">
                       <span className="bg-red-600 text-white text-[10px] font-bold uppercase px-2 py-1 rounded-lg flex items-center gap-1.5 shadow-xl">
                         <AlertTriangle className="w-3 h-3" />
@@ -253,9 +311,9 @@ export default function AdminDashboard() {
                     </p>
                     <p className="text-sm text-gray-400 line-clamp-2 italic">&quot;{hazard.description || 'No description provided.'}&quot;</p>
                     <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-blue-400 font-bold hover:underline cursor-pointer">
+                      <div className="flex items-center gap-2 text-xs text-blue-400 font-bold">
                         <MapPin className="w-3 h-3" />
-                        View Coordinates
+                        {hazard.lat !== null && hazard.lng !== null ? `${hazard.lat.toFixed(4)}, ${hazard.lng.toFixed(4)}` : 'Coordinates unavailable'}
                       </div>
                       <button className="text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors">
                         Mark Resolved
@@ -270,7 +328,11 @@ export default function AdminDashboard() {
 
         {activeTab === 'feed' && (
           <div className="space-y-4 max-w-4xl">
-            {stats.recentReports.map(report => (
+            {filteredReports.length === 0 ? (
+              <div className="rounded-2xl border border-white/10 bg-gray-900 p-6 text-sm text-gray-400">
+                {normalizedSearch ? 'No reports matched your search.' : 'No recent power reports yet.'}
+              </div>
+            ) : filteredReports.map(report => (
               <div key={report.id} className="bg-gray-900 border border-white/10 p-5 rounded-2xl flex items-center justify-between group">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${report.status === 'on' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
@@ -278,7 +340,9 @@ export default function AdminDashboard() {
                   </div>
                   <div>
                     <p className="font-bold">{report.area}</p>
-                    <p className="text-xs text-gray-500">Device: {report.deviceId?.substring(0, 8)}... · {new Date(report.reportedAt).toLocaleTimeString()}</p>
+                    <p className="text-xs text-gray-500">
+                      Device: {report.deviceId ? `${report.deviceId.substring(0, 8)}...` : 'Anonymous'} · {new Date(report.reportedAt).toLocaleTimeString()}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

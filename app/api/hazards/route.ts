@@ -1,23 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { FREETOWN_AREAS } from '@/lib/areas';
+import { FREETOWN_CITY } from '@/lib/areas';
+import {
+  HAZARD_DUPLICATE_WINDOW_MINUTES,
+  normalizeHazardImage,
+  normalizeHazardType,
+  parseDeviceId,
+  parseOptionalText,
+  validateReporterLocation,
+} from '@/lib/reporting';
 
 export const dynamic = 'force-dynamic';
-
-const TOLERANCE_KM = 2.5; 
-const MAX_ABSOLUTE_KM = 15;
-
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
 
 // GET /api/hazards — returns recent hazard reports
 export async function GET() {
@@ -36,48 +29,92 @@ export async function GET() {
 // POST /api/hazards — submit a hazard report (falling poles, sparking cables)
 export async function POST(req: NextRequest) {
   try {
-    const { type, description, streetName, houseNumber, areaName, imageUrl, area, lat, lng, deviceId } = await req.json();
+    const body = await req.json() as Record<string, unknown>;
+    const type = normalizeHazardType(body.type);
+    const locationValidation = validateReporterLocation(body.area, body.lat, body.lng);
+    const areaName = parseOptionalText(body.areaName, 120);
+    const streetName = parseOptionalText(body.streetName, 120);
+    const houseNumber = parseOptionalText(body.houseNumber, 40);
+    const description = parseOptionalText(body.description, 500);
+    const imageUrl = normalizeHazardImage(body.imageUrl);
+    const deviceId = parseDeviceId(body.deviceId);
 
-    if (!type || !area || !areaName) {
-      return NextResponse.json({ error: 'Type, Area, and Specific Area Name are required' }, { status: 400 });
+    if (!type) {
+      return NextResponse.json(
+        {
+          error: 'Invalid hazard type',
+          message: 'Please choose a valid hazard type before submitting.',
+        },
+        { status: 400 },
+      );
     }
 
-    if (type === 'Illegal Connection') {
-      if (!streetName || !houseNumber) {
-        return NextResponse.json({ error: 'Street Name and House Number are required for illegal connection reports.' }, { status: 400 });
+    if (!locationValidation.ok) {
+      return NextResponse.json(locationValidation.body, { status: locationValidation.status });
+    }
+
+    if (!areaName) {
+      return NextResponse.json(
+        {
+          error: 'Missing location details',
+          message: 'Please enter the specific area or community name for this hazard.',
+        },
+        { status: 400 },
+      );
+    }
+
+    if (type === 'Illegal Connection' && (!streetName || !houseNumber)) {
+      return NextResponse.json(
+        {
+          error: 'Missing address details',
+          message: 'Street name and house number are required for illegal connection reports.',
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!description && !imageUrl) {
+      return NextResponse.json(
+        {
+          error: 'Missing evidence',
+          message: 'Please add a short description or a photo so the hazard can be verified.',
+        },
+        { status: 400 },
+      );
+    }
+
+    if (body.imageUrl && !imageUrl) {
+      return NextResponse.json(
+        {
+          error: 'Invalid image',
+          message: 'Photos must be provided as an image upload or a valid web URL.',
+        },
+        { status: 400 },
+      );
+    }
+
+    const area = locationValidation.area;
+
+    if (deviceId) {
+      const duplicateWindow = new Date(Date.now() - HAZARD_DUPLICATE_WINDOW_MINUTES * 60 * 1000);
+      const recentDuplicate = await prisma.hazardReport.findFirst({
+        where: {
+          deviceId,
+          area,
+          type,
+          reportedAt: { gte: duplicateWindow },
+        },
+      });
+
+      if (recentDuplicate) {
+        return NextResponse.json(
+          {
+            error: 'Duplicate hazard',
+            message: `You already reported this ${type.toLowerCase()} hazard in ${area} recently.`,
+          },
+          { status: 429 },
+        );
       }
-    }
-
-    const validArea = FREETOWN_AREAS.find(a => a.name === area);
-    if (!validArea) {
-      return NextResponse.json({ error: 'Unknown area' }, { status: 400 });
-    }
-
-    // Mandatory Location Validation
-    if (!lat || !lng) {
-      return NextResponse.json({ 
-        error: 'Location required', 
-        message: 'GPS location is required to verify the hazard location.' 
-      }, { status: 403 });
-    }
-
-    const distances = FREETOWN_AREAS.map(a => ({
-      name: a.name,
-      dist: calculateDistance(lat, lng, a.lat, a.lng)
-    })).sort((a, b) => a.dist - b.dist);
-
-    const closestArea = distances[0];
-    const targetArea = distances.find(a => a.name === area);
-
-    if (!targetArea || targetArea.dist > MAX_ABSOLUTE_KM) {
-      return NextResponse.json({ error: 'Out of bounds', message: 'You are too far away.' }, { status: 403 });
-    }
-
-    if (targetArea.dist > closestArea.dist + TOLERANCE_KM) {
-      return NextResponse.json({ 
-        error: 'Location mismatch', 
-        message: `You appear to be closer to ${closestArea.name}. You can only report for your actual location.` 
-      }, { status: 403 });
     }
 
     const hazard = await prisma.hazardReport.create({
@@ -89,14 +126,18 @@ export async function POST(req: NextRequest) {
         areaName,
         imageUrl,
         area,
-        city: 'Freetown',
-        lat,
-        lng,
+        city: FREETOWN_CITY,
+        lat: locationValidation.lat,
+        lng: locationValidation.lng,
         deviceId,
       },
     });
 
-    return NextResponse.json({ success: true, hazard });
+    return NextResponse.json({
+      success: true,
+      hazard,
+      message: `Hazard report saved for ${area}. Authorities can now review it.`,
+    });
   } catch (error) {
     console.error('POST /api/hazards error:', error);
     return NextResponse.json({ error: 'Failed to submit hazard report' }, { status: 500 });

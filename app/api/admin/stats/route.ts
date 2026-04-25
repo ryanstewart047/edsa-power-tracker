@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const [allReports, areaStatuses, hazardReports] = await Promise.all([
+    const [allReports, areaStatuses, hazardReports, totalReports, totalHazards] = await Promise.all([
       prisma.outageReport.findMany({
         orderBy: { reportedAt: 'desc' },
         take: 100,
@@ -16,13 +16,17 @@ export async function GET() {
         orderBy: { reportedAt: 'desc' },
         take: 50,
       }),
+      prisma.outageReport.count(),
+      prisma.hazardReport.count(),
     ]);
 
+    const areaStatusLookup = new Map(areaStatuses.map((status) => [status.area, status]));
+
     const stats = {
-      totalReports: await prisma.outageReport.count(),
-      totalHazards: await prisma.hazardReport.count(),
+      totalReports,
+      totalHazards,
       areaSummary: FREETOWN_AREAS.map(area => {
-        const status = areaStatuses.find(s => s.area === area.name);
+        const status = areaStatusLookup.get(area.name);
         return {
           name: area.name,
           status: status?.status || 'unknown',
