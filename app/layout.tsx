@@ -5,12 +5,12 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "EDSA Power Tracker — Freetown",
-  description: "Real-time crowdsourced electricity outage tracker for Freetown, Sierra Leone. Report and check power status in your neighbourhood.",
-  keywords: ["EDSA", "power", "electricity", "Freetown", "Sierra Leone", "outage", "light"],
+  title: "EDSA Native Platform — Freetown",
+  description: "Professional native-style power tracking and hazard operations platform for Freetown, Sierra Leone.",
+  keywords: ["EDSA", "power", "electricity", "Freetown", "Sierra Leone", "outage", "hazard", "operations"],
   openGraph: {
-    title: "EDSA Power Tracker",
-    description: "Know when your area has light. Report outages in Freetown, Sierra Leone.",
+    title: "EDSA Native Platform",
+    description: "Track electricity status, escalate hazards, and manage operations across Freetown.",
     type: "website",
   },
 };

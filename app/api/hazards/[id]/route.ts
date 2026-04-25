@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getAdminSession } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -11,6 +12,11 @@ interface RouteContext {
 
 export async function DELETE(_request: Request, { params }: RouteContext) {
   try {
+    const admin = await getAdminSession();
+    if (!admin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const hazardId = params.id?.trim();
 
     if (!hazardId) {

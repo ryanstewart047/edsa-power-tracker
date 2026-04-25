@@ -54,3 +54,27 @@ model HazardReport {
   @@index([area, city])
   @@index([reportedAt])
 }
+
+model AdminUser {
+  id             String               @id @default(cuid())
+  email          String               @unique
+  passwordHash   String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  resetTokens    PasswordResetToken[]
+
+  @@index([email])
+}
+
+model PasswordResetToken {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  adminId     String
+  admin       AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([expiresAt])
+}

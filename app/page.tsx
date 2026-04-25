@@ -1,804 +1,155 @@
-/* eslint-disable @next/next/no-img-element */
-'use client';
+import Link from 'next/link';
+import { ArrowRight, ShieldCheck, Smartphone, Zap, BarChart3, AlertTriangle } from 'lucide-react';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X } from 'lucide-react';
-import { AreaWithStatus, calculateDistanceKm, getClosestArea } from '@/lib/areas';
-import {
-  GEOLOCATION_MAXIMUM_AGE_MS,
-  GEOLOCATION_TIMEOUT_MS,
-  GPS_WARNING_ACCURACY_METERS,
-  HAZARD_TYPES,
-  HazardType,
-  MAX_REPORTING_ACCURACY_METERS,
-} from '@/lib/reporting';
+const highlights = [
+  {
+    icon: Zap,
+    title: 'Live Community Power Signals',
+    description: 'Track what is happening around Freetown in real time with location-aware power reporting.',
+  },
+  {
+    icon: AlertTriangle,
+    title: 'Hazard Escalation',
+    description: 'Capture dangerous lines, poles, and illegal connections with evidence and exact local details.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Admin Control Center',
+    description: 'Review incidents, resolve them quickly, and export clean operational reports for stakeholders.',
+  },
+];
 
-const STATUS_META = {
-  on:      { label: 'Power ON',  icon: Zap,         dot: 'bg-green-400', ring: 'ring-green-500/30', card: 'border-green-500/30 bg-green-500/5',  text: 'text-green-400' },
-  out:     { label: 'Power OUT', icon: ZapOff,       dot: 'bg-red-400 animate-ping-slow', ring: 'ring-red-500/30', card: 'border-red-500/30 bg-red-500/5',    text: 'text-red-400' },
-  unknown: { label: 'Unknown',   icon: HelpCircle,   dot: 'bg-gray-500',  ring: 'ring-gray-500/20', card: 'border-white/10 bg-white/5',            text: 'text-gray-400' },
-};
+const featurePills = [
+  'Location-verified reporting',
+  'Hazard evidence capture',
+  'Admin login and password reset',
+  'Excel export and WhatsApp sharing',
+];
 
-type LocationSnapshot = {
-  lat: number;
-  lng: number;
-  accuracy: number | null;
-  capturedAt: string;
-};
-
-type SubmissionResult = {
-  success: boolean;
-  confirmed: boolean;
-  reportsNeeded: number;
-  message: string;
-};
-
-function timeAgo(dateStr: string | null): string {
-  if (!dateStr) return 'No data yet';
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
-  if (diff < 0) return 'Just now';
-  if (diff < 60)  return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  return `${Math.floor(diff / 3600)}h ago`;
-}
-
-function formatAccuracy(accuracy: number | null): string {
-  if (accuracy === null) return 'GPS locked';
-  return `${Math.round(accuracy)}m accuracy`;
-}
-
-function getGeolocationErrorMessage(error: GeolocationPositionError): string {
-  switch (error.code) {
-    case error.PERMISSION_DENIED:
-      return 'Location permission was denied. Enable GPS access to submit reports.';
-    case error.POSITION_UNAVAILABLE:
-      return 'Your location could not be determined right now. Try moving to a clearer spot.';
-    case error.TIMEOUT:
-      return 'Location lookup timed out. Refresh GPS and try again.';
-    default:
-      return 'Unable to verify your location right now.';
-  }
-}
-
-function getDeviceId() {
-  if (typeof window === 'undefined') return null;
-  let id = localStorage.getItem('edsa_device_id');
-  if (!id) {
-    id = typeof crypto !== 'undefined' && 'randomUUID' in crypto
-      ? `dev_${crypto.randomUUID()}`
-      : `dev_${Math.random().toString(36).substring(2, 15)}`;
-    localStorage.setItem('edsa_device_id', id);
-  }
-  return id;
-}
-
-export default function Home() {
-  const [areas, setAreas] = useState<AreaWithStatus[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [statusError, setStatusError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [filter, setFilter] = useState<'all' | 'out' | 'on' | 'unknown'>('all');
-  const [reportModal, setReportModal] = useState<AreaWithStatus | null>(null);
-  const [hazardModal, setHazardModal] = useState<AreaWithStatus | null>(null);
-  const [reporting, setReporting] = useState(false);
-  const [reportResult, setReportResult] = useState<SubmissionResult | null>(null);
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [location, setLocation] = useState<LocationSnapshot | null>(null);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
-
-  // Hazard Report State
-  const [hazardType, setHazardType] = useState<HazardType>(HAZARD_TYPES[0]);
-  const [hazardDesc, setHazardDesc] = useState('');
-  const [hazardStreet, setHazardStreet] = useState('');
-  const [hazardHouse, setHazardHouse] = useState('');
-  const [hazardAreaName, setHazardAreaName] = useState('');
-  const [hazardImage, setHazardImage] = useState<string | null>(null);
-
-  const fetchStatus = useCallback(async () => {
-    try {
-      const res = await fetch('/api/status', { cache: 'no-store' });
-      if (!res.ok) {
-        throw new Error('Unable to load the latest area status right now.');
-      }
-
-      const data = await res.json();
-      setAreas(data);
-      setLastRefresh(new Date());
-      setStatusError(null);
-    } catch (e) {
-      console.error('Failed to fetch status', e);
-      setStatusError(e instanceof Error ? e.message : 'Failed to fetch status.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 60_000);
-    return () => clearInterval(interval);
-  }, [fetchStatus]);
-
-  const handleLocationSuccess = useCallback((pos: GeolocationPosition) => {
-    setLocation({
-      lat: pos.coords.latitude,
-      lng: pos.coords.longitude,
-      accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
-      capturedAt: new Date().toISOString(),
-    });
-    setLocationError(null);
-    setLocationLoading(false);
-  }, []);
-
-  const handleLocationError = useCallback((error: GeolocationPositionError) => {
-    setLocationLoading(false);
-    setLocationError(getGeolocationErrorMessage(error));
-  }, []);
-
-  const requestLocation = useCallback(() => {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setLocationError('Geolocation is not supported on this device.');
-      setLocationLoading(false);
-      return;
-    }
-
-    setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      handleLocationSuccess,
-      handleLocationError,
-      {
-        enableHighAccuracy: true,
-        timeout: GEOLOCATION_TIMEOUT_MS,
-        maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
-      },
-    );
-  }, [handleLocationError, handleLocationSuccess]);
-
-  useEffect(() => {
-    requestLocation();
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      return undefined;
-    }
-
-    const watchId = navigator.geolocation.watchPosition(
-      handleLocationSuccess,
-      handleLocationError,
-      {
-        enableHighAccuracy: true,
-        timeout: GEOLOCATION_TIMEOUT_MS,
-        maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
-      },
-    );
-
-    return () => navigator.geolocation.clearWatch(watchId);
-  }, [handleLocationError, handleLocationSuccess, requestLocation]);
-
-  const closeReportModal = useCallback(() => {
-    setReportModal(null);
-    setReportResult(null);
-  }, []);
-
-  const resetHazardForm = useCallback(() => {
-    setHazardType(HAZARD_TYPES[0]);
-    setHazardDesc('');
-    setHazardStreet('');
-    setHazardHouse('');
-    setHazardAreaName('');
-    setHazardImage(null);
-  }, []);
-
-  const closeHazardModal = useCallback(() => {
-    setHazardModal(null);
-    setReportResult(null);
-    resetHazardForm();
-  }, [resetHazardForm]);
-
-  const locationAccurateEnough = useMemo(() => {
-    if (!location) {
-      return false;
-    }
-
-    return location.accuracy === null || location.accuracy <= MAX_REPORTING_ACCURACY_METERS;
-  }, [location]);
-
-  const locationHelpMessage = useMemo(() => {
-    if (locationError) {
-      return locationError;
-    }
-
-    if (!location) {
-      return 'Enable GPS to verify your reporting area.';
-    }
-
-    if (!locationAccurateEnough) {
-      return `Your GPS signal is too broad (${formatAccuracy(location.accuracy)}). Refresh your location or move outdoors before reporting.`;
-    }
-
-    return null;
-  }, [location, locationAccurateEnough, locationError]);
-
-  const handleReport = useCallback(async (status: 'on' | 'out') => {
-    if (!reportModal) {
-      return;
-    }
-
-    if (!location || !locationAccurateEnough) {
-      setReportResult({
-        success: false,
-        confirmed: false,
-        reportsNeeded: 0,
-        message: locationHelpMessage ?? 'We need a reliable GPS fix before you can submit a report.',
-      });
-      return;
-    }
-
-    setReporting(true);
-    setReportResult(null);
-    
-    try {
-      const res = await fetch('/api/status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          area: reportModal.name, 
-          status,
-          deviceId: getDeviceId(),
-          lat: location.lat,
-          lng: location.lng
-        }),
-      });
-      
-      const data = await res.json();
-      
-      if (res.ok) {
-        setReportResult({
-          success: true,
-          confirmed: Boolean(data.confirmed),
-          reportsNeeded: Number(data.reportsNeeded ?? 0),
-          message: data.message || 'Your report was saved.',
-        });
-        await fetchStatus();
-        window.setTimeout(closeReportModal, 2600);
-      } else {
-        setReportResult({
-          success: false,
-          confirmed: false,
-          reportsNeeded: 0,
-          message: data.message || data.error || 'Submission blocked.',
-        });
-      }
-    } catch {
-      setReportResult({
-        success: false,
-        confirmed: false,
-        reportsNeeded: 0,
-        message: 'Network error. Please try again.',
-      });
-    } finally {
-      setReporting(false);
-    }
-  }, [closeReportModal, fetchStatus, location, locationAccurateEnough, locationHelpMessage, reportModal]);
-
-  const handleHazardReport = useCallback(async () => {
-    if (!hazardModal) {
-      return;
-    }
-
-    if (!location || !locationAccurateEnough) {
-      setReportResult({
-        success: false,
-        confirmed: false,
-        reportsNeeded: 0,
-        message: locationHelpMessage ?? 'We need a reliable GPS fix before you can submit a hazard report.',
-      });
-      return;
-    }
-
-    if (!hazardAreaName.trim()) {
-      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Please enter the Area or Community Name.' });
-      return;
-    }
-
-    if (hazardType === 'Illegal Connection' && (!hazardStreet.trim() || !hazardHouse.trim())) {
-      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Street name and house number are required for illegal connection reports.' });
-      return;
-    }
-
-    if (!hazardDesc.trim() && !hazardImage) {
-      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Add a short description or a photo so the hazard can be verified.' });
-      return;
-    }
-
-    setReporting(true);
-    
-    try {
-      const res = await fetch('/api/hazards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          area: hazardModal.name,
-          type: hazardType,
-          description: hazardDesc,
-          streetName: hazardStreet,
-          houseNumber: hazardHouse,
-          areaName: hazardAreaName,
-          imageUrl: hazardImage,
-          deviceId: getDeviceId(),
-          lat: location.lat,
-          lng: location.lng,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setReportResult({
-          success: true,
-          confirmed: true,
-          reportsNeeded: 0,
-          message: data.message || 'Hazard report saved.',
-        });
-        window.setTimeout(closeHazardModal, 2600);
-      } else {
-        setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: data.message || 'Failed to report.' });
-      }
-    } catch {
-      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Network error.' });
-    } finally {
-      setReporting(false);
-    }
-  }, [
-    closeHazardModal,
-    hazardAreaName,
-    hazardDesc,
-    hazardHouse,
-    hazardImage,
-    hazardModal,
-    hazardStreet,
-    hazardType,
-    location,
-    locationAccurateEnough,
-    locationHelpMessage,
-  ]);
-
-  const areasWithProximity = useMemo(() => {
-    if (!location) {
-      return areas.map(area => ({ ...area, isNearby: false, distance: null, isClosest: false }));
-    }
-    
-    const closestArea = getClosestArea(location.lat, location.lng);
-    const withDist = areas.map(area => ({
-      ...area,
-      distance: calculateDistanceKm(location.lat, location.lng, area.lat, area.lng),
-    }));
-
-    return withDist.map(area => {
-      const isClosest = area.name === closestArea?.name;
-      const isNearby = isClosest;
-      return { ...area, isNearby, distance: area.distance, isClosest };
-    });
-  }, [areas, location]);
-
-  const closestArea = useMemo(() => {
-    return areasWithProximity.find(a => a.isClosest) || null;
-  }, [areasWithProximity]);
-
-  const filtered = areasWithProximity.filter(a => {
-    const matchSearch = a.name.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === 'all' || a.status === filter;
-    return matchSearch && matchFilter;
-  });
-
-  const counts = {
-    on:      areas.filter(a => a.status === 'on').length,
-    out:     areas.filter(a => a.status === 'out').length,
-    unknown: areas.filter(a => a.status === 'unknown').length,
-  };
-
-  const locationChipTone = !location
-    ? 'bg-white/5 border-white/10 text-gray-500'
-    : !locationAccurateEnough
-      ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-300'
-      : 'bg-green-500/5 border-green-500/20 text-green-400';
-
-  const locationChipLabel = !location
-    ? 'Locating...'
-    : !locationAccurateEnough
-      ? 'Low GPS accuracy'
-      : formatAccuracy(location.accuracy);
-
+export default function WelcomePage() {
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <header className="sticky top-0 z-40 bg-gray-950/80 backdrop-blur-xl border-b border-white/10">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-yellow-400" />
-            </div>
-            <div>
-              <h1 className="font-bold text-base sm:text-lg leading-tight">EDSA Power Tracker</h1>
-              <p className="text-[11px] text-gray-400 hidden sm:block">Freetown, Sierra Leone</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className={`hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full border text-[10px] uppercase tracking-wider font-bold ${
-              locationChipTone
-            }`}>
-              {locationLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <MapPin className="w-3 h-3" />}
-              {locationLoading ? 'Refreshing GPS...' : locationChipLabel}
-            </div>
-            <button
-              onClick={fetchStatus}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
-            >
-              <RefreshCw className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Updated {timeAgo(lastRefresh.toISOString())}</span>
-              <span className="sm:hidden">Refresh</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
-        {statusError && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-            {statusError}
-          </div>
-        )}
-
-        {locationHelpMessage && (
-          <div className={`rounded-2xl border px-4 py-3 text-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${
-            location && !locationAccurateEnough
-              ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-100'
-              : 'border-white/10 bg-white/5 text-gray-200'
-          }`}>
-            <span>{locationHelpMessage}</span>
-            <button
-              onClick={requestLocation}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10"
-            >
-              {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-              Refresh GPS
-            </button>
-          </div>
-        )}
-
-        {/* Your Reporting Area - Shows ONLY Closest Area */}
-        {closestArea ? (
-          <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-yellow-400">Your Current Area</h2>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={requestLocation}
-                  className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-all"
-                >
-                  {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                  Refresh GPS
-                </button>
-                <div className="flex items-center gap-1.5 text-[10px] text-yellow-600 bg-yellow-500/20 px-2.5 py-1 rounded-full font-bold">
-                  <MapPin className="w-3 h-3" />
-                  LIVE TRACKING
-                </div>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.18),_transparent_34%),linear-gradient(180deg,_#08121f_0%,_#05070d_48%,_#020305_100%)] text-white">
+      <section className="max-w-6xl mx-auto px-6 py-8 sm:py-12">
+        <header className="flex flex-col gap-6 rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/15 ring-1 ring-yellow-400/20">
+                <Zap className="h-7 w-7 text-yellow-300" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-yellow-300/80">EDSA Native Platform</p>
+                <h1 className="text-2xl font-bold sm:text-3xl">Power and hazard operations, designed for daily field use.</h1>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <h3 className="text-2xl font-bold text-white">{closestArea.name}</h3>
-                <p className={`text-sm font-medium ${STATUS_META[closestArea.status].text}`}>{STATUS_META[closestArea.status].label}</p>
-                <div className="flex flex-wrap gap-2 text-xs text-gray-300">
-                  <span className="rounded-full bg-white/10 px-2.5 py-1">
-                    {closestArea.distance !== null ? `${closestArea.distance.toFixed(2)} km away` : 'Distance unavailable'}
-                  </span>
-                  {location && (
-                    <span className={`rounded-full px-2.5 py-1 ${
-                      location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
-                        ? 'bg-yellow-500/15 text-yellow-200'
-                        : 'bg-green-500/10 text-green-200'
-                    }`}>
-                      {formatAccuracy(location.accuracy)}
-                    </span>
-                  )}
-                  {location && (
-                    <span className="rounded-full bg-white/10 px-2.5 py-1">
-                      Updated {timeAgo(location.capturedAt)}
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-400 mt-2">You can only report for your actual location. Move to a different area to report there.</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setReportModal(closestArea); setReportResult(null); }}
-                  disabled={!locationAccurateEnough}
-                  className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Zap className="w-4 h-4" />
-                  Report Status
-                </button>
-                <button
-                  onClick={() => { setHazardModal(closestArea); setReportResult(null); }}
-                  disabled={!locationAccurateEnough}
-                  className="flex-1 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <AlertTriangle className="w-4 h-4" />
-                  Report Hazard
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-6 text-center">
-            <p className="text-gray-400 font-medium">Waiting for location... Enable GPS to report</p>
-            <button
-              onClick={requestLocation}
-              className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
-            >
-              {locationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Refresh GPS
-            </button>
-          </div>
-        )}
 
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Have Power', count: counts.on,      color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
-            { label: 'Power Out',  count: counts.out,     color: 'text-red-400',   bg: 'bg-red-500/10 border-red-500/20' },
-            { label: 'Unknown',    count: counts.unknown, color: 'text-gray-400',  bg: 'bg-gray-500/10 border-gray-500/20' },
-          ].map(s => (
-            <div key={s.label} className={`rounded-2xl border p-4 text-center ${s.bg}`}>
-              <p className={`text-2xl font-bold ${s.color}`}>{s.count}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-3">
-          <input
-            type="search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search neighbourhood…"
-            className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
-          />
-          <div className="flex gap-2">
-            {(['all', 'out', 'on', 'unknown'] as const).map(f => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
-                  filter === f
-                    ? f === 'out' ? 'bg-red-500 text-white'
-                    : f === 'on'  ? 'bg-green-500 text-white'
-                    : 'bg-white text-gray-900'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
+            <div className="flex flex-wrap gap-3">
+              <Link
+                href="/tracker"
+                className="inline-flex items-center gap-2 rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-gray-950 transition-transform hover:-translate-y-0.5 hover:bg-yellow-300"
               >
-                {f}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="border-t border-white/5 pt-6">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">All Areas Reference</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {loading ? (
-              Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
-              ))
-            ) : (
-              filtered.map(area => {
-                const meta = STATUS_META[area.status];
-                const Icon = meta.icon;
-                const canReport = area.isClosest && locationAccurateEnough;
-
-                return (
-                  <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={`w-3 h-3 rounded-full mt-1 ${meta.dot}`} />
-                      <Icon className={`w-5 h-5 ${meta.text}`} />
-                    </div>
-                    <h3 className="font-bold text-lg">{area.name}</h3>
-                    <p className={`text-sm font-medium ${meta.text}`}>{meta.label}</p>
-                    
-                    <div className="mt-4 flex items-center gap-2">
-                      <button
-                        onClick={() => { if (canReport) { setReportModal(area); setReportResult(null); } }}
-                        disabled={!canReport}
-                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all disabled:opacity-0"
-                      >
-                        Report Status
-                      </button>
-                      <button
-                        onClick={() => { if (canReport) { setHazardModal(area); setReportResult(null); } }}
-                        disabled={!canReport}
-                        className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 disabled:opacity-0 transition-all"
-                        title={canReport ? "Report Hazard" : "Move to this area and verify GPS to report"}
-                      >
-                        <AlertTriangle className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {!canReport && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-950/40 backdrop-blur-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-[10px] bg-black/80 px-2 py-1 rounded text-gray-400 uppercase tracking-widest font-bold">
-                        {locationAccurateEnough ? 'Move to report here' : 'Need better GPS to report'}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )
-            })
-          )}
-          </div>
-        </div>
-      </div>
-
-      {/* Report Status Modal */}
-      {reportModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-gray-900 border border-white/10 rounded-3xl p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Report Status</h2>
-              <button onClick={closeReportModal} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
+                Open Live Tracker
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/admin/login"
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
+              >
+                Admin Sign In
+              </Link>
             </div>
-            
-            {reportResult ? (
-              <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                <p className="font-bold">{reportResult.success ? 'Report Received' : 'Failed'}</p>
-                <p className="text-sm mt-1">{reportResult.message}</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400">Your report for <span className="text-white font-bold">{reportModal.name}</span> helps verify the local power status.</p>
-                {location && (
-                  <p className="text-xs text-gray-500">
-                    Reporting with {formatAccuracy(location.accuracy)} GPS accuracy.
-                  </p>
-                )}
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    onClick={() => handleReport('on')}
-                    disabled={reporting || !locationAccurateEnough}
-                    className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <Zap className="w-8 h-8 text-green-400" />
-                    <span className="font-bold text-green-400">Power ON</span>
-                  </button>
-                  <button
-                    onClick={() => handleReport('out')}
-                    disabled={reporting || !locationAccurateEnough}
-                    className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    <ZapOff className="w-8 h-8 text-red-400" />
-                    <span className="font-bold text-red-400">Power OUT</span>
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
-      )}
 
-      {/* Hazard Report Modal */}
-      {hazardModal && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm bg-gray-900 border border-white/10 rounded-3xl p-6 space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold">Report Hazard</h2>
-              <button onClick={closeHazardModal} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
-            </div>
-
-            {reportResult ? (
-              <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                <p className="font-bold">{reportResult.success ? 'Hazard Reported!' : 'Failed'}</p>
-                <p className="text-sm mt-1">{reportResult.message}</p>
-              </div>
-            ) : (
+          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
+            <div className="space-y-6">
               <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Hazard Type</label>
-                  <select 
-                    value={hazardType} 
-                    onChange={e => setHazardType(e.target.value as HazardType)}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                  >
-                    {HAZARD_TYPES.map((type) => (
-                      <option key={type} value={type}>{type}</option>
-                    ))}
-                  </select>
+                <p className="max-w-3xl text-lg leading-8 text-gray-200 sm:text-xl">
+                  A professional mobile-first control surface for electricity status reporting, hazard escalation, and operational oversight across Freetown.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {featurePills.map((pill) => (
+                    <span
+                      key={pill}
+                      className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-gray-200"
+                    >
+                      {pill}
+                    </span>
+                  ))}
                 </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Specific Area Name <span className="text-red-400">*</span></label>
-                  <input
-                    value={hazardAreaName}
-                    onChange={e => setHazardAreaName(e.target.value)}
-                    placeholder="e.g. Jui Junction"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name {hazardType === 'Illegal Connection' && <span className="text-red-400">*</span>}</label>
-                    <input
-                      value={hazardStreet}
-                      onChange={e => setHazardStreet(e.target.value)}
-                      placeholder="e.g. Main St"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No {hazardType === 'Illegal Connection' && <span className="text-red-400">*</span>}</label>
-                    <input
-                      value={hazardHouse}
-                      onChange={e => setHazardHouse(e.target.value)}
-                      placeholder="e.g. 12B"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Description</label>
-                  <textarea
-                    value={hazardDesc}
-                    onChange={e => setHazardDesc(e.target.value)}
-                    placeholder="Briefly describe the danger..."
-                    className="w-full h-24 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500 resize-none"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Evidence (Photo)</label>
-                  <div className="relative group cursor-pointer h-32 rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center hover:bg-white/5 transition-all">
-                    <input 
-                      type="file" 
-                      accept="image/*" 
-                      capture="environment"
-                      className="absolute inset-0 opacity-0 cursor-pointer"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => setHazardImage(reader.result as string);
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                    {hazardImage ? (
-                      <img src={hazardImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                    ) : (
-                      <>
-                        <Camera className="w-8 h-8 text-gray-500 group-hover:text-red-400 transition-colors" />
-                        <span className="text-[10px] mt-2 text-gray-500 font-bold uppercase">Snap or Upload</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleHazardReport}
-                  disabled={reporting || !locationAccurateEnough}
-                  className="w-full py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2"
-                >
-                  {reporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
-                  Submit Danger Report
-                </button>
               </div>
-            )}
+
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Field Ready</p>
+                  <p className="mt-3 text-3xl font-bold text-white">24/7</p>
+                  <p className="mt-2 text-sm text-gray-400">Built for continuous monitoring and incident response.</p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Admin Workflow</p>
+                  <p className="mt-3 text-3xl font-bold text-white">Secure</p>
+                  <p className="mt-2 text-sm text-gray-400">Dedicated access control, reset flow, and reporting tools.</p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
+                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Distribution</p>
+                  <p className="mt-3 text-3xl font-bold text-white">Fast</p>
+                  <p className="mt-2 text-sm text-gray-400">Export overview reports and share operational summaries quickly.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6">
+              <div className="flex items-center gap-3 text-sm font-semibold text-white">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-500/10 text-green-300">
+                  <Smartphone className="h-5 w-5" />
+                </div>
+                Native-style entry experience
+              </div>
+              <div className="mt-6 space-y-4">
+                <div className="rounded-3xl border border-white/10 bg-[#0d1521] p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-white">Community app</p>
+                    <Zap className="h-4 w-4 text-yellow-300" />
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-gray-400">
+                    Citizens and field agents can open the live tracker to report outages or hazards with GPS validation.
+                  </p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-[#0d1521] p-5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-white">Admin workspace</p>
+                    <BarChart3 className="h-4 w-4 text-blue-300" />
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-gray-400">
+                    Authorized administrators can sign in, review incoming hazards, export overview data, and share summaries.
+                  </p>
+                </div>
+                <div className="rounded-3xl border border-white/10 bg-[#0d1521] p-5">
+                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-yellow-300/80">Recommended flow</p>
+                  <ol className="mt-3 space-y-3 text-sm text-gray-300">
+                    <li>1. Start with the live tracker for public reporting.</li>
+                    <li>2. Use admin sign-in for operations and report management.</li>
+                    <li>3. Export and share the overview when leadership needs updates.</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        </header>
+
+        <section className="mt-8 grid gap-4 md:grid-cols-3">
+          {highlights.map(({ icon: Icon, title, description }) => (
+            <article
+              key={title}
+              className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 shadow-xl shadow-black/20 backdrop-blur-md"
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-yellow-300">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h2 className="mt-5 text-xl font-bold">{title}</h2>
+              <p className="mt-3 text-sm leading-7 text-gray-400">{description}</p>
+            </article>
+          ))}
+        </section>
+      </section>
     </main>
   );
-}
-
-function MegaphoneIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-  )
 }
