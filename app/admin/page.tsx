@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Zap, ZapOff, AlertTriangle, Clock, MapPin, Search, CheckCircle, RefreshCw, BarChart3, LucideIcon } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Zap, ZapOff, AlertTriangle, Clock, MapPin, Search, CheckCircle, RefreshCw, BarChart3, LucideIcon, X, Eye } from 'lucide-react';
 
 interface Stats {
   totalReports: number;
@@ -46,6 +46,8 @@ interface SidebarItemProps {
   badge?: number;
 }
 
+type HazardItem = Stats['recentHazards'][number];
+
 function SidebarItem({ label, icon: Icon, active, onClick, badge }: SidebarItemProps) {
   return (
     <button
@@ -67,14 +69,42 @@ function SidebarItem({ label, icon: Icon, active, onClick, badge }: SidebarItemP
   );
 }
 
+function timeAgo(dateStr: string | null): string {
+  if (!dateStr) return 'Never';
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+  if (diff < 60) return `${Math.max(diff, 0)}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
+}
+
+function formatCoordinates(lat: number | null, lng: number | null): string {
+  if (lat === null || lng === null) {
+    return 'Coordinates unavailable';
+  }
+
+  return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+}
+
 export default function AdminDashboard() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'hazards' | 'feed'>('overview');
   const [searchTerm, setSearchTerm] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const [selectedHazardId, setSelectedHazardId] = useState<string | null>(null);
+  const [resolvingHazardId, setResolvingHazardId] = useState<string | null>(null);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async (options?: { initial?: boolean }) => {
+    const isInitial = options?.initial ?? false;
+    if (isInitial) {
+      setLoading(true);
+    } else {
+      setRefreshing(true);
+    }
+
     try {
       const res = await fetch('/api/admin/stats', { cache: 'no-store' });
       if (!res.ok) {
@@ -84,19 +114,26 @@ export default function AdminDashboard() {
       const data = await res.json();
       setStats(data);
       setError(null);
+      setLastUpdated(new Date().toISOString());
     } catch (e) {
       console.error('Failed to fetch admin stats', e);
       setError(e instanceof Error ? e.message : 'Failed to fetch admin stats.');
     } finally {
-      setLoading(false);
+      if (isInitial) {
+        setLoading(false);
+      } else {
+        setRefreshing(false);
+      }
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchStats();
-    const interval = setInterval(fetchStats, 30_000);
+    void fetchStats({ initial: true });
+    const interval = setInterval(() => {
+      void fetchStats();
+    }, 30_000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchStats]);
 
   const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -134,6 +171,56 @@ export default function AdminDashboard() {
     });
   }, [normalizedSearch, stats]);
 
+  const selectedHazard = useMemo(() => {
+    if (!stats || !selectedHazardId) {
+      return null;
+    }
+
+    return stats.recentHazards.find((hazard) => hazard.id === selectedHazardId) ?? null;
+  }, [selectedHazardId, stats]);
+
+  const handleResolveHazard = useCallback(async (hazard: HazardItem) => {
+    const confirmed = window.confirm(`Mark "${hazard.type}" in ${hazard.areaName || hazard.area} as resolved?`);
+    if (!confirmed) {
+      return;
+    }
+
+    setResolvingHazardId(hazard.id);
+    setError(null);
+    setSuccessMessage(null);
+
+    try {
+      const res = await fetch(`/api/hazards/${hazard.id}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Unable to resolve this hazard report.');
+      }
+
+      setStats((currentStats) => {
+        if (!currentStats) {
+          return currentStats;
+        }
+
+        return {
+          ...currentStats,
+          totalHazards: Math.max(0, currentStats.totalHazards - 1),
+          recentHazards: currentStats.recentHazards.filter((item) => item.id !== hazard.id),
+        };
+      });
+      setSelectedHazardId((currentId) => (currentId === hazard.id ? null : currentId));
+      setSuccessMessage(data.message || 'Hazard marked as resolved.');
+      setLastUpdated(new Date().toISOString());
+    } catch (e) {
+      console.error('Failed to resolve hazard', e);
+      setError(e instanceof Error ? e.message : 'Failed to resolve hazard.');
+    } finally {
+      setResolvingHazardId(null);
+    }
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
@@ -142,7 +229,26 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!stats) return null;
+  if (!stats) {
+    return (
+      <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-6">
+        <div className="w-full max-w-md rounded-3xl border border-red-500/20 bg-gray-900 p-6 space-y-4 text-center">
+          <AlertTriangle className="w-10 h-10 text-red-400 mx-auto" />
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold">Admin data unavailable</h1>
+            <p className="text-sm text-gray-400">{error || 'The dashboard could not load right now.'}</p>
+          </div>
+          <button
+            onClick={() => void fetchStats({ initial: true })}
+            className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 text-white flex flex-col md:flex-row">
@@ -171,6 +277,10 @@ export default function AdminDashboard() {
             <p className="text-gray-500 mt-1">Monitoring power and safety across Freetown</p>
           </div>
           <div className="flex items-center gap-4">
+            <div className="hidden md:block text-right text-xs text-gray-500">
+              <p>Last synced {timeAgo(lastUpdated)}</p>
+              <p>{lastUpdated ? new Date(lastUpdated).toLocaleTimeString() : 'Waiting for sync'}</p>
+            </div>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
@@ -181,8 +291,13 @@ export default function AdminDashboard() {
                 className="bg-gray-900 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-yellow-500/50 transition-all w-full md:w-64"
               />
             </div>
-            <button onClick={fetchStats} className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all">
-              <RefreshCw className="w-5 h-5 text-gray-400" />
+            <button
+              onClick={() => void fetchStats()}
+              disabled={refreshing}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/5 px-3 py-2.5 text-sm text-gray-200 hover:bg-white/10 transition-all disabled:opacity-60"
+            >
+              <RefreshCw className={`w-5 h-5 text-gray-400 ${refreshing ? 'animate-spin' : ''}`} />
+              <span>{refreshing ? 'Refreshing...' : 'Refresh'}</span>
             </button>
           </div>
         </header>
@@ -190,6 +305,12 @@ export default function AdminDashboard() {
         {error && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             {error}
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="rounded-2xl border border-green-500/20 bg-green-500/10 px-4 py-3 text-sm text-green-200">
+            {successMessage}
           </div>
         )}
 
@@ -281,7 +402,10 @@ export default function AdminDashboard() {
             ) : (
               filteredHazards.map(hazard => (
                 <div key={hazard.id} className="bg-gray-900 border border-white/10 rounded-3xl overflow-hidden group">
-                  <div className="aspect-video relative overflow-hidden">
+                  <button
+                    onClick={() => setSelectedHazardId(hazard.id)}
+                    className="aspect-video relative overflow-hidden block w-full text-left"
+                  >
                     {hazard.imageUrl ? (
                       <img src={hazard.imageUrl} alt={hazard.type} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                     ) : (
@@ -295,7 +419,13 @@ export default function AdminDashboard() {
                         {hazard.type}
                       </span>
                     </div>
-                  </div>
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors flex items-end justify-end p-4">
+                      <span className="inline-flex items-center gap-2 rounded-lg bg-black/70 px-3 py-2 text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Eye className="w-3.5 h-3.5" />
+                        View details
+                      </span>
+                    </div>
+                  </button>
                   <div className="p-6 space-y-4">
                     <div className="flex items-start justify-between gap-2">
                       <h4 className="font-bold text-lg">{hazard.areaName || hazard.area}</h4>
@@ -311,12 +441,20 @@ export default function AdminDashboard() {
                     </p>
                     <p className="text-sm text-gray-400 line-clamp-2 italic">&quot;{hazard.description || 'No description provided.'}&quot;</p>
                     <div className="pt-4 border-t border-white/5 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs text-blue-400 font-bold">
+                      <button
+                        onClick={() => setSelectedHazardId(hazard.id)}
+                        className="flex items-center gap-2 text-xs text-blue-400 font-bold hover:text-blue-300"
+                      >
                         <MapPin className="w-3 h-3" />
-                        {hazard.lat !== null && hazard.lng !== null ? `${hazard.lat.toFixed(4)}, ${hazard.lng.toFixed(4)}` : 'Coordinates unavailable'}
-                      </div>
-                      <button className="text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors">
-                        Mark Resolved
+                        {formatCoordinates(hazard.lat, hazard.lng)}
+                      </button>
+                      <button
+                        onClick={() => void handleResolveHazard(hazard)}
+                        disabled={resolvingHazardId === hazard.id}
+                        className="inline-flex items-center gap-2 text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-60"
+                      >
+                        {resolvingHazardId === hazard.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                        {resolvingHazardId === hazard.id ? 'Resolving...' : 'Mark Resolved'}
                       </button>
                     </div>
                   </div>
@@ -355,6 +493,97 @@ export default function AdminDashboard() {
           </div>
         )}
       </main>
+
+      {selectedHazard && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/10 bg-gray-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-red-400 font-bold">{selectedHazard.type}</p>
+                <h3 className="text-xl font-bold">{selectedHazard.areaName || selectedHazard.area}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedHazardId(null)}
+                className="rounded-full p-2 text-gray-400 hover:bg-white/5 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
+              <div className="bg-gray-950 min-h-[320px] flex items-center justify-center">
+                {selectedHazard.imageUrl ? (
+                  <img
+                    src={selectedHazard.imageUrl}
+                    alt={selectedHazard.type}
+                    className="w-full h-full max-h-[70vh] object-contain"
+                  />
+                ) : (
+                  <div className="text-center text-gray-500 p-8">
+                    <AlertTriangle className="w-10 h-10 mx-auto mb-3" />
+                    <p>No photo was attached to this report.</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+                <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Reported</p>
+                  <p className="text-sm text-white">{new Date(selectedHazard.reportedAt).toLocaleString()}</p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-1">
+                    <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Area</p>
+                    <p className="text-sm text-white">{selectedHazard.area}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-1">
+                    <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Community</p>
+                    <p className="text-sm text-white">{selectedHazard.areaName || 'Not provided'}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-1">
+                    <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Street name</p>
+                    <p className="text-sm text-white">{selectedHazard.streetName || 'Not provided'}</p>
+                  </div>
+                  <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-1">
+                    <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">House number</p>
+                    <p className="text-sm text-white">{selectedHazard.houseNumber || 'Not provided'}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Description</p>
+                  <p className="text-sm text-gray-200 whitespace-pre-wrap">
+                    {selectedHazard.description || 'No description provided.'}
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-2">
+                  <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Coordinates</p>
+                  <p className="text-sm text-gray-200">{formatCoordinates(selectedHazard.lat, selectedHazard.lng)}</p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    onClick={() => void handleResolveHazard(selectedHazard)}
+                    disabled={resolvingHazardId === selectedHazard.id}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-500 px-4 py-3 text-sm font-bold text-black hover:bg-yellow-400 disabled:opacity-60"
+                  >
+                    {resolvingHazardId === selectedHazard.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
+                    {resolvingHazardId === selectedHazard.id ? 'Resolving...' : 'Mark Resolved'}
+                  </button>
+                  <button
+                    onClick={() => setSelectedHazardId(null)}
+                    className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-gray-200 hover:bg-white/5"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
