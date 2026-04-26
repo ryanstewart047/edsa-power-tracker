@@ -4,9 +4,18 @@ import { useState, useEffect } from 'react';
 import { Download, X, Share, Zap } from 'lucide-react';
 import { detectDevice, isPWAInstalled } from '@/lib/deviceDetection';
 
+interface BeforeInstallPromptEvent extends Event {
+  readonly platforms: Array<string>;
+  readonly userChoice: Promise<{
+    outcome: 'accepted' | 'dismissed';
+    platform: string;
+  }>;
+  prompt(): Promise<void>;
+}
+
 export default function PWAInstallBanner() {
   const [show, setShow] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [device, setDevice] = useState({ isMobile: false, isIOS: false, isAndroid: false });
 
   useEffect(() => {
@@ -19,9 +28,9 @@ export default function PWAInstallBanner() {
     // Check session storage to see if they closed it recently
     if (sessionStorage.getItem('edsa-pwa-dismissed')) return;
 
-    const handleBeforeInstallPrompt = (e: any) => {
+    const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShow(true);
     };
 

@@ -16,7 +16,7 @@ export function detectDevice(): DeviceInfo {
 
   const userAgent = navigator.userAgent || navigator.vendor || ''
   const isAndroid = /android/i.test(userAgent) && !/windows phone/i.test(userAgent)
-  const isIOS = /iPad|iPhone|iPod/i.test(userAgent) && !(window as any).MSStream
+  const isIOS = /iPad|iPhone|iPod/i.test(userAgent) && !(window as { MSStream?: unknown }).MSStream
   
   return {
     isMobile: isAndroid || isIOS,
@@ -29,6 +29,6 @@ export function detectDevice(): DeviceInfo {
 export function isPWAInstalled(): boolean {
   if (typeof window === 'undefined') return false
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches
-  const isIOSStandalone = (navigator as any).standalone === true
+  const isIOSStandalone = (navigator as Navigator & { standalone?: boolean }).standalone === true
   return isStandalone || isIOSStandalone || window.location.search.includes('source=pwa')
 }
