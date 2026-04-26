@@ -43,11 +43,12 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
     }),
     prisma.areaStatus.findMany(),
     prisma.hazardReport.findMany({
+      where: { resolved: false }, // Only show unresolved hazards
       orderBy: { reportedAt: 'desc' },
       take: 50,
     }),
     prisma.outageReport.count(),
-    prisma.hazardReport.count(),
+    prisma.hazardReport.count({ where: { resolved: false } }), // Count only unresolved
   ]);
 
   const areaStatusLookup = new Map(areaStatuses.map((status) => [status.area, status]));
