@@ -446,13 +446,13 @@ export default function Home() {
     <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
       {/* Background Image Layer */}
       <div 
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
         style={{ 
           backgroundImage: 'url("/assets/bg-action.png")',
-          filter: 'blur(20px) brightness(0.4)',
-          transform: 'scale(1.1)' 
+          filter: 'brightness(0.3) saturate(1.2)',
         }}
       />
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-[#020617]/80 to-[#020617]" />
       
       {/* Content Layer */}
       <div className="relative z-10 min-h-screen">

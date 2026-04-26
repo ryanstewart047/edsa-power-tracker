@@ -187,24 +187,7 @@ export default function WelcomePage() {
         </div>
       </section>
 
-      {/* Sticky Mobile CTA */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full px-6 md:hidden">
-        <Link
-          href="/tracker"
-          className="flex items-center justify-between w-full rounded-2xl bg-yellow-400 p-4 shadow-2xl shadow-yellow-400/40 text-gray-950"
-        >
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-gray-950 flex items-center justify-center">
-              <Zap className="h-5 w-5 text-yellow-400" />
-            </div>
-            <div className="text-left">
-              <p className="text-[10px] font-black uppercase tracking-wider opacity-60">Field Ready</p>
-              <p className="font-black text-sm">Open Live Tracker</p>
-            </div>
-          </div>
-          <ChevronRight className="h-6 w-6" />
-        </Link>
-      </div>
+
 
       <footer className="relative z-10 border-t border-white/5 py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
