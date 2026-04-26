@@ -26,22 +26,25 @@ export default function PWAInstallBanner() {
     if (sessionStorage.getItem('edsa-pwa-dismissed')) return;
 
     // 1. Check if it already fired and was saved globally
-    if ((window as any).deferredPrompt) {
-      setDeferredPrompt((window as any).deferredPrompt);
+    const globalPrompt = (window as unknown as { deferredPrompt: BeforeInstallPromptEvent }).deferredPrompt;
+    if (globalPrompt) {
+      setDeferredPrompt(globalPrompt);
       setShow(true);
     }
 
     // 2. Listen for the custom event we dispatch in layout.tsx
     const handlePromptReady = () => {
-      setDeferredPrompt((window as any).deferredPrompt);
+      const updatedPrompt = (window as unknown as { deferredPrompt: BeforeInstallPromptEvent }).deferredPrompt;
+      setDeferredPrompt(updatedPrompt);
       setShow(true);
     };
 
     // 3. Keep the standard listener as backup
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-      (window as any).deferredPrompt = e;
+      const promptEvent = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(promptEvent);
+      (window as unknown as { deferredPrompt: BeforeInstallPromptEvent }).deferredPrompt = promptEvent;
       setShow(true);
     };
 
