@@ -381,10 +381,6 @@ export default function Home() {
     });
   }, [areas, location]);
 
-  const closestArea = useMemo(() => {
-    return areasWithProximity.find(a => a.isClosest) || null;
-  }, [areasWithProximity]);
-
   const nearbyAreas = useMemo(() => {
     return areasWithProximity.filter(a => a.isNearby).sort((a, b) => (a.distance || 0) - (b.distance || 0));
   }, [areasWithProximity]);
