@@ -409,6 +409,8 @@ export default function Home() {
       ? 'Low GPS accuracy'
       : formatAccuracy(location.accuracy);
 
+  const locationActionLabel = location ? 'Refresh GPS' : 'Enable GPS';
+
   return (
     <main className="min-h-screen bg-gray-950 text-white">
       <header className="sticky top-0 z-40 bg-gray-950/80 backdrop-blur-xl border-b border-white/10">
@@ -460,7 +462,7 @@ export default function Home() {
               className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10"
             >
               {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-              Refresh GPS
+              {locationActionLabel}
             </button>
           </div>
         )}
@@ -476,7 +478,7 @@ export default function Home() {
                   className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-all"
                 >
                   {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                  Refresh GPS
+                  {locationActionLabel}
                 </button>
                 <div className="flex items-center gap-1.5 text-[10px] text-yellow-600 bg-yellow-500/20 px-2.5 py-1 rounded-full font-bold">
                   <MapPin className="w-3 h-3" />
@@ -538,7 +540,7 @@ export default function Home() {
               className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
             >
               {locationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-              Refresh GPS
+              Enable GPS
             </button>
           </div>
         )}
