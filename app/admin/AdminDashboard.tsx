@@ -87,7 +87,7 @@ function formatCoordinates(lat: number | null, lng: number | null): string {
   return `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
 }
 
-export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
+export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmail: string, isSuperAdmin?: boolean }) {
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -317,13 +317,16 @@ export default function AdminDashboard({ adminEmail }: { adminEmail: string }) {
           <SidebarItem label="Overview" icon={BarChart3} active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />
           <SidebarItem label="Dangers" icon={AlertTriangle} active={activeTab === 'hazards'} onClick={() => setActiveTab('hazards')} badge={stats.totalHazards} />
           <SidebarItem label="Report Feed" icon={Clock} active={activeTab === 'feed'} onClick={() => setActiveTab('feed')} />
-          <button
-            onClick={() => router.push('/admin/manage')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-400 hover:bg-white/5"
-          >
-            <Users className="w-5 h-5" />
-            <span className="font-bold text-sm">Manage Admins</span>
-          </button>
+          
+          {isSuperAdmin && (
+            <button
+              onClick={() => router.push('/admin/manage')}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-400 hover:bg-white/5"
+            >
+              <Users className="w-5 h-5" />
+              <span className="font-bold text-sm">Manage Admins</span>
+            </button>
+          )}
         </nav>
 
         <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 space-y-3">

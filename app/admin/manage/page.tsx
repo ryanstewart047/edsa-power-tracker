@@ -1,10 +1,16 @@
 import Link from 'next/link';
 import { requireAdminSession } from '@/lib/auth';
 import AdminManagementPanel from '../AdminManagement';
+import { redirect } from 'next/navigation';
 
 export default async function AdminManagementPage() {
   // Require authentication
-  await requireAdminSession();
+  const admin = await requireAdminSession();
+
+  // Restrict to super admins only
+  if (!admin.isSuperAdmin) {
+    redirect('/admin');
+  }
 
   return (
     <div className="min-h-screen bg-yellow-50">

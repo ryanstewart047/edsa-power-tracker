@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const admin = await getAdminSession();
-    if (!admin) {
+    if (!admin || !admin.isSuperAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 },
@@ -27,7 +27,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const admin = await getAdminSession();
-    if (!admin) {
+    if (!admin || !admin.isSuperAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 },

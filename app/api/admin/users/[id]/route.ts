@@ -9,7 +9,7 @@ export async function DELETE(
 ) {
   try {
     const admin = await getAdminSession();
-    if (!admin) {
+    if (!admin || !admin.isSuperAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 },
@@ -48,7 +48,7 @@ export async function PUT(
 ) {
   try {
     const admin = await getAdminSession();
-    if (!admin) {
+    if (!admin || !admin.isSuperAdmin) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 },
