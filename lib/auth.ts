@@ -249,21 +249,27 @@ export async function loginAdmin(email: string, password: string) {
     select: { id: true, email: true, isSuperAdmin: true, emailVerified: true, passwordHash: true, updatedAt: true },
   });
 
-  if (!admin || !verifyPassword(password, admin.passwordHash)) {
-    return null;
+  if (!admin) {
+    return { error: 'NOT_FOUND' };
+  }
+
+  if (!verifyPassword(password, admin.passwordHash)) {
+    return { error: 'INVALID_PASSWORD' };
   }
 
   // Check if email is verified (super admins bypass this)
   if (!admin.emailVerified && !admin.isSuperAdmin) {
-    return null;
+    return { error: 'UNVERIFIED' };
   }
 
   return {
-    id: admin.id,
-    email: admin.email,
-    isSuperAdmin: admin.isSuperAdmin,
-    updatedAt: admin.updatedAt,
-  } satisfies AuthenticatedAdmin;
+    admin: {
+      id: admin.id,
+      email: admin.email,
+      isSuperAdmin: admin.isSuperAdmin,
+      updatedAt: admin.updatedAt,
+    } satisfies AuthenticatedAdmin
+  };
 }
 
 export async function checkAdminEmailVerification(email: string) {

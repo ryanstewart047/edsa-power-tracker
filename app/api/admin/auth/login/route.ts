@@ -16,19 +16,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const admin = await loginAdmin(email, password);
-    if (!admin) {
-      // Check if email exists but is not verified
-      const emailStatus = await checkAdminEmailVerification(email);
-      
-      if (!emailStatus.exists) {
+    const loginResult = await loginAdmin(email, password);
+    
+    if (loginResult.error) {
+      if (loginResult.error === 'NOT_FOUND') {
         return NextResponse.json(
           { error: 'Email not found in our database.' },
           { status: 401 },
         );
       }
-
-      if (emailStatus.exists && !emailStatus.verified) {
+      
+      if (loginResult.error === 'UNVERIFIED') {
         return NextResponse.json(
           { error: 'Please verify your email before logging in. Check your email for a verification link.' },
           { status: 401 },
@@ -40,6 +38,8 @@ export async function POST(request: NextRequest) {
         { status: 401 },
       );
     }
+    
+    const admin = loginResult.admin!;
 
     const response = NextResponse.json({
       success: true,
