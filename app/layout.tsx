@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
+import FloatingPrompts from "@/components/FloatingPrompts";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} bg-gray-950 text-white min-h-screen`}>
         {children}
         <PWAInstallBanner />
+        <FloatingPrompts />
         <script dangerouslySetInnerHTML={{ __html: swScript }} />
       </body>
     </html>
