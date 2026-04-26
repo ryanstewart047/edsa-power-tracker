@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Smartphone, Zap, BarChart3, AlertTriangle } from 'lucide-react';
+import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 
 const highlights = [
   {
@@ -22,7 +23,7 @@ const highlights = [
 const featurePills = [
   'Location-verified reporting',
   'Hazard evidence capture',
-  'Admin login and password reset',
+  'Real-time power status updates',
   'Excel export and WhatsApp sharing',
 ];
 
@@ -49,12 +50,6 @@ export default function WelcomePage() {
               >
                 Open Live Tracker
                 <ArrowRight className="h-4 w-4" />
-              </Link>
-              <Link
-                href="/admin/login"
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white hover:bg-white/10"
-              >
-                Admin Sign In
               </Link>
             </div>
           </div>
@@ -149,6 +144,8 @@ export default function WelcomePage() {
             </article>
           ))}
         </section>
+
+        <SafetyGuidelines />
       </section>
     </main>
   );

@@ -32,13 +32,20 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       return NextResponse.json({ error: 'Hazard report not found.' }, { status: 404 });
     }
 
-    await prisma.hazardReport.delete({
+    // Mark as resolved instead of deleting
+    const updated = await prisma.hazardReport.update({
       where: { id: hazardId },
+      data: {
+        resolved: true,
+        resolvedAt: new Date(),
+      },
+      select: { id: true, type: true, area: true, areaName: true, resolved: true, resolvedAt: true },
     });
 
     return NextResponse.json({
       success: true,
       message: `${existingHazard.type} in ${existingHazard.areaName || existingHazard.area} marked as resolved.`,
+      hazard: updated,
     });
   } catch (error) {
     console.error('DELETE /api/hazards/[id] error:', error);

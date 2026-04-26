@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X } from 'lucide-react';
+import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown } from 'lucide-react';
 import { AreaWithStatus, calculateDistanceKm, getClosestArea } from '@/lib/areas';
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
@@ -86,6 +86,7 @@ export default function Home() {
   const [location, setLocation] = useState<LocationSnapshot | null>(null);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [showCommunities, setShowCommunities] = useState(true);
 
   // Hazard Report State
   const [hazardType, setHazardType] = useState<HazardType>(HAZARD_TYPES[0]);
@@ -582,57 +583,70 @@ export default function Home() {
         </div>
 
         <div className="border-t border-white/5 pt-6">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-4">All Areas Reference</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {loading ? (
-              Array.from({ length: 9 }).map((_, i) => (
-                <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
-              ))
-            ) : (
-              filtered.map(area => {
-                const meta = STATUS_META[area.status];
-                const Icon = meta.icon;
-                const canReport = area.isClosest && locationAccurateEnough;
+          <button
+            onClick={() => setShowCommunities(!showCommunities)}
+            className="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors mb-4"
+          >
+            <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">All Communities</h3>
+            <ChevronDown 
+              className={`w-5 h-5 text-gray-400 transition-transform ${showCommunities ? 'rotate-180' : ''}`} 
+            />
+          </button>
+          
+          {showCommunities && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {loading ? (
+                Array.from({ length: 9 }).map((_, i) => (
+                  <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
+                ))
+              ) : (
+                filtered.map(area => {
+                  const meta = STATUS_META[area.status];
+                  const Icon = meta.icon;
+                  const canReport = area.isClosest && locationAccurateEnough;
 
-                return (
-                  <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={`w-3 h-3 rounded-full mt-1 ${meta.dot}`} />
-                      <Icon className={`w-5 h-5 ${meta.text}`} />
-                    </div>
-                    <h3 className="font-bold text-lg">{area.name}</h3>
-                    <p className={`text-sm font-medium ${meta.text}`}>{meta.label}</p>
-                    
-                    <div className="mt-4 flex items-center gap-2">
-                      <button
-                        onClick={() => { if (canReport) { setReportModal(area); setReportResult(null); } }}
-                        disabled={!canReport}
-                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all disabled:opacity-0"
-                      >
-                        Report Status
-                      </button>
-                      <button
-                        onClick={() => { if (canReport) { setHazardModal(area); setReportResult(null); } }}
-                        disabled={!canReport}
-                        className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 disabled:opacity-0 transition-all"
-                        title={canReport ? "Report Hazard" : "Move to this area and verify GPS to report"}
-                      >
-                        <AlertTriangle className="w-4 h-4" />
-                    </button>
-                  </div>
+                  return (
+                    <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className={`w-3 h-3 rounded-full mt-1 ${meta.dot}`} />
+                        <Icon className={`w-5 h-5 ${meta.text}`} />
+                      </div>
+                      <h3 className="font-bold text-lg">{area.name}</h3>
+                      <p className={`text-sm font-medium ${meta.text}`}>{meta.label}</p>
+                      
+                      <div className="mt-4 flex items-center gap-2">
+                        <button
+                          onClick={() => { if (canReport) { setReportModal(area); setReportResult(null); } }}
+                          disabled={!canReport}
+                          className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all disabled:opacity-0"
+                        >
+                          Report Status
+                        </button>
+                        <button
+                          onClick={() => { if (canReport) { setHazardModal(area); setReportResult(null); } }}
+                          disabled={!canReport}
+                          className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 disabled:opacity-0 transition-all"
+                          title={canReport ? "Report Hazard" : "Move to this area and verify GPS to report"}
+                        >
+                          <AlertTriangle className="w-4 h-4" />
+                        >
+                          <AlertTriangle className="w-4 h-4" />
+                        </button>
+                      </div>
 
-                  {!canReport && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-gray-950/40 backdrop-blur-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-                      <p className="text-[10px] bg-black/80 px-2 py-1 rounded text-gray-400 uppercase tracking-widest font-bold">
-                        {locationAccurateEnough ? 'Move to report here' : 'Need better GPS to report'}
-                      </p>
+                      {!canReport && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-gray-950/40 backdrop-blur-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
+                          <p className="text-[10px] bg-black/80 px-2 py-1 rounded text-gray-400 uppercase tracking-widest font-bold">
+                            {locationAccurateEnough ? 'Move to report here' : 'Need better GPS to report'}
+                          </p>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-              )
-            })
+                  )
+                })
+              )}
+            </div>
           )}
-          </div>
         </div>
       </div>
 

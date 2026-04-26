@@ -47,12 +47,15 @@ model HazardReport {
   area        String
   city        String   @default("Freetown")
   reportedAt  DateTime @default(now())
+  resolved    Boolean  @default(false)
+  resolvedAt  DateTime?
   deviceId    String?
   lat         Float?
   lng         Float?
 
   @@index([area, city])
   @@index([reportedAt])
+  @@index([resolved])
 }
 
 model AdminUser {
