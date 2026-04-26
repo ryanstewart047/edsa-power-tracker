@@ -49,6 +49,7 @@ model HazardReport {
   reportedAt  DateTime @default(now())
   resolved    Boolean  @default(false)
   resolvedAt  DateTime?
+  resolvedBy  String?  // Email of the admin who resolved it
   deviceId    String?
   lat         Float?
   lng         Float?

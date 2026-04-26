@@ -38,8 +38,9 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       data: {
         resolved: true,
         resolvedAt: new Date(),
+        resolvedBy: admin.email,
       },
-      select: { id: true, type: true, area: true, areaName: true, resolved: true, resolvedAt: true },
+      select: { id: true, type: true, area: true, areaName: true, resolved: true, resolvedAt: true, resolvedBy: true },
     });
 
     return NextResponse.json({

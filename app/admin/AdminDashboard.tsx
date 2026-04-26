@@ -36,6 +36,9 @@ interface Stats {
     reportedAt: string;
     lat: number | null;
     lng: number | null;
+    resolved: boolean;
+    resolvedBy: string | null;
+    resolvedAt: string | null;
   }[];
 }
 
@@ -257,10 +260,15 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
         return {
           ...currentStats,
           totalHazards: Math.max(0, currentStats.totalHazards - 1),
-          recentHazards: currentStats.recentHazards.filter((item) => item.id !== hazard.id),
+          // Update the specific hazard to show it's resolved, instead of completely removing it
+          recentHazards: currentStats.recentHazards.map((item) =>
+            item.id === hazard.id
+              ? { ...item, resolved: true, resolvedBy: data.hazard?.resolvedBy || adminEmail, resolvedAt: new Date().toISOString() }
+              : item
+          ),
         };
       });
-      setSelectedHazardId((currentId) => (currentId === hazard.id ? null : currentId));
+      setSelectedHazardId((currentId) => (currentId === hazard.id ? currentId : currentId)); // Keep expanded view open if they are looking at it
       setSuccessMessage(data.message || 'Hazard marked as resolved.');
       setLastUpdated(new Date().toISOString());
     } catch (e) {
@@ -269,7 +277,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
     } finally {
       setResolvingHazardId(null);
     }
-  }, [router]);
+  }, [router, adminEmail]);
 
   if (loading) {
     return (
@@ -543,14 +551,24 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                         <MapPin className="w-3 h-3" />
                         {formatCoordinates(hazard.lat, hazard.lng)}
                       </button>
-                      <button
-                        onClick={() => void handleResolveHazard(hazard)}
-                        disabled={resolvingHazardId === hazard.id}
-                        className="inline-flex items-center gap-2 text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-60"
-                      >
-                        {resolvingHazardId === hazard.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
-                        {resolvingHazardId === hazard.id ? 'Resolving...' : 'Mark Resolved'}
-                      </button>
+                      
+                      {hazard.resolved ? (
+                        <div className="text-xs text-green-400 font-medium flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          <span className="max-w-[120px] truncate" title={`Resolved by ${hazard.resolvedBy || 'Admin'}`}>
+                            Resolved by {hazard.resolvedBy || 'Admin'}
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => void handleResolveHazard(hazard)}
+                          disabled={resolvingHazardId === hazard.id}
+                          className="inline-flex items-center gap-2 text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-60"
+                        >
+                          {resolvingHazardId === hazard.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
+                          {resolvingHazardId === hazard.id ? 'Resolving...' : 'Mark Resolved'}
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -659,14 +677,21 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                  <button
-                    onClick={() => void handleResolveHazard(selectedHazard)}
-                    disabled={resolvingHazardId === selectedHazard.id}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-500 px-4 py-3 text-sm font-bold text-black hover:bg-yellow-400 disabled:opacity-60"
-                  >
-                    {resolvingHazardId === selectedHazard.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
-                    {resolvingHazardId === selectedHazard.id ? 'Resolving...' : 'Mark Resolved'}
-                  </button>
+                  {selectedHazard.resolved ? (
+                    <div className="inline-flex items-center justify-center gap-2 rounded-2xl bg-green-500/10 border border-green-500/20 px-4 py-3 text-sm font-bold text-green-400">
+                      <CheckCircle className="w-4 h-4" />
+                      Resolved by {selectedHazard.resolvedBy || 'Admin'}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => void handleResolveHazard(selectedHazard)}
+                      disabled={resolvingHazardId === selectedHazard.id}
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-500 px-4 py-3 text-sm font-bold text-black hover:bg-yellow-400 disabled:opacity-60"
+                    >
+                      {resolvingHazardId === selectedHazard.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
+                      {resolvingHazardId === selectedHazard.id ? 'Resolving...' : 'Mark Resolved'}
+                    </button>
+                  )}
                   <button
                     onClick={() => setSelectedHazardId(null)}
                     className="rounded-2xl border border-white/10 px-4 py-3 text-sm font-semibold text-gray-200 hover:bg-white/5"

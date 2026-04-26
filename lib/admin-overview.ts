@@ -32,6 +32,9 @@ export type AdminOverviewStats = {
     reportedAt: Date;
     lat: number | null;
     lng: number | null;
+    resolved: boolean;
+    resolvedBy: string | null;
+    resolvedAt: Date | null;
   }[];
 };
 
@@ -43,7 +46,7 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
     }),
     prisma.areaStatus.findMany(),
     prisma.hazardReport.findMany({
-      where: { resolved: false }, // Only show unresolved hazards
+      // Fetch both resolved and unresolved so admins can see the resolution history
       orderBy: { reportedAt: 'desc' },
       take: 50,
     }),
