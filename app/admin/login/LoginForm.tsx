@@ -41,7 +41,7 @@ export default function LoginForm() {
     <div className="space-y-6">
       <div className="space-y-2">
         <p className="text-xs font-semibold uppercase tracking-[0.32em] text-yellow-300/80">Admin sign in</p>
-        <h2 className="text-2xl font-bold">Access the EDSA operations workspace</h2>
+        <h2 className="text-2xl font-bold">Access the EDSA SL operations workspace</h2>
         <p className="text-sm leading-6 text-gray-400">
           Sign in with your administrator credentials to review hazards, export reports, and manage field activity.
         </p>

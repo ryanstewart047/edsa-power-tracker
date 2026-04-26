@@ -389,25 +389,32 @@ export default function Home() {
 
   const areasWithProximity = useMemo(() => {
     if (!location) {
-      return areas.map(area => ({ ...area, isNearby: false, distance: null, isClosest: false }));
+      return areas.map(area => ({ ...area, isNearby: false, distance: null, isClosest: false, isSecondClosest: false }));
     }
     
-    const closestArea = getClosestArea(location.lat, location.lng);
     const withDist = areas.map(area => ({
       ...area,
       distance: calculateDistanceKm(location.lat, location.lng, area.lat, area.lng),
-    }));
+    })).sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
-    return withDist.map(area => {
-      const isClosest = area.name === closestArea?.name;
-      const isNearby = area.distance !== null && area.distance <= REPORTING_TOLERANCE_KM;
-      return { ...area, isNearby, distance: area.distance, isClosest };
+    const closestName = withDist[0]?.name;
+    const secondClosestName = withDist[1]?.name;
+
+    return areas.map(area => {
+      const distance = calculateDistanceKm(location.lat, location.lng, area.lat, area.lng);
+      const isClosest = area.name === closestName;
+      const isSecondClosest = area.name === secondClosestName;
+      const isNearby = distance <= REPORTING_TOLERANCE_KM;
+      return { ...area, isNearby, distance, isClosest, isSecondClosest };
     });
   }, [areas, location]);
 
   const nearbyAreas = useMemo(() => {
-    return areasWithProximity.filter(a => a.isNearby).sort((a, b) => (a.distance || 0) - (b.distance || 0));
-  }, [areasWithProximity]);
+    if (!location) return [];
+    return areasWithProximity
+      .filter(a => a.isClosest || a.isSecondClosest)
+      .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+  }, [areasWithProximity, location]);
 
   const filtered = areasWithProximity.filter(a => {
     const matchSearch = a.name.toLowerCase().includes(search.toLowerCase());
@@ -522,9 +529,13 @@ export default function Home() {
               {nearbyAreas.map((area) => (
                 <div key={area.name} className="relative p-4 rounded-xl border border-white/5 bg-gray-900/50 hover:bg-gray-900/80 transition-colors">
                   <h3 className="text-xl font-bold text-white mb-1">
-                    {area.name} {area.isClosest && <span className="text-[10px] bg-yellow-500 text-black px-1.5 py-0.5 rounded-md ml-1 uppercase align-middle">Closest</span>}
+                    {area.name} 
+                    {area.isClosest && <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-black tracking-tighter">Current Position</span>}
+                    {area.isSecondClosest && <span className="text-[10px] bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-bold">Closest Area</span>}
                   </h3>
-                  <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>{STATUS_META[area.status].label}</p>
+                  <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>
+                    {area.isSecondClosest ? 'View status only' : STATUS_META[area.status].label}
+                  </p>
                   
                   <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
                     <span className="rounded bg-white/10 px-1.5 py-0.5">
@@ -541,22 +552,28 @@ export default function Home() {
                     )}
                   </div>
 
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => { setReportModal(area); setReportResult(null); }}
-                      disabled={!locationAccurateEnough}
-                      className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <Zap className="w-3.5 h-3.5" /> Report Status
-                    </button>
-                    <button
-                      onClick={() => { setHazardModal(area); setReportResult(null); }}
-                      disabled={!locationAccurateEnough}
-                      className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <AlertTriangle className="w-3.5 h-3.5" /> Report Hazard
-                    </button>
-                  </div>
+                  {area.isClosest ? (
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => { setReportModal(area); setReportResult(null); }}
+                        disabled={!locationAccurateEnough || !area.isNearby}
+                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <Zap className="w-3.5 h-3.5" /> Report Status
+                      </button>
+                      <button
+                        onClick={() => { setHazardModal(area); setReportResult(null); }}
+                        disabled={!locationAccurateEnough || !area.isNearby}
+                        className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <AlertTriangle className="w-3.5 h-3.5" /> Report Hazard
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
+                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Reporting disabled for closest area</p>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
