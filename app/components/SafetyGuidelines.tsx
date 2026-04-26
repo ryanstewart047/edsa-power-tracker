@@ -60,7 +60,7 @@ export default function SafetyGuidelines() {
       <div className="text-center space-y-4">
         <h2 className="text-4xl font-bold text-white">Safety & Compliance Guidelines</h2>
         <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-          Help keep Freetown safe by understanding what's prohibited and what's allowed in electrical infrastructure management.
+          Help keep Freetown safe by understanding what&apos;s prohibited and what&apos;s allowed in electrical infrastructure management.
         </p>
       </div>
 

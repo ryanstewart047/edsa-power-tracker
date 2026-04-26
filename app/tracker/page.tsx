@@ -629,8 +629,6 @@ export default function Home() {
                           title={canReport ? "Report Hazard" : "Move to this area and verify GPS to report"}
                         >
                           <AlertTriangle className="w-4 h-4" />
-                        >
-                          <AlertTriangle className="w-4 h-4" />
                         </button>
                       </div>
 
