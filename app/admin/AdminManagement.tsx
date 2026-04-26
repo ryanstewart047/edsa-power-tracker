@@ -128,96 +128,96 @@ export default function AdminManagementPanel() {
   return (
     <div className="max-w-4xl mx-auto">
       {error && (
-        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg flex gap-3">
-          <AlertCircle className="text-red-600 flex-shrink-0" size={20} />
-          <p className="text-red-800">{error}</p>
+        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl flex gap-3 backdrop-blur-md">
+          <AlertCircle className="text-red-400 flex-shrink-0" size={20} />
+          <p className="text-red-200 text-sm">{error}</p>
         </div>
       )}
 
       {success && (
-        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex gap-3">
-          <CheckCircle className="text-green-600 flex-shrink-0" size={20} />
-          <p className="text-green-800">{success}</p>
+        <div className="mb-6 p-4 bg-green-500/10 border border-green-500/20 rounded-2xl flex gap-3 backdrop-blur-md">
+          <CheckCircle className="text-green-400 flex-shrink-0" size={20} />
+          <p className="text-green-200 text-sm">{success}</p>
         </div>
       )}
 
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-900">Manage Admins</h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-white tracking-tight">Access Control</h2>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition"
+            className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 text-black rounded-xl hover:bg-yellow-400 transition-all font-bold text-sm shadow-xl shadow-yellow-500/20"
           >
-            <Plus size={20} />
-            Add Admin
+            <Plus size={18} />
+            Add New Admin
           </button>
         </div>
 
         {showForm && (
           <form
             onSubmit={handleCreateAdmin}
-            className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+            className="mb-8 p-6 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-[2rem] shadow-2xl"
           >
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">Email</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-400">Email Address</label>
                 <input
                   type="email"
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
-                  placeholder="admin@example.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-gray-900 placeholder-gray-500"
+                  placeholder="admin@edsa.sl"
+                  className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 text-white placeholder-gray-600 transition-all"
                   disabled={isSubmitting}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1 text-gray-900">Password</label>
+                <label className="block text-xs font-bold uppercase tracking-widest mb-2 text-gray-400">Security Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={newAdminPassword}
                     onChange={(e) => setNewAdminPassword(e.target.value)}
                     placeholder="Min 8 characters"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-gray-900 placeholder-gray-500"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 text-white placeholder-gray-600 transition-all"
                     disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 md:col-span-2">
                 <input
                   type="checkbox"
                   id="isSuperAdmin"
                   checked={isSuperAdmin}
                   onChange={(e) => setIsSuperAdmin(e.target.checked)}
                   disabled={isSubmitting}
-                  className="rounded border-gray-300"
+                  className="w-5 h-5 rounded border-white/10 bg-black/20 checked:bg-yellow-500 focus:ring-0 transition-all cursor-pointer"
                 />
-                <label htmlFor="isSuperAdmin" className="text-sm font-medium text-gray-900">
-                  Make this a super admin
+                <label htmlFor="isSuperAdmin" className="text-sm font-bold text-gray-300 cursor-pointer">
+                  Grant Super Admin Privileges
                 </label>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-3 md:col-span-2 pt-2">
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 disabled:opacity-50 transition font-medium"
+                  className="px-6 py-3 bg-yellow-500 text-black rounded-xl hover:bg-yellow-400 disabled:opacity-50 transition-all font-black text-sm uppercase tracking-wider shadow-lg shadow-yellow-500/10"
                 >
-                  {isSubmitting ? 'Creating...' : 'Create Admin'}
+                  {isSubmitting ? 'Provisioning...' : 'Provision Account'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowForm(false)}
-                  className="px-4 py-2 bg-gray-300 text-black rounded-lg hover:bg-gray-400 transition"
+                  className="px-6 py-3 bg-white/5 text-white rounded-xl hover:bg-white/10 transition-all font-bold text-sm"
                 >
                   Cancel
                 </button>
@@ -227,52 +227,52 @@ export default function AdminManagementPanel() {
         )}
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+      <div className="bg-black/20 backdrop-blur-xl border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl">
         <table className="w-full">
-          <thead className="bg-yellow-50 border-b border-gray-200">
+          <thead className="bg-white/5 border-b border-white/10">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Type</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Last Updated</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
+              <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</th>
+              <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Account Type</th>
+              <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Created</th>
+              <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-gray-400">Updated</th>
+              <th className="px-6 py-4 text-right text-[10px] font-black uppercase tracking-widest text-gray-400">Actions</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-white/5">
             {admins.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
-                  No admins found
+                <td colSpan={5} className="px-6 py-12 text-center text-gray-500 font-medium">
+                  No administrative accounts found.
                 </td>
               </tr>
             ) : (
               admins.map((admin) => (
-                <tr key={admin.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm text-gray-900">{admin.email}</td>
-                  <td className="px-6 py-4 text-sm">
+                <tr key={admin.id} className="hover:bg-white/[0.02] transition-colors group/row">
+                  <td className="px-6 py-5 text-sm font-bold text-white">{admin.email}</td>
+                  <td className="px-6 py-5">
                     {admin.isSuperAdmin ? (
-                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
-                        <Crown size={14} />
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        <Crown size={12} />
                         Super Admin
                       </span>
                     ) : (
-                      <span className="text-gray-600">Admin</span>
+                      <span className="text-gray-400 text-[10px] font-black uppercase tracking-tighter bg-white/5 px-3 py-1 rounded-full border border-white/5">Operator</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(admin.createdAt).toLocaleDateString()}
+                  <td className="px-6 py-5 text-xs text-gray-500 font-medium">
+                    {new Date(admin.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {new Date(admin.updatedAt).toLocaleDateString()}
+                  <td className="px-6 py-5 text-xs text-gray-500 font-medium">
+                    {new Date(admin.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                   </td>
-                  <td className="px-6 py-4 text-right">
+                  <td className="px-6 py-5 text-right">
                     <button
                       onClick={() => handleDeleteAdmin(admin.id, admin.email)}
                       disabled={deletingId === admin.id}
-                      className="text-red-600 hover:text-red-800 disabled:opacity-50 transition"
-                      title="Delete admin"
+                      className="p-2 text-gray-500 hover:text-red-400 hover:bg-red-400/10 rounded-xl transition-all disabled:opacity-50"
+                      title="Revoke access"
                     >
-                      <Trash2 size={18} />
+                      {deletingId === admin.id ? <RefreshCw size={18} className="animate-spin" /> : <Trash2 size={18} />}
                     </button>
                   </td>
                 </tr>

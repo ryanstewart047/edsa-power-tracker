@@ -309,8 +309,19 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-white flex flex-col md:flex-row">
-      <aside className="w-full md:w-64 bg-gray-900 border-r border-white/10 p-6 space-y-8">
+    <div className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
+      {/* Background Image Layer */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: 'url("/assets/bg-action.png")',
+          filter: 'brightness(0.2) saturate(1.2)',
+        }}
+      />
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-[#020617]/90 to-[#020617]" />
+
+      <div className="relative z-10 min-h-screen flex flex-col md:flex-row">
+        <aside className="w-full md:w-64 bg-black/40 backdrop-blur-3xl border-r border-white/10 p-6 space-y-8">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
             <Zap className="w-6 h-6 text-yellow-500" />
@@ -426,19 +437,19 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                 { label: 'Power On Areas', value: stats.areaSummary.filter(a => a.status === 'on').length, icon: Zap, color: 'text-green-400' },
                 { label: 'Outage Areas', value: stats.areaSummary.filter(a => a.status === 'out').length, icon: ZapOff, color: 'text-orange-400' },
               ].map(card => (
-                <div key={card.label} className="bg-gray-900 border border-white/10 p-6 rounded-3xl space-y-4">
+                <div key={card.label} className="bg-white/[0.03] backdrop-blur-md border border-white/10 p-6 rounded-[2rem] space-y-4 hover:bg-white/[0.05] transition-all">
                   <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center ${card.color}`}>
                     <card.icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <p className="text-4xl font-bold">{card.value}</p>
-                    <p className="text-sm text-gray-500 mt-1 font-medium">{card.label}</p>
+                    <p className="text-4xl font-bold tracking-tight">{card.value}</p>
+                    <p className="text-sm text-gray-500 mt-1 font-bold uppercase tracking-widest">{card.label}</p>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="bg-gray-900 border border-white/10 rounded-3xl overflow-hidden">
+            <div className="bg-black/20 backdrop-blur-md border border-white/10 rounded-[2rem] overflow-hidden shadow-2xl">
               <div className="p-6 border-b border-white/10 flex items-center justify-between">
                 <h3 className="font-bold">Community Status</h3>
                 <span className="text-xs text-gray-500 bg-white/5 px-2 py-1 rounded italic">Requires 3 reports to update</span>
@@ -504,7 +515,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
               </div>
             ) : (
               filteredHazards.map(hazard => (
-                <div key={hazard.id} className="bg-gray-900 border border-white/10 rounded-3xl overflow-hidden group">
+                <div key={hazard.id} className="bg-black/30 backdrop-blur-xl border border-white/10 rounded-[2.5rem] overflow-hidden group shadow-2xl">
                   <button
                     onClick={() => setSelectedHazardId(hazard.id)}
                     className="aspect-video relative overflow-hidden block w-full text-left"
@@ -584,7 +595,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                 {normalizedSearch ? 'No reports matched your search.' : 'No recent power reports yet.'}
               </div>
             ) : filteredReports.map(report => (
-              <div key={report.id} className="bg-gray-900 border border-white/10 p-5 rounded-2xl flex items-center justify-between group">
+              <div key={report.id} className="bg-black/20 backdrop-blur-md border border-white/10 p-5 rounded-2xl flex items-center justify-between group hover:bg-white/[0.05] transition-all">
                 <div className="flex items-center gap-4">
                   <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${report.status === 'on' ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
                     {report.status === 'on' ? <Zap className="w-5 h-5" /> : <ZapOff className="w-5 h-5" />}
@@ -704,6 +715,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
