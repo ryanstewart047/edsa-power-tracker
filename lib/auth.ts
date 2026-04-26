@@ -210,11 +210,6 @@ async function sendVerificationEmail(to: string, verificationUrl: string) {
 }
 
 export async function ensureBootstrapAdminUser() {
-  const existingAdminCount = await prisma.adminUser.count();
-  if (existingAdminCount > 0) {
-    return;
-  }
-
   const email = process.env.ADMIN_EMAIL_EDSA;
   const password = process.env.ADMIN_PASSWORD;
 
@@ -222,14 +217,27 @@ export async function ensureBootstrapAdminUser() {
     return;
   }
 
-  await prisma.adminUser.create({
-    data: {
-      email: normalizeAdminEmail(email),
-      passwordHash: hashPassword(password),
-      isSuperAdmin: true,
-      emailVerified: new Date(), // Bootstrap admin is auto-verified
-    },
+  const normalizedEmail = normalizeAdminEmail(email);
+  const existingAdmin = await prisma.adminUser.findUnique({
+    where: { email: normalizedEmail },
   });
+
+  if (!existingAdmin) {
+    await prisma.adminUser.create({
+      data: {
+        email: normalizedEmail,
+        passwordHash: hashPassword(password),
+        isSuperAdmin: true,
+        emailVerified: new Date(), // Bootstrap admin is auto-verified
+      },
+    });
+  } else if (!existingAdmin.isSuperAdmin || !existingAdmin.emailVerified) {
+    // Ensure it is always a super admin and verified
+    await prisma.adminUser.update({
+      where: { email: normalizedEmail },
+      data: { isSuperAdmin: true, emailVerified: new Date() },
+    });
+  }
 }
 
 export async function loginAdmin(email: string, password: string) {
