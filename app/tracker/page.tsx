@@ -657,7 +657,7 @@ export default function Home() {
                 filtered.map(area => {
                   const meta = STATUS_META[area.status];
                   const Icon = meta.icon;
-                  const canReport = area.isNearby && locationAccurateEnough;
+                  const canReport = (area.isClosest ? (area.distance !== null && area.distance <= 15) : area.isNearby) && locationAccurateEnough;
 
                   return (
                     <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
