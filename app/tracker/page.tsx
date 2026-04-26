@@ -4,7 +4,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
-import { AreaWithStatus, calculateDistanceKm, getClosestArea, REPORTING_TOLERANCE_KM } from '@/lib/areas';
+import { AreaWithStatus, calculateDistanceKm, REPORTING_TOLERANCE_KM } from '@/lib/areas';
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
