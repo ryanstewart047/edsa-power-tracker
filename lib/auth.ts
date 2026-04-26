@@ -245,8 +245,8 @@ export async function loginAdmin(email: string, password: string) {
     return null;
   }
 
-  // Check if email is verified
-  if (!admin.emailVerified) {
+  // Check if email is verified (super admins bypass this)
+  if (!admin.emailVerified && !admin.isSuperAdmin) {
     return null;
   }
 
@@ -262,11 +262,16 @@ export async function checkAdminEmailVerification(email: string) {
   const normalizedEmail = normalizeAdminEmail(email);
   const admin = await prisma.adminUser.findUnique({
     where: { email: normalizedEmail },
-    select: { emailVerified: true },
+    select: { emailVerified: true, isSuperAdmin: true },
   });
 
   if (!admin) {
     return { exists: false, verified: false };
+  }
+
+  // Super admins are automatically considered verified
+  if (admin.isSuperAdmin) {
+    return { exists: true, verified: true };
   }
 
   return { exists: true, verified: !!admin.emailVerified };
