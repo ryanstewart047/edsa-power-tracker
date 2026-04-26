@@ -132,7 +132,7 @@ export default function AdminManagementPanel() {
 
       <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Manage Admins</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Manage Admins</h2>
           <button
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition"
@@ -149,7 +149,7 @@ export default function AdminManagementPanel() {
           >
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-1">Email</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900">Email</label>
                 <input
                   type="email"
                   value={newAdminEmail}
@@ -161,7 +161,7 @@ export default function AdminManagementPanel() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Password</label>
+                <label className="block text-sm font-medium mb-1 text-gray-900">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -206,23 +206,23 @@ export default function AdminManagementPanel() {
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Email</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Created</th>
-              <th className="px-6 py-3 text-left text-sm font-semibold">Last Updated</th>
-              <th className="px-6 py-3 text-right text-sm font-semibold">Actions</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Last Updated</th>
+              <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
             </tr>
           </thead>
           <tbody>
             {admins.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={4} className="px-6 py-8 text-center text-gray-600">
                   No admins found
                 </td>
               </tr>
             ) : (
               admins.map((admin) => (
                 <tr key={admin.id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm">{admin.email}</td>
+                  <td className="px-6 py-4 text-sm text-gray-900">{admin.email}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {new Date(admin.createdAt).toLocaleDateString()}
                   </td>
