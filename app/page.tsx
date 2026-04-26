@@ -1,142 +1,224 @@
+'use client';
+
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Smartphone, Zap, BarChart3, AlertTriangle } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { ArrowRight, ShieldCheck, Smartphone, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
+import WorkSlider from '@/components/WorkSlider';
 
 const highlights = [
   {
     icon: Zap,
-    title: 'Live Community Power Signals',
+    title: 'Live Community Signals',
     description: 'Track what is happening around Freetown in real time with location-aware power reporting.',
+    color: 'text-yellow-400',
+    bg: 'bg-yellow-400/10',
   },
   {
     icon: AlertTriangle,
     title: 'Hazard Escalation',
     description: 'Capture dangerous lines, poles, and illegal connections with evidence and exact local details.',
+    color: 'text-red-400',
+    bg: 'bg-red-400/10',
   },
   {
     icon: ShieldCheck,
     title: 'Admin Control Center',
     description: 'Review incidents, resolve them quickly, and export clean operational reports for stakeholders.',
+    color: 'text-blue-400',
+    bg: 'bg-blue-400/10',
   },
 ];
 
 const featurePills = [
-  'Location-verified reporting',
-  'Hazard evidence capture',
-  'Real-time power status updates',
-  'Excel export and WhatsApp sharing',
+  'GPS-Verified',
+  'Hazard Evidence',
+  'Real-Time Status',
+  'WhatsApp Sharing',
 ];
-
-import WorkSlider from '@/components/WorkSlider';
 
 export default function WelcomePage() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.18),_transparent_34%),linear-gradient(180deg,_#08121f_0%,_#05070d_48%,_#020305_100%)] text-white">
-      <section className="max-w-6xl mx-auto px-6 py-8 sm:py-12">
-        <header className="flex flex-col gap-6 rounded-[2rem] border border-white/10 bg-white/[0.03] p-6 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-500/15 ring-1 ring-yellow-400/20">
-                <Zap className="h-7 w-7 text-yellow-300" />
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.35em] text-yellow-300/80">EDSA Native Platform</p>
-                <h1 className="text-2xl font-bold sm:text-3xl">Power and hazard operations, designed for daily field use.</h1>
-              </div>
+    <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden bg-[#020305]">
+      {/* Background Image Layer */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
+        style={{ 
+          backgroundImage: 'url("/assets/hero-bg.png")',
+          filter: 'brightness(0.3) saturate(1.2)',
+        }}
+      />
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-[#020305]/80 to-[#020305]" />
+
+      <section className="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-20 lg:py-32">
+        {/* Mobile-First Hero */}
+        <div className="flex flex-col gap-12 lg:grid lg:grid-cols-2 lg:items-center">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="space-y-8"
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 backdrop-blur-md">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+              </span>
+              <p className="text-[10px] font-black uppercase tracking-widest text-yellow-300">EDSA Native Platform</p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <h1 className="text-4xl sm:text-6xl font-black leading-[1.1] tracking-tight">
+              Freetown Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600">Operations.</span>
+            </h1>
+
+            <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-xl">
+              Professional mobile control surface for electricity status reporting, hazard escalation, and operational oversight.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/tracker"
-                className="inline-flex items-center gap-2 rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-gray-950 transition-transform hover:-translate-y-0.5 hover:bg-yellow-300"
+                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-yellow-400 px-8 py-4 text-sm font-black text-gray-950 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-yellow-400/20"
               >
-                Open Live Tracker
-                <ArrowRight className="h-4 w-4" />
+                Launch Live Tracker
+                <div className="bg-gray-950/10 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
+                  <ArrowRight className="h-4 w-4" />
+                </div>
               </Link>
+              
+              <div className="flex flex-wrap gap-2">
+                {featurePills.map((pill) => (
+                  <span
+                    key={pill}
+                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 backdrop-blur-md"
+                  >
+                    {pill}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
-            <div className="space-y-6">
-              {/* Image Slider */}
+          {/* Featured Visual Section */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 1, delay: 0.2 }}
+            className="relative"
+          >
+            <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-2">
               <WorkSlider />
-
-              <div className="space-y-4">
-                <p className="max-w-3xl text-lg leading-8 text-gray-200 sm:text-xl">
-                  A professional mobile-first control surface for electricity status reporting, hazard escalation, and operational oversight across Freetown.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {featurePills.map((pill) => (
-                    <span
-                      key={pill}
-                      className="rounded-full border border-white/10 bg-black/20 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-gray-200"
-                    >
-                      {pill}
-                    </span>
-                  ))}
-                </div>
-              </div>
             </div>
+            {/* Ambient Glow */}
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-yellow-500/20 blur-[100px] rounded-full" />
+          </motion.div>
+        </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.06),rgba(255,255,255,0.02))] p-6">
-              <div className="flex items-center gap-3 text-sm font-semibold text-white">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-green-500/10 text-green-300">
-                  <Smartphone className="h-5 w-5" />
+        {/* Action Cards */}
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6">
+           <motion.div 
+             whileHover={{ y: -5 }}
+             className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-yellow-400/30 transition-all"
+           >
+              <div className="flex items-start justify-between mb-8">
+                <div className="h-14 w-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
+                  <Activity className="h-7 w-7 text-yellow-400" />
                 </div>
-                Native-style entry experience
+                <Zap className="h-5 w-5 text-yellow-300/30" />
               </div>
-              <div className="mt-6 space-y-4">
-                <div className="rounded-3xl border border-white/10 bg-[#0d1521] p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-white">Community app</p>
-                    <Zap className="h-4 w-4 text-yellow-300" />
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-gray-400">
-                    Citizens and field agents can open the live tracker to report outages or hazards with GPS validation.
-                  </p>
+              <h3 className="text-2xl font-bold mb-4">Community Interface</h3>
+              <p className="text-gray-400 leading-relaxed mb-8">
+                Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
+              </p>
+              <Link href="/tracker" className="inline-flex items-center gap-2 text-yellow-400 font-bold group-hover:gap-3 transition-all">
+                Access Tracker <ChevronRight className="h-4 w-4" />
+              </Link>
+           </motion.div>
+
+           <motion.div 
+             whileHover={{ y: -5 }}
+             className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/30 transition-all"
+           >
+              <div className="flex items-start justify-between mb-8">
+                <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                  <BarChart3 className="h-7 w-7 text-blue-400" />
                 </div>
-                <div className="rounded-3xl border border-white/10 bg-[#0d1521] p-5">
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-white">Admin workspace</p>
-                    <BarChart3 className="h-4 w-4 text-blue-300" />
-                  </div>
-                  <p className="mt-2 text-sm leading-6 text-gray-400">
-                    Authorized administrators can sign in, review incoming hazards, export overview data, and share summaries.
-                  </p>
-                </div>
-                <div className="rounded-3xl border border-white/10 bg-[#0d1521] p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-yellow-300/80">Recommended flow</p>
-                  <ol className="mt-3 space-y-3 text-sm text-gray-300">
-                    <li>1. Start with the live tracker for public reporting.</li>
-                    <li>2. Use admin sign-in for operations and report management.</li>
-                    <li>3. Export and share the overview when leadership needs updates.</li>
-                  </ol>
-                </div>
+                <ShieldCheck className="h-5 w-5 text-blue-300/30" />
               </div>
-            </div>
+              <h3 className="text-2xl font-bold mb-4">Admin Command</h3>
+              <p className="text-gray-400 leading-relaxed mb-8">
+                Operational dashboard for reviewing hazard reports, managing community status, and exporting data.
+              </p>
+              <Link href="/admin" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
+                Admin Portal <ChevronRight className="h-4 w-4" />
+              </Link>
+           </motion.div>
+        </div>
+
+        {/* Highlights Section */}
+        <section className="mt-20">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="h-px flex-1 bg-white/10" />
+            <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500">Key Capabilities</h2>
+            <div className="h-px flex-1 bg-white/10" />
           </div>
-        </header>
-
-        {/* Horizontal Scroll on Mobile */}
-        <section className="mt-8 overflow-hidden">
-          <div className="flex flex-nowrap gap-4 overflow-x-auto pb-6 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible">
-            {highlights.map(({ icon: Icon, title, description }) => (
-              <article
-                key={title}
-                className="min-w-[85%] sm:min-w-[300px] md:min-w-0 rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 shadow-xl shadow-black/20 backdrop-blur-md transition-all hover:border-yellow-400/30 group"
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {highlights.map((h, i) => (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+                key={h.title}
+                className="p-6 rounded-[1.75rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors"
               >
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-yellow-300 group-hover:scale-110 transition-transform">
-                  <Icon className="h-5 w-5" />
+                <div className={`h-12 w-12 rounded-xl ${h.bg} flex items-center justify-center mb-6`}>
+                  <h.icon className={`h-5 w-5 ${h.color}`} />
                 </div>
-                <h2 className="mt-5 text-xl font-bold">{title}</h2>
-                <p className="mt-3 text-sm leading-7 text-gray-400">{description}</p>
-              </article>
+                <h4 className="font-bold text-lg mb-2">{h.title}</h4>
+                <p className="text-sm text-gray-400 leading-relaxed">{h.description}</p>
+              </motion.div>
             ))}
           </div>
         </section>
 
-        <SafetyGuidelines />
+        <div className="mt-20">
+          <SafetyGuidelines />
+        </div>
       </section>
+
+      {/* Sticky Mobile CTA */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full px-6 md:hidden">
+        <Link
+          href="/tracker"
+          className="flex items-center justify-between w-full rounded-2xl bg-yellow-400 p-4 shadow-2xl shadow-yellow-400/40 text-gray-950"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-gray-950 flex items-center justify-center">
+              <Zap className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-wider opacity-60">Field Ready</p>
+              <p className="font-black text-sm">Open Live Tracker</p>
+            </div>
+          </div>
+          <ChevronRight className="h-6 w-6" />
+        </Link>
+      </div>
+
+      <footer className="relative z-10 border-t border-white/5 py-12 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-4 text-gray-500">
+             <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
+               <Map className="h-4 w-4" />
+             </div>
+             <p className="text-xs font-bold uppercase tracking-widest">Freetown Operations Unit</p>
+          </div>
+          <p className="text-xs text-gray-600 font-medium tracking-tight">
+            © {new Date().getFullYear()} EDSA Native Platform. Designed for daily field use.
+          </p>
+        </div>
+      </footer>
     </main>
   );
 }
