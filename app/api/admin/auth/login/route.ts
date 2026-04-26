@@ -20,6 +20,14 @@ export async function POST(request: NextRequest) {
     if (!admin) {
       // Check if email exists but is not verified
       const emailStatus = await checkAdminEmailVerification(email);
+      
+      if (!emailStatus.exists) {
+        return NextResponse.json(
+          { error: 'Email not found in our database.' },
+          { status: 401 },
+        );
+      }
+
       if (emailStatus.exists && !emailStatus.verified) {
         return NextResponse.json(
           { error: 'Please verify your email before logging in. Check your email for a verification link.' },
