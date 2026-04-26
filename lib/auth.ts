@@ -20,6 +20,7 @@ type SessionPayload = {
 export type AuthenticatedAdmin = {
   id: string;
   email: string;
+  isSuperAdmin: boolean;
   updatedAt: Date;
 };
 
@@ -181,6 +182,7 @@ export async function ensureBootstrapAdminUser() {
     data: {
       email: normalizeAdminEmail(email),
       passwordHash: hashPassword(password),
+      isSuperAdmin: true,
     },
   });
 }
@@ -191,7 +193,7 @@ export async function loginAdmin(email: string, password: string) {
   const normalizedEmail = normalizeAdminEmail(email);
   const admin = await prisma.adminUser.findUnique({
     where: { email: normalizedEmail },
-    select: { id: true, email: true, passwordHash: true, updatedAt: true },
+    select: { id: true, email: true, isSuperAdmin: true, passwordHash: true, updatedAt: true },
   });
 
   if (!admin || !verifyPassword(password, admin.passwordHash)) {
@@ -201,6 +203,7 @@ export async function loginAdmin(email: string, password: string) {
   return {
     id: admin.id,
     email: admin.email,
+    isSuperAdmin: admin.isSuperAdmin,
     updatedAt: admin.updatedAt,
   } satisfies AuthenticatedAdmin;
 }
@@ -332,7 +335,7 @@ export async function getAdminSession() {
 
   const admin = await prisma.adminUser.findUnique({
     where: { id: payload.adminId },
-    select: { id: true, email: true, updatedAt: true },
+    select: { id: true, email: true, isSuperAdmin: true, updatedAt: true },
   });
 
   if (!admin || admin.email !== payload.email || admin.updatedAt.getTime() !== payload.version) {
@@ -357,6 +360,7 @@ export async function listAllAdmins() {
     select: {
       id: true,
       email: true,
+      isSuperAdmin: true,
       createdAt: true,
       updatedAt: true,
     },
@@ -364,7 +368,7 @@ export async function listAllAdmins() {
   });
 }
 
-export async function createAdminUser(email: string, password: string) {
+export async function createAdminUser(email: string, password: string, isSuperAdmin: boolean = false) {
   const normalizedEmail = normalizeAdminEmail(email);
   
   // Check if admin already exists
@@ -383,10 +387,12 @@ export async function createAdminUser(email: string, password: string) {
       data: {
         email: normalizedEmail,
         passwordHash,
+        isSuperAdmin,
       },
       select: {
         id: true,
         email: true,
+        isSuperAdmin: true,
         createdAt: true,
       },
     });

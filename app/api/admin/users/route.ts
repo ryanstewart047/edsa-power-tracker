@@ -37,6 +37,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json() as Record<string, unknown>;
     const email = typeof body.email === 'string' ? body.email.trim() : '';
     const password = typeof body.password === 'string' ? body.password : '';
+    const isSuperAdmin = typeof body.isSuperAdmin === 'boolean' ? body.isSuperAdmin : false;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await createAdminUser(email, password);
+    const result = await createAdminUser(email, password, isSuperAdmin);
     if (!result.success) {
       return NextResponse.json(
         { error: result.error || 'Failed to create admin' },

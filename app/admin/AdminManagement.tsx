@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Trash2, Plus, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { Trash2, Plus, Eye, EyeOff, AlertCircle, CheckCircle, Crown } from 'lucide-react';
 
 type Admin = {
   id: string;
   email: string;
+  isSuperAdmin: boolean;
   createdAt: string;
   updatedAt: string;
 };
@@ -21,6 +22,7 @@ export default function AdminManagementPanel() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     fetchAdmins();
@@ -65,6 +67,7 @@ export default function AdminManagementPanel() {
         body: JSON.stringify({
           email: newAdminEmail,
           password: newAdminPassword,
+          isSuperAdmin,
         }),
       });
 
@@ -74,6 +77,7 @@ export default function AdminManagementPanel() {
       setSuccess(`Admin created: ${newAdminEmail}`);
       setNewAdminEmail('');
       setNewAdminPassword('');
+      setIsSuperAdmin(false);
       setShowForm(false);
       await fetchAdmins();
     } catch (err) {
@@ -145,7 +149,7 @@ export default function AdminManagementPanel() {
         {showForm && (
           <form
             onSubmit={handleCreateAdmin}
-            className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg"
+            className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
           >
             <div className="space-y-4">
               <div>
@@ -181,6 +185,20 @@ export default function AdminManagementPanel() {
                 </div>
               </div>
 
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="isSuperAdmin"
+                  checked={isSuperAdmin}
+                  onChange={(e) => setIsSuperAdmin(e.target.checked)}
+                  disabled={isSubmitting}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="isSuperAdmin" className="text-sm font-medium text-gray-900">
+                  Make this a super admin
+                </label>
+              </div>
+
               <div className="flex gap-2">
                 <button
                   type="submit"
@@ -204,9 +222,10 @@ export default function AdminManagementPanel() {
 
       <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+          <thead className="bg-yellow-50 border-b border-gray-200">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Email</th>
+              <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Type</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Created</th>
               <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Last Updated</th>
               <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Actions</th>
@@ -215,7 +234,7 @@ export default function AdminManagementPanel() {
           <tbody>
             {admins.length === 0 ? (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-600">
+                <td colSpan={5} className="px-6 py-8 text-center text-gray-600">
                   No admins found
                 </td>
               </tr>
@@ -223,6 +242,16 @@ export default function AdminManagementPanel() {
               admins.map((admin) => (
                 <tr key={admin.id} className="border-b border-gray-200 hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm text-gray-900">{admin.email}</td>
+                  <td className="px-6 py-4 text-sm">
+                    {admin.isSuperAdmin ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                        <Crown size={14} />
+                        Super Admin
+                      </span>
+                    ) : (
+                      <span className="text-gray-600">Admin</span>
+                    )}
+                  </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {new Date(admin.createdAt).toLocaleDateString()}
                   </td>

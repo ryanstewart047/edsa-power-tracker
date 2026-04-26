@@ -6,7 +6,7 @@ export default async function AdminManagementPage() {
   await requireAdminSession();
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-yellow-50">
       <div className="p-8">
         <h1 className="text-4xl font-bold mb-2 text-gray-900">Admin Management</h1>
         <p className="text-gray-700 mb-8">Create, view, and manage admin accounts</p>
