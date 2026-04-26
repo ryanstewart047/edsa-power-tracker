@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown } from 'lucide-react';
-import { AreaWithStatus, calculateDistanceKm, getClosestArea } from '@/lib/areas';
+import { AreaWithStatus, calculateDistanceKm, getClosestArea, REPORTING_TOLERANCE_KM } from '@/lib/areas';
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
@@ -376,13 +376,17 @@ export default function Home() {
 
     return withDist.map(area => {
       const isClosest = area.name === closestArea?.name;
-      const isNearby = isClosest;
+      const isNearby = area.distance !== null && area.distance <= REPORTING_TOLERANCE_KM;
       return { ...area, isNearby, distance: area.distance, isClosest };
     });
   }, [areas, location]);
 
   const closestArea = useMemo(() => {
     return areasWithProximity.find(a => a.isClosest) || null;
+  }, [areasWithProximity]);
+
+  const nearbyAreas = useMemo(() => {
+    return areasWithProximity.filter(a => a.isNearby).sort((a, b) => (a.distance || 0) - (b.distance || 0));
   }, [areasWithProximity]);
 
   const filtered = areasWithProximity.filter(a => {
@@ -465,11 +469,11 @@ export default function Home() {
           </div>
         )}
 
-        {/* Your Reporting Area - Shows ONLY Closest Area */}
-        {closestArea ? (
+        {/* Your Reporting Area - Shows Nearby Areas */}
+        {nearbyAreas.length > 0 ? (
           <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-3xl p-6 space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold text-yellow-400">Your Current Area</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-yellow-400">Your Current & Nearby Areas</h2>
               <div className="flex items-center gap-2">
                 <button
                   onClick={requestLocation}
@@ -484,50 +488,51 @@ export default function Home() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-3">
-                <h3 className="text-2xl font-bold text-white">{closestArea.name}</h3>
-                <p className={`text-sm font-medium ${STATUS_META[closestArea.status].text}`}>{STATUS_META[closestArea.status].label}</p>
-                <div className="flex flex-wrap gap-2 text-xs text-gray-300">
-                  <span className="rounded-full bg-white/10 px-2.5 py-1">
-                    {closestArea.distance !== null ? `${closestArea.distance.toFixed(2)} km away` : 'Distance unavailable'}
-                  </span>
-                  {location && (
-                    <span className={`rounded-full px-2.5 py-1 ${
-                      location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
-                        ? 'bg-yellow-500/15 text-yellow-200'
-                        : 'bg-green-500/10 text-green-200'
-                    }`}>
-                      {formatAccuracy(location.accuracy)}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {nearbyAreas.map((area) => (
+                <div key={area.name} className="relative p-4 rounded-xl border border-white/5 bg-gray-900/50 hover:bg-gray-900/80 transition-colors">
+                  <h3 className="text-xl font-bold text-white mb-1">
+                    {area.name} {area.isClosest && <span className="text-[10px] bg-yellow-500 text-black px-1.5 py-0.5 rounded-md ml-1 uppercase align-middle">Closest</span>}
+                  </h3>
+                  <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>{STATUS_META[area.status].label}</p>
+                  
+                  <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
+                    <span className="rounded bg-white/10 px-1.5 py-0.5">
+                      {area.distance !== null ? `${area.distance.toFixed(2)} km away` : 'Distance unavailable'}
                     </span>
-                  )}
-                  {location && (
-                    <span className="rounded-full bg-white/10 px-2.5 py-1">
-                      Updated {timeAgo(location.capturedAt)}
-                    </span>
-                  )}
+                    {location && area.isClosest && (
+                       <span className={`rounded px-1.5 py-0.5 ${
+                        location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
+                          ? 'bg-yellow-500/15 text-yellow-200'
+                          : 'bg-green-500/10 text-green-200'
+                      }`}>
+                        Acc: {formatAccuracy(location.accuracy)}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => { setReportModal(area); setReportResult(null); }}
+                      disabled={!locationAccurateEnough}
+                      className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Zap className="w-3.5 h-3.5" /> Report Status
+                    </button>
+                    <button
+                      onClick={() => { setHazardModal(area); setReportResult(null); }}
+                      disabled={!locationAccurateEnough}
+                      className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <AlertTriangle className="w-3.5 h-3.5" /> Report Hazard
+                    </button>
+                  </div>
                 </div>
-                <p className="text-xs text-gray-400 mt-2">You can only report for your actual location. Move to a different area to report there.</p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => { setReportModal(closestArea); setReportResult(null); }}
-                  disabled={!locationAccurateEnough}
-                  className="flex-1 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <Zap className="w-4 h-4" />
-                  Report Status
-                </button>
-                <button
-                  onClick={() => { setHazardModal(closestArea); setReportResult(null); }}
-                  disabled={!locationAccurateEnough}
-                  className="flex-1 py-3 rounded-2xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  <AlertTriangle className="w-4 h-4" />
-                  Report Hazard
-                </button>
-              </div>
+              ))}
             </div>
+            <p className="text-xs text-gray-400 text-center mt-2 pt-2 border-t border-white/5">
+              Select the correct exact neighbourhood from above to submit your report.
+            </p>
           </div>
         ) : (
           <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-6 text-center">
@@ -603,7 +608,7 @@ export default function Home() {
                 filtered.map(area => {
                   const meta = STATUS_META[area.status];
                   const Icon = meta.icon;
-                  const canReport = area.isClosest && locationAccurateEnough;
+                  const canReport = area.isNearby && locationAccurateEnough;
 
                   return (
                     <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
