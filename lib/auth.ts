@@ -165,6 +165,50 @@ async function sendResetEmail(to: string, resetUrl: string) {
   }
 }
 
+async function sendVerificationEmail(to: string, verificationUrl: string) {
+  const smtpHost = process.env.SMTP_HOST;
+  const smtpPort = process.env.SMTP_PORT;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
+
+  if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+    return { sent: false };
+  }
+
+  try {
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: parseInt(smtpPort, 10),
+      secure: false,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+    });
+
+    await transporter.sendMail({
+      from: smtpUser,
+      to,
+      subject: 'Verify your EDSA admin email',
+      html: `
+        <div style="font-family: Inter, Arial, sans-serif; color: #111827; line-height: 1.6;">
+          <h2>Welcome to EDSA Admin</h2>
+          <p>Your admin account has been created. Please verify your email address to complete your setup and login.</p>
+          <p><a href="${verificationUrl}" style="display:inline-block;padding:12px 18px;background:#facc15;color:#111827;text-decoration:none;border-radius:12px;font-weight:700;">Verify email</a></p>
+          <p>This link expires in 1 hour.</p>
+          <p>If you did not create this account, you can ignore this message.</p>
+        </div>
+      `,
+      text: `Verify your EDSA admin email: ${verificationUrl}\n\nThis link expires in 1 hour.`,
+    });
+
+    return { sent: true };
+  } catch (error) {
+    console.error('Failed to send verification email:', error);
+    return { sent: false };
+  }
+}
+
 export async function ensureBootstrapAdminUser() {
   const existingAdminCount = await prisma.adminUser.count();
   if (existingAdminCount > 0) {
@@ -183,6 +227,7 @@ export async function ensureBootstrapAdminUser() {
       email: normalizeAdminEmail(email),
       passwordHash: hashPassword(password),
       isSuperAdmin: true,
+      emailVerified: new Date(), // Bootstrap admin is auto-verified
     },
   });
 }
@@ -193,10 +238,15 @@ export async function loginAdmin(email: string, password: string) {
   const normalizedEmail = normalizeAdminEmail(email);
   const admin = await prisma.adminUser.findUnique({
     where: { email: normalizedEmail },
-    select: { id: true, email: true, isSuperAdmin: true, passwordHash: true, updatedAt: true },
+    select: { id: true, email: true, isSuperAdmin: true, emailVerified: true, passwordHash: true, updatedAt: true },
   });
 
   if (!admin || !verifyPassword(password, admin.passwordHash)) {
+    return null;
+  }
+
+  // Check if email is verified
+  if (!admin.emailVerified) {
     return null;
   }
 
@@ -206,6 +256,20 @@ export async function loginAdmin(email: string, password: string) {
     isSuperAdmin: admin.isSuperAdmin,
     updatedAt: admin.updatedAt,
   } satisfies AuthenticatedAdmin;
+}
+
+export async function checkAdminEmailVerification(email: string) {
+  const normalizedEmail = normalizeAdminEmail(email);
+  const admin = await prisma.adminUser.findUnique({
+    where: { email: normalizedEmail },
+    select: { emailVerified: true },
+  });
+
+  if (!admin) {
+    return { exists: false, verified: false };
+  }
+
+  return { exists: true, verified: !!admin.emailVerified };
 }
 
 export async function createPasswordReset(email: string, origin: string) {
@@ -291,6 +355,87 @@ export async function resetAdminPassword(token: string, nextPassword: string) {
       where: {
         adminId: resetRecord.admin.id,
         id: { not: resetRecord.id },
+      },
+    }),
+  ]);
+
+  return { success: true as const };
+}
+
+export async function createEmailVerificationToken(adminId: string, origin: string) {
+  await prisma.emailVerificationToken.deleteMany({
+    where: {
+      adminId,
+      OR: [
+        { expiresAt: { lte: new Date() } },
+        { usedAt: null },
+      ],
+    },
+  });
+
+  const rawToken = randomBytes(32).toString('hex');
+  const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS);
+
+  const admin = await prisma.adminUser.findUnique({
+    where: { id: adminId },
+    select: { email: true },
+  });
+
+  if (!admin) {
+    return { success: false, emailSent: false };
+  }
+
+  await prisma.emailVerificationToken.create({
+    data: {
+      adminId,
+      tokenHash: hashToken(rawToken),
+      expiresAt,
+    },
+  });
+
+  const verificationUrl = `${origin}/admin/verify-email?token=${rawToken}`;
+  const emailResult = await sendVerificationEmail(admin.email, verificationUrl).catch((error) => {
+    console.error('Failed to send verification email', error);
+    return { sent: false };
+  });
+
+  return {
+    success: true,
+    emailSent: emailResult.sent,
+    previewVerificationUrl: process.env.NODE_ENV === 'production' ? null : verificationUrl,
+  };
+}
+
+export async function verifyAdminEmailToken(token: string) {
+  const tokenHash = hashToken(token);
+  const now = new Date();
+
+  const verifyRecord = await prisma.emailVerificationToken.findUnique({
+    where: { tokenHash },
+    include: {
+      admin: {
+        select: { id: true },
+      },
+    },
+  });
+
+  if (!verifyRecord || verifyRecord.usedAt || verifyRecord.expiresAt <= now) {
+    return { success: false as const, error: 'This verification link is invalid or has expired.' };
+  }
+
+  await prisma.$transaction([
+    prisma.adminUser.update({
+      where: { id: verifyRecord.admin.id },
+      data: { emailVerified: new Date() },
+    }),
+    prisma.emailVerificationToken.update({
+      where: { id: verifyRecord.id },
+      data: { usedAt: now },
+    }),
+    prisma.emailVerificationToken.deleteMany({
+      where: {
+        adminId: verifyRecord.admin.id,
+        id: { not: verifyRecord.id },
       },
     }),
   ]);
@@ -388,6 +533,8 @@ export async function createAdminUser(email: string, password: string, isSuperAd
         email: normalizedEmail,
         passwordHash,
         isSuperAdmin,
+        // New admins need email verification unless they're super admins
+        emailVerified: isSuperAdmin ? new Date() : null,
       },
       select: {
         id: true,

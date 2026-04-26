@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { attachAdminSessionCookie, loginAdmin } from '@/lib/auth';
+import { attachAdminSessionCookie, loginAdmin, checkAdminEmailVerification } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +18,15 @@ export async function POST(request: NextRequest) {
 
     const admin = await loginAdmin(email, password);
     if (!admin) {
+      // Check if email exists but is not verified
+      const emailStatus = await checkAdminEmailVerification(email);
+      if (emailStatus.exists && !emailStatus.verified) {
+        return NextResponse.json(
+          { error: 'Please verify your email before logging in. Check your email for a verification link.' },
+          { status: 401 },
+        );
+      }
+
       return NextResponse.json(
         { error: 'Invalid admin email or password.' },
         { status: 401 },

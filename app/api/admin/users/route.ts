@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminSession, listAllAdmins, createAdminUser } from '@/lib/auth';
+import { getAdminSession, listAllAdmins, createAdminUser, createEmailVerificationToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,9 +61,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Send verification email if not a super admin
+    if (!isSuperAdmin) {
+      const origin = request.headers.get('origin') || 'https://edsa-power-tracker.vercel.app';
+      await createEmailVerificationToken(result.admin.id, origin);
+    }
+
     return NextResponse.json({
       success: true,
       admin: result.admin,
+      message: isSuperAdmin 
+        ? 'Super admin created successfully' 
+        : 'Admin created successfully. A verification email has been sent.',
     });
   } catch (error) {
     console.error('POST /api/admin/users error:', error);

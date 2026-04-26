@@ -59,15 +59,30 @@ model HazardReport {
 }
 
 model AdminUser {
-  id             String               @id @default(cuid())
-  email          String               @unique
-  passwordHash   String
-  isSuperAdmin   Boolean              @default(false)
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-  resetTokens    PasswordResetToken[]
+  id                  String                   @id @default(cuid())
+  email               String                   @unique
+  passwordHash        String
+  isSuperAdmin        Boolean                  @default(false)
+  emailVerified       DateTime?
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  resetTokens         PasswordResetToken[]
+  emailVerifTokens    EmailVerificationToken[]
 
   @@index([email])
+}
+
+model EmailVerificationToken {
+  id          String    @id @default(cuid())
+  tokenHash   String    @unique
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+  adminId     String
+  admin       AdminUser @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@index([adminId])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {
