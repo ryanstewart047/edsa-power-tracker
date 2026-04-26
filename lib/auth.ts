@@ -170,7 +170,7 @@ export async function ensureBootstrapAdminUser() {
     return;
   }
 
-  const email = process.env.ADMIN_EMAIL;
+  const email = process.env.ADMIN_EMAIL_EDSA;
   const password = process.env.ADMIN_PASSWORD;
 
   if (!email || !password) {
