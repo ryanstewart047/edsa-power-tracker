@@ -22,18 +22,30 @@ export default function PWAInstallBanner() {
     const d = detectDevice();
     setDevice(d);
 
-    // Don't show if already in standalone mode
     if (isPWAInstalled()) return;
-
-    // Check session storage to see if they closed it recently
     if (sessionStorage.getItem('edsa-pwa-dismissed')) return;
 
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+    // 1. Check if it already fired and was saved globally
+    if ((window as any).deferredPrompt) {
+      setDeferredPrompt((window as any).deferredPrompt);
+      setShow(true);
+    }
+
+    // 2. Listen for the custom event we dispatch in layout.tsx
+    const handlePromptReady = () => {
+      setDeferredPrompt((window as any).deferredPrompt);
       setShow(true);
     };
 
+    // 3. Keep the standard listener as backup
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      (window as any).deferredPrompt = e;
+      setShow(true);
+    };
+
+    window.addEventListener('pwa-prompt-ready', handlePromptReady);
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // Fallback for iOS
@@ -42,16 +54,11 @@ export default function PWAInstallBanner() {
       return () => clearTimeout(timer);
     }
 
-    // Fallback for Android if the event doesn't fire
-    if (d.isAndroid) {
-      const timer = setTimeout(() => {
-        if (!deferredPrompt) setShow(true);
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-  }, [deferredPrompt]);
+    return () => {
+      window.removeEventListener('pwa-prompt-ready', handlePromptReady);
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
 
   const handleInstall = async () => {
     if (deferredPrompt) {

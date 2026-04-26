@@ -18,9 +18,20 @@ export const metadata: Metadata = {
 };
 
 const swScript = `
+  window.deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window.deferredPrompt = e;
+    window.dispatchEvent(new Event('pwa-prompt-ready'));
+  });
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/sw.js');
+      navigator.serviceWorker.register('/sw.js').then(function(reg) {
+        console.log('SW registered:', reg.scope);
+      }).catch(function(err) {
+        console.log('SW failed:', err);
+      });
     });
   }
 `;
