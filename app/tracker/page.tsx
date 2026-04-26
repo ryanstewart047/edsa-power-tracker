@@ -50,7 +50,7 @@ function formatAccuracy(accuracy: number | null): string {
 function getGeolocationErrorMessage(error: GeolocationPositionError): string {
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      return 'Location permission was denied. Enable GPS access to submit reports.';
+      return 'Location permission was denied. Enable GPS access in your browser settings to submit reports.';
     case error.POSITION_UNAVAILABLE:
       return 'Your location could not be determined right now. Try moving to a clearer spot.';
     case error.TIMEOUT:
@@ -147,7 +147,30 @@ export default function Home() {
     setLocationLoading(true);
     navigator.geolocation.getCurrentPosition(
       handleLocationSuccess,
-      handleLocationError,
+      (error) => {
+        const canRetryWithLowerAccuracy =
+          error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE;
+
+        if (!canRetryWithLowerAccuracy) {
+          handleLocationError(error);
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          handleLocationSuccess,
+          (fallbackError) => {
+            setLocationLoading(false);
+            setLocationError(
+              `${getGeolocationErrorMessage(fallbackError)} Try moving outdoors or enabling precise location for your browser.`,
+            );
+          },
+          {
+            enableHighAccuracy: false,
+            timeout: GEOLOCATION_TIMEOUT_MS * 2,
+            maximumAge: GEOLOCATION_MAXIMUM_AGE_MS * 2,
+          },
+        );
+      },
       {
         enableHighAccuracy: true,
         timeout: GEOLOCATION_TIMEOUT_MS,
