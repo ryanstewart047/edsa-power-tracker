@@ -62,17 +62,31 @@ export async function POST(request: NextRequest) {
     }
 
     // Send verification email if not a super admin
-    if (!isSuperAdmin) {
+    let message = 'Admin created successfully.';
+    let emailSent = false;
+    let previewVerificationUrl = null;
+
+    if (isSuperAdmin) {
+      message = 'Super admin created successfully.';
+    } else {
       const origin = request.headers.get('origin') || 'https://edsa-power-tracker.vercel.app';
-      await createEmailVerificationToken(result.admin!.id, origin);
+      const tokenResult = await createEmailVerificationToken(result.admin!.id, origin);
+      emailSent = tokenResult.emailSent;
+      previewVerificationUrl = tokenResult.previewVerificationUrl;
+      
+      if (emailSent) {
+        message += ' A verification email has been sent.';
+      } else {
+        message += ' (Note: SMTP is not configured or failed, so the email was NOT sent)';
+      }
     }
 
     return NextResponse.json({
       success: true,
       admin: result.admin,
-      message: isSuperAdmin 
-        ? 'Super admin created successfully' 
-        : 'Admin created successfully. A verification email has been sent.',
+      message,
+      emailSent,
+      previewVerificationUrl,
     });
   } catch (error) {
     console.error('POST /api/admin/users error:', error);

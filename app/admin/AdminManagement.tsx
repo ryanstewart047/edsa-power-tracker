@@ -74,7 +74,14 @@ export default function AdminManagementPanel() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to create admin');
 
-      setSuccess(`Admin created: ${newAdminEmail}`);
+      setSuccess(data.message || `Admin created: ${newAdminEmail}`);
+      
+      // If we are in local development and the email failed, console log the URL for easy clicking
+      if (data.previewVerificationUrl && !data.emailSent) {
+        console.warn(`Local Dev Verification URL for ${newAdminEmail}: `, data.previewVerificationUrl);
+        setSuccess(prev => prev + ` Check console for verification link!`);
+      }
+
       setNewAdminEmail('');
       setNewAdminPassword('');
       setIsSuperAdmin(false);
