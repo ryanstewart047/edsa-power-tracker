@@ -2,7 +2,8 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown } from 'lucide-react';
+import Link from 'next/link';
+import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
 import { AreaWithStatus, calculateDistanceKm, getClosestArea, REPORTING_TOLERANCE_KM } from '@/lib/areas';
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
@@ -438,13 +439,21 @@ export default function Home() {
     <main className="min-h-screen bg-gray-950 text-white">
       <header className="sticky top-0 z-40 bg-gray-950/80 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-yellow-400" />
-            </div>
-            <div>
-              <h1 className="font-bold text-base sm:text-lg leading-tight">EDSA Power Tracker</h1>
-              <p className="text-[11px] text-gray-400 hidden sm:block">Freetown, Sierra Leone</p>
+          <div className="flex items-center gap-4">
+            <Link 
+              href="/" 
+              className="p-2 -ml-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all group"
+              title="Back to Home"
+            >
+              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center">
+                <Zap className="w-5 h-5 text-yellow-400" />
+              </div>
+              <div>
+                <h1 className="font-bold text-base sm:text-lg leading-tight">Live Tracker</h1>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-3">
