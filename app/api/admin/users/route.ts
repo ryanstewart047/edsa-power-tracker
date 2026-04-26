@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     // Send verification email if not a super admin
     if (!isSuperAdmin) {
       const origin = request.headers.get('origin') || 'https://edsa-power-tracker.vercel.app';
-      await createEmailVerificationToken(result.admin.id, origin);
+      await createEmailVerificationToken(result.admin!.id, origin);
     }
 
     return NextResponse.json({
