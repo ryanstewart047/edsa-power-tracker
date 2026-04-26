@@ -872,6 +872,22 @@ export default function Home() {
         </div>
       )}
       </div>
+
+      <footer className="relative z-10 border-t border-white/5 py-12 px-6 mt-12 bg-black/20 backdrop-blur-md">
+        <div className="max-w-5xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+          <div className="flex items-center gap-4 text-gray-500">
+             <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
+               <Zap className="h-4 w-4" />
+             </div>
+             <p className="text-xs font-bold uppercase tracking-widest">EDSA Field Operations</p>
+          </div>
+          <div className="flex flex-col items-center md:items-end gap-1">
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Developed by</p>
+            <p className="text-xs text-yellow-500/80 font-black">Ryan J Stewart, BCA</p>
+            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Amity University India</p>
+          </div>
+        </div>
+      </footer>
     </main>
   );
 }

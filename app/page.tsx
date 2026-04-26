@@ -197,7 +197,14 @@ export default function WelcomePage() {
              </div>
              <p className="text-xs font-bold uppercase tracking-widest">Freetown Operations Unit</p>
           </div>
-          <p className="text-xs text-gray-600 font-medium tracking-tight">
+          <div className="flex flex-col items-center md:items-end gap-1">
+            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Developed by</p>
+            <p className="text-xs text-yellow-500/80 font-black">Ryan J Stewart, BCA</p>
+            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Amity University India</p>
+          </div>
+        </div>
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-white/5 text-center">
+          <p className="text-[10px] text-gray-700 font-medium tracking-tight uppercase">
             © {new Date().getFullYear()} EDSA Native Platform. Designed for daily field use.
           </p>
         </div>
