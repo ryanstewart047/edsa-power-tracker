@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { attachAdminSessionCookie, loginAdmin, checkAdminEmailVerification } from '@/lib/auth';
+import { attachAdminSessionCookie, loginAdmin } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
