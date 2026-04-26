@@ -27,6 +27,8 @@ const featurePills = [
   'Excel export and WhatsApp sharing',
 ];
 
+import WorkSlider from '@/components/WorkSlider';
+
 export default function WelcomePage() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(250,204,21,0.18),_transparent_34%),linear-gradient(180deg,_#08121f_0%,_#05070d_48%,_#020305_100%)] text-white">
@@ -56,6 +58,9 @@ export default function WelcomePage() {
 
           <div className="grid gap-8 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="space-y-6">
+              {/* Image Slider */}
+              <WorkSlider />
+
               <div className="space-y-4">
                 <p className="max-w-3xl text-lg leading-8 text-gray-200 sm:text-xl">
                   A professional mobile-first control surface for electricity status reporting, hazard escalation, and operational oversight across Freetown.
@@ -69,24 +74,6 @@ export default function WelcomePage() {
                       {pill}
                     </span>
                   ))}
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Field Ready</p>
-                  <p className="mt-3 text-3xl font-bold text-white">24/7</p>
-                  <p className="mt-2 text-sm text-gray-400">Built for continuous monitoring and incident response.</p>
-                </div>
-                <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Admin Workflow</p>
-                  <p className="mt-3 text-3xl font-bold text-white">Secure</p>
-                  <p className="mt-2 text-sm text-gray-400">Dedicated access control, reset flow, and reporting tools.</p>
-                </div>
-                <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-                  <p className="text-xs uppercase tracking-[0.25em] text-gray-500">Distribution</p>
-                  <p className="mt-3 text-3xl font-bold text-white">Fast</p>
-                  <p className="mt-2 text-sm text-gray-400">Export overview reports and share operational summaries quickly.</p>
                 </div>
               </div>
             </div>
@@ -130,19 +117,22 @@ export default function WelcomePage() {
           </div>
         </header>
 
-        <section className="mt-8 grid gap-4 md:grid-cols-3">
-          {highlights.map(({ icon: Icon, title, description }) => (
-            <article
-              key={title}
-              className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 shadow-xl shadow-black/20 backdrop-blur-md"
-            >
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-yellow-300">
-                <Icon className="h-5 w-5" />
-              </div>
-              <h2 className="mt-5 text-xl font-bold">{title}</h2>
-              <p className="mt-3 text-sm leading-7 text-gray-400">{description}</p>
-            </article>
-          ))}
+        {/* Horizontal Scroll on Mobile */}
+        <section className="mt-8 overflow-hidden">
+          <div className="flex flex-nowrap gap-4 overflow-x-auto pb-6 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible">
+            {highlights.map(({ icon: Icon, title, description }) => (
+              <article
+                key={title}
+                className="min-w-[85%] sm:min-w-[300px] md:min-w-0 rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-6 shadow-xl shadow-black/20 backdrop-blur-md transition-all hover:border-yellow-400/30 group"
+              >
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/5 text-yellow-300 group-hover:scale-110 transition-transform">
+                  <Icon className="h-5 w-5" />
+                </div>
+                <h2 className="mt-5 text-xl font-bold">{title}</h2>
+                <p className="mt-3 text-sm leading-7 text-gray-400">{description}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <SafetyGuidelines />
