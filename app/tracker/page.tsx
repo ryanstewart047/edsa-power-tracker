@@ -443,8 +443,8 @@ export default function Home() {
   const locationActionLabel = location ? 'Refresh GPS' : 'Enable GPS';
 
   return (
-    <main className="min-h-screen bg-gray-950 text-white">
-      <header className="sticky top-0 z-40 bg-gray-950/80 backdrop-blur-xl border-b border-white/10">
+    <main className="min-h-screen bg-[#020617] bg-[radial-gradient(ellipse_at_top_left,_rgba(250,204,21,0.08),_transparent_50%),radial-gradient(ellipse_at_bottom_right,_rgba(59,130,246,0.05),_transparent_50%)] text-white selection:bg-yellow-500/30">
+      <header className="sticky top-0 z-40 bg-[#020617]/80 backdrop-blur-2xl border-b border-white/10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Link 
@@ -508,7 +508,7 @@ export default function Home() {
 
         {/* Your Reporting Area - Shows Nearby Areas */}
         {nearbyAreas.length > 0 ? (
-          <div className="bg-gradient-to-br from-yellow-500/10 to-yellow-500/5 border border-yellow-500/30 rounded-3xl p-6 space-y-4">
+          <div className="bg-gradient-to-br from-yellow-500/10 via-yellow-500/[0.03] to-transparent border border-yellow-500/30 rounded-[2.5rem] p-6 sm:p-8 space-y-6 shadow-2xl shadow-yellow-500/5 backdrop-blur-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-yellow-400">Your Current & Nearby Areas</h2>
               <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {nearbyAreas.map((area) => (
-                <div key={area.name} className="relative p-4 rounded-xl border border-white/5 bg-gray-900/50 hover:bg-gray-900/80 transition-colors">
+                <div key={area.name} className="relative p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-500 group/card">
                   <h3 className="text-xl font-bold text-white mb-1">
                     {area.name} 
                     {area.isClosest && <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-black tracking-tighter">Current Position</span>}
