@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircle, AlertCircle } from 'lucide-react';
 import AuthShell from '../AuthShell';
 
-export default function VerifyEmailPage() {
+function VerifyEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const token = searchParams.get('token');
@@ -50,38 +50,51 @@ export default function VerifyEmailPage() {
   }, [token, router]);
 
   return (
+    <div className="space-y-6">
+      {status === 'loading' && (
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+          <p className="text-gray-300">Verifying your email...</p>
+        </div>
+      )}
+
+      {status === 'success' && (
+        <div className="flex flex-col items-center gap-4">
+          <CheckCircle className="text-green-400" size={48} />
+          <p className="text-green-300">{message}</p>
+        </div>
+      )}
+
+      {status === 'error' && (
+        <div className="flex flex-col items-center gap-4">
+          <AlertCircle className="text-red-400" size={48} />
+          <p className="text-red-300">{message}</p>
+          <a
+            href="/admin/login"
+            className="inline-block mt-4 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition font-medium"
+          >
+            Back to Login
+          </a>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
     <AuthShell
       title="Verify Your Email"
       description="Complete your admin account setup"
     >
-      <div className="space-y-6">
-        {status === 'loading' && (
-          <div className="flex flex-col items-center gap-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
-            <p className="text-gray-300">Verifying your email...</p>
-          </div>
-        )}
-
-        {status === 'success' && (
-          <div className="flex flex-col items-center gap-4">
-            <CheckCircle className="text-green-400" size={48} />
-            <p className="text-green-300">{message}</p>
-          </div>
-        )}
-
-        {status === 'error' && (
-          <div className="flex flex-col items-center gap-4">
-            <AlertCircle className="text-red-400" size={48} />
-            <p className="text-red-300">{message}</p>
-            <a
-              href="/admin/login"
-              className="inline-block mt-4 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition font-medium"
-            >
-              Back to Login
-            </a>
-          </div>
-        )}
-      </div>
+      <Suspense fallback={
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+          <p className="text-gray-300">Verifying your email...</p>
+        </div>
+      }>
+        <VerifyEmailContent />
+      </Suspense>
     </AuthShell>
   );
 }
