@@ -556,22 +556,24 @@ export default function Home() {
                     <div className="flex gap-2">
                       <button
                         onClick={() => { setReportModal(area); setReportResult(null); }}
-                        disabled={!locationAccurateEnough || !area.isNearby}
+                        disabled={!locationAccurateEnough || (area.distance !== null && area.distance > 15)}
                         className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > 15 ? "Too far from this area" : ""}
                       >
                         <Zap className="w-3.5 h-3.5" /> Report Status
                       </button>
                       <button
                         onClick={() => { setHazardModal(area); setReportResult(null); }}
-                        disabled={!locationAccurateEnough || !area.isNearby}
+                        disabled={!locationAccurateEnough || (area.distance !== null && area.distance > 15)}
                         className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > 15 ? "Too far from this area" : ""}
                       >
                         <AlertTriangle className="w-3.5 h-3.5" /> Report Hazard
                       </button>
                     </div>
                   ) : (
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
-                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Reporting disabled for closest area</p>
+                      <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Reporting restricted to current position</p>
                     </div>
                   )}
                 </div>
