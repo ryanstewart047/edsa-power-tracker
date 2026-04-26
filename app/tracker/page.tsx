@@ -443,7 +443,19 @@ export default function Home() {
   const locationActionLabel = location ? 'Refresh GPS' : 'Enable GPS';
 
   return (
-    <main className="min-h-screen bg-[#020617] bg-[radial-gradient(ellipse_at_top_left,_rgba(250,204,21,0.08),_transparent_50%),radial-gradient(ellipse_at_bottom_right,_rgba(59,130,246,0.05),_transparent_50%)] text-white selection:bg-yellow-500/30">
+    <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
+      {/* Background Image Layer */}
+      <div 
+        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat transition-opacity duration-1000"
+        style={{ 
+          backgroundImage: 'url("/assets/bg-action.png")',
+          filter: 'blur(20px) brightness(0.4)',
+          transform: 'scale(1.1)' 
+        }}
+      />
+      
+      {/* Content Layer */}
+      <div className="relative z-10 min-h-screen">
       <header className="sticky top-0 z-40 bg-[#020617]/80 backdrop-blur-2xl border-b border-white/10">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -859,6 +871,7 @@ export default function Home() {
           </div>
         </div>
       )}
+      </div>
     </main>
   );
 }
