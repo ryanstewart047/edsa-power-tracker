@@ -7,6 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "EDSA Native Platform — Freetown",
   description: "Professional native-style power tracking and hazard operations platform for Freetown, Sierra Leone.",
+  manifest: "/manifest.json",
   keywords: ["EDSA", "power", "electricity", "Freetown", "Sierra Leone", "outage", "hazard", "operations"],
   openGraph: {
     title: "EDSA Native Platform",
@@ -15,11 +16,20 @@ export const metadata: Metadata = {
   },
 };
 
+const swScript = `
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+      navigator.serviceWorker.register('/sw.js');
+    });
+  }
+`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-950 text-white min-h-screen`}>
         {children}
+        <script dangerouslySetInnerHTML={{ __html: swScript }} />
       </body>
     </html>
   );
