@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Smartphone, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 import WorkSlider from '@/components/WorkSlider';
 
