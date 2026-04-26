@@ -70,8 +70,8 @@ export default function PWAInstallBanner() {
   if (!show || !device.isMobile) return null;
 
   return (
-    <div className="fixed bottom-6 left-4 right-4 z-[100] animate-in slide-in-from-bottom-10 duration-500">
-      <div className="bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-3xl p-5 shadow-2xl">
+    <div className="fixed top-6 left-4 right-4 z-[9999] animate-in slide-in-from-top-10 duration-500 pointer-events-auto">
+      <div className="bg-gray-900/95 backdrop-blur-2xl border border-white/20 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
         <button 
           onClick={() => { setShow(false); sessionStorage.setItem('edsa-pwa-dismissed', 'true'); }}
           className="absolute top-4 right-4 text-gray-500 hover:text-white"
