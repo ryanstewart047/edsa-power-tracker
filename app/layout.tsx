@@ -48,9 +48,29 @@ const swScript = `
 
 import SplashScreen from "@/components/SplashScreen";
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "EDSA Native Power Tracker",
+  "operatingSystem": "Android, iOS, Windows, macOS",
+  "applicationCategory": "UtilitiesApplication",
+  "description": "Real-time crowdsourced power outage tracking and hazard reporting for Freetown.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "SLL"
+  }
+};
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.className} bg-gray-950 text-white min-h-screen`}>
         <SplashScreen />
         {children}
