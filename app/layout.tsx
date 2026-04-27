@@ -11,10 +11,19 @@ export const metadata: Metadata = {
   description: "Professional native-style power tracking and hazard operations platform for Freetown, Sierra Leone.",
   manifest: "/manifest.json",
   keywords: ["EDSA", "power", "electricity", "Freetown", "Sierra Leone", "outage", "hazard", "operations"],
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "EDSA Tracker",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   openGraph: {
     title: "EDSA Native Platform",
     description: "Track electricity status, escalate hazards, and manage operations across Freetown.",
     type: "website",
+    siteName: "EDSA Native",
   },
 };
 

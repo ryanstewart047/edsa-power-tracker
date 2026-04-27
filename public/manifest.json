@@ -1,11 +1,13 @@
 {
-  "name": "EDSA Power Tracker",
+  "name": "EDSA Native Power Tracker",
   "short_name": "EDSA Tracker",
-  "description": "Real-time crowdsourced power outage tracking for Freetown.",
+  "description": "Real-time crowdsourced power outage tracking and hazard reporting for Freetown, Sierra Leone.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "background_color": "#020617",
+  "theme_color": "#eab308",
+  "orientation": "portrait",
+  "categories": ["utilities", "productivity", "government"],
   "icons": [
     {
       "src": "/assets/icon-192.png",
@@ -18,6 +20,20 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/screenshot-1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Live Power Tracker"
+    },
+    {
+      "src": "/assets/screenshot-2.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Hazard Escalation"
     }
   ]
 }
