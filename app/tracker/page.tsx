@@ -5,6 +5,10 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
 import { AreaWithStatus, calculateDistanceKm, REPORTING_TOLERANCE_KM } from '@/lib/areas';
+import LocationOnboarding from '@/components/LocationOnboarding';
+
+const PRIMARY_AREA_BIAS_KM = 5.0; // If GPS is within 5km of primary area, trust the user choice more.
+
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
@@ -88,6 +92,13 @@ export default function Home() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showCommunities, setShowCommunities] = useState(true);
+  const [primaryArea, setPrimaryArea] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Load primary area from local storage
+    const saved = localStorage.getItem('edsa_primary_area');
+    if (saved) setPrimaryArea(saved);
+  }, []);
 
   // Hazard Report State
   const [hazardType, setHazardType] = useState<HazardType>(HAZARD_TYPES[0]);
@@ -277,6 +288,10 @@ export default function Home() {
       const data = await res.json();
       
       if (res.ok) {
+        // Behavioral Learning: Update primary area if user reports for a specific area
+        localStorage.setItem('edsa_primary_area', reportModal.name);
+        setPrimaryArea(reportModal.name);
+
         setReportResult({
           success: true,
           confirmed: Boolean(data.confirmed),
@@ -397,17 +412,26 @@ export default function Home() {
       distance: calculateDistanceKm(location.lat, location.lng, area.lat, area.lng),
     })).sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 
-    const closestName = withDist[0]?.name;
+    let closestName = withDist[0]?.name;
     const secondClosestName = withDist[1]?.name;
+
+    // Smart Override: If primary area is set and GPS is within 5km of it,
+    // we assume the user is actually at their primary location.
+    if (primaryArea) {
+      const primaryAreaObj = withDist.find(a => a.name === primaryArea);
+      if (primaryAreaObj && (primaryAreaObj.distance ?? Infinity) <= PRIMARY_AREA_BIAS_KM) {
+        closestName = primaryArea;
+      }
+    }
 
     return areas.map(area => {
       const distance = calculateDistanceKm(location.lat, location.lng, area.lat, area.lng);
       const isClosest = area.name === closestName;
-      const isSecondClosest = area.name === secondClosestName;
+      const isSecondClosest = area.name === secondClosestName && !isClosest;
       const isNearby = distance <= REPORTING_TOLERANCE_KM;
       return { ...area, isNearby, distance, isClosest, isSecondClosest };
     });
-  }, [areas, location]);
+  }, [areas, location, primaryArea]);
 
   const nearbyAreas = useMemo(() => {
     if (!location) return [];
@@ -444,6 +468,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
+      <LocationOnboarding onComplete={(area) => setPrimaryArea(area)} />
       {/* Background Image Layer */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
