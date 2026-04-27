@@ -406,6 +406,8 @@ export default function Home() {
     location,
     locationAccurateEnough,
     locationHelpMessage,
+    meterNumber,
+    contactPhone,
   ]);
 
   const areasWithProximity = useMemo(() => {

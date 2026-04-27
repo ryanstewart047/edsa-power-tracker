@@ -40,6 +40,8 @@ interface Stats {
     resolved: boolean;
     resolvedBy: string | null;
     resolvedAt: string | null;
+    meterNumber: string | null;
+    contactPhone: string | null;
   }[];
 }
 
