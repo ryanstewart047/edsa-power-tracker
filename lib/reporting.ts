@@ -23,6 +23,7 @@ export const HAZARD_TYPES = [
   'Sparking Cable',
   'Transformer Issue',
   'Illegal Connection',
+  'Stolen Meter',
   'Other Danger',
 ] as const;
 

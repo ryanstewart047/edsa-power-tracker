@@ -107,6 +107,8 @@ export default function Home() {
   const [hazardHouse, setHazardHouse] = useState('');
   const [hazardAreaName, setHazardAreaName] = useState('');
   const [hazardImage, setHazardImage] = useState<string | null>(null);
+  const [meterNumber, setMeterNumber] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -222,6 +224,8 @@ export default function Home() {
     setHazardHouse('');
     setHazardAreaName('');
     setHazardImage(null);
+    setMeterNumber('');
+    setContactPhone('');
   }, []);
 
   const closeHazardModal = useCallback(() => {
@@ -359,14 +363,16 @@ export default function Home() {
         body: JSON.stringify({
           area: hazardModal.name,
           type: hazardType,
-          description: hazardDesc,
+          areaName: hazardAreaName,
           streetName: hazardStreet,
           houseNumber: hazardHouse,
-          areaName: hazardAreaName,
+          meterNumber,
+          contactPhone,
+          description: hazardDesc,
           imageUrl: hazardImage,
           deviceId: getDeviceId(),
           lat: location.lat,
-          lng: location.lng,
+          lng: location.lng
         }),
       });
 
@@ -824,9 +830,32 @@ export default function Home() {
                   />
                 </div>
 
+                {hazardType === 'Stolen Meter' && (
+                  <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-yellow-400">Meter Number <span className="text-red-400">*</span></label>
+                      <input
+                        value={meterNumber}
+                        onChange={e => setMeterNumber(e.target.value)}
+                        placeholder="e.g. 0012345"
+                        className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-yellow-400">Contact Phone <span className="text-red-400">*</span></label>
+                      <input
+                        value={contactPhone}
+                        onChange={e => setContactPhone(e.target.value)}
+                        placeholder="e.g. 076..."
+                        className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name {hazardType === 'Illegal Connection' && <span className="text-red-400">*</span>}</label>
+                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
                     <input
                       value={hazardStreet}
                       onChange={e => setHazardStreet(e.target.value)}
@@ -835,7 +864,7 @@ export default function Home() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No {hazardType === 'Illegal Connection' && <span className="text-red-400">*</span>}</label>
+                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
                     <input
                       value={hazardHouse}
                       onChange={e => setHazardHouse(e.target.value)}

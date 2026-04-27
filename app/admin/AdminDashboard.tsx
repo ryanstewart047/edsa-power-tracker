@@ -696,6 +696,18 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                     <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">House number</p>
                     <p className="text-sm text-white">{selectedHazard.houseNumber || 'Not provided'}</p>
                   </div>
+                  {selectedHazard.type === 'Stolen Meter' && (
+                    <>
+                      <div className="rounded-2xl bg-yellow-500/10 border border-yellow-500/20 p-4 space-y-1">
+                        <p className="text-xs uppercase tracking-widest text-yellow-500/60 font-bold">Meter Number</p>
+                        <p className="text-sm text-white font-mono">{selectedHazard.meterNumber || 'Unknown'}</p>
+                      </div>
+                      <div className="rounded-2xl bg-yellow-500/10 border border-yellow-500/20 p-4 space-y-1">
+                        <p className="text-xs uppercase tracking-widest text-yellow-500/60 font-bold">Contact Phone</p>
+                        <p className="text-sm text-white font-bold">{selectedHazard.contactPhone || 'Unknown'}</p>
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-2">

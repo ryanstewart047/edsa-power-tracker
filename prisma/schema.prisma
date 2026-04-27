@@ -51,6 +51,8 @@ model HazardReport {
   resolvedAt  DateTime?
   resolvedBy  String?  // Email of the admin who resolved it
   deviceId    String?
+  meterNumber String?
+  contactPhone String?
   lat         Float?
   lng         Float?
 

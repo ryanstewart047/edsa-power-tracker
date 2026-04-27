@@ -36,6 +36,8 @@ export type AdminOverviewStats = {
     resolved: boolean;
     resolvedBy: string | null;
     resolvedAt: Date | null;
+    meterNumber: string | null;
+    contactPhone: string | null;
   }[];
 };
 

@@ -36,6 +36,8 @@ export async function POST(req: NextRequest) {
     const streetName = parseOptionalText(body.streetName, 120);
     const houseNumber = parseOptionalText(body.houseNumber, 40);
     const description = parseOptionalText(body.description, 500);
+    const meterNumber = parseOptionalText(body.meterNumber, 60);
+    const contactPhone = parseOptionalText(body.contactPhone, 40);
     const imageUrl = normalizeHazardImage(body.imageUrl);
     const deviceId = parseDeviceId(body.deviceId);
 
@@ -68,6 +70,16 @@ export async function POST(req: NextRequest) {
         {
           error: 'Missing address details',
           message: 'Street name and house number are required for illegal connection reports.',
+        },
+        { status: 400 },
+      );
+    }
+
+    if (type === 'Stolen Meter' && (!meterNumber || !contactPhone || !streetName || !houseNumber)) {
+      return NextResponse.json(
+        {
+          error: 'Missing details',
+          message: 'Meter number, contact phone, street name, and house number are required for stolen meter reports.',
         },
         { status: 400 },
       );
@@ -130,6 +142,8 @@ export async function POST(req: NextRequest) {
         lat: locationValidation.lat,
         lng: locationValidation.lng,
         deviceId,
+        meterNumber,
+        contactPhone,
       },
     });
 
