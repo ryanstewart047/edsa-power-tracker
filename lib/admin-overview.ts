@@ -4,6 +4,7 @@ import { FREETOWN_AREAS } from '@/lib/areas';
 export type AdminOverviewStats = {
   totalReports: number;
   totalHazards: number;
+  totalResolvedHazards: number;
   areaSummary: {
     name: string;
     status: 'on' | 'out' | 'unknown';
@@ -39,7 +40,7 @@ export type AdminOverviewStats = {
 };
 
 export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
-  const [allReports, areaStatuses, hazardReports, totalReports, totalHazards] = await Promise.all([
+  const [allReports, areaStatuses, hazardReports, totalReports, totalHazards, totalResolvedHazards] = await Promise.all([
     prisma.outageReport.findMany({
       orderBy: { reportedAt: 'desc' },
       take: 100,
@@ -52,6 +53,7 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
     }),
     prisma.outageReport.count(),
     prisma.hazardReport.count({ where: { resolved: false } }), // Count only unresolved
+    prisma.hazardReport.count({ where: { resolved: true } }),  // Count resolved
   ]);
 
   const areaStatusLookup = new Map(areaStatuses.map((status) => [status.area, status]));
@@ -59,6 +61,7 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
   return {
     totalReports,
     totalHazards,
+    totalResolvedHazards,
     areaSummary: FREETOWN_AREAS.map((area) => {
       const status = areaStatusLookup.get(area.name);
       return {

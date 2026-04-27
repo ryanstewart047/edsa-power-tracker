@@ -8,6 +8,7 @@ import { Zap, ZapOff, AlertTriangle, Clock, MapPin, Search, CheckCircle, Refresh
 interface Stats {
   totalReports: number;
   totalHazards: number;
+  totalResolvedHazards: number;
   areaSummary: {
     name: string;
     status: 'on' | 'out' | 'unknown';
@@ -103,6 +104,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
   const [selectedHazardId, setSelectedHazardId] = useState<string | null>(null);
   const [resolvingHazardId, setResolvingHazardId] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [hazardFilter, setHazardFilter] = useState<'active' | 'resolved' | 'all'>('all');
 
   const fetchStats = useCallback(async (options?: { initial?: boolean }) => {
     const isInitial = options?.initial ?? false;
@@ -154,6 +156,10 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
     if (!stats) return [];
 
     return stats.recentHazards.filter((hazard) => {
+      // Apply status filter
+      if (hazardFilter === 'active' && hazard.resolved) return false;
+      if (hazardFilter === 'resolved' && !hazard.resolved) return false;
+
       if (!normalizedSearch) return true;
 
       return [
@@ -166,7 +172,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
         .filter(Boolean)
         .some((value) => value!.toLowerCase().includes(normalizedSearch));
     });
-  }, [normalizedSearch, stats]);
+  }, [normalizedSearch, stats, hazardFilter]);
 
   const filteredReports = useMemo(() => {
     if (!stats) return [];
@@ -433,7 +439,8 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 { label: 'Total Reports', value: stats.totalReports, icon: BarChart3, color: 'text-blue-400' },
-                { label: 'Danger Alerts', value: stats.totalHazards, icon: AlertTriangle, color: 'text-red-400' },
+                { label: 'Active Dangers', value: stats.totalHazards, icon: AlertTriangle, color: 'text-red-400' },
+                { label: 'Resolved Issues', value: stats.totalResolvedHazards, icon: CheckCircle, color: 'text-green-400' },
                 { label: 'Power On Areas', value: stats.areaSummary.filter(a => a.status === 'on').length, icon: Zap, color: 'text-green-400' },
                 { label: 'Outage Areas', value: stats.areaSummary.filter(a => a.status === 'out').length, icon: ZapOff, color: 'text-orange-400' },
               ].map(card => (
@@ -505,7 +512,22 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
         )}
 
         {activeTab === 'hazards' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-2xl w-fit">
+              {(['all', 'active', 'resolved'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setHazardFilter(f)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ${
+                    hazardFilter === f ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'
+                  }`}
+                >
+                  {f}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredHazards.length === 0 ? (
               <div className="col-span-full py-20 text-center space-y-4">
                 <CheckCircle className="w-16 h-16 text-green-500 mx-auto opacity-20" />
@@ -586,6 +608,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
               ))
             )}
           </div>
+        </div>
         )}
 
         {activeTab === 'feed' && (
