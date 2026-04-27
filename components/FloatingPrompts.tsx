@@ -28,7 +28,7 @@ const prompts = [
     icon: MessageSquare,
     color: "text-blue-400",
     bg: "bg-blue-500/10",
-    action: "Alert Admin"
+    action: "Alert EDSA"
   }
 ];
 
