@@ -619,38 +619,38 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
       </main>
 
       {selectedHazard && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl border border-white/10 bg-gray-900 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-2 md:p-4">
+          <div className="w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-y-auto rounded-3xl border border-white/10 bg-[#020617] shadow-2xl custom-scrollbar">
+            <div className="sticky top-0 z-20 bg-[#020617]/80 backdrop-blur-xl flex items-center justify-between border-b border-white/10 px-6 py-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-red-400 font-bold">{selectedHazard.type}</p>
-                <h3 className="text-xl font-bold">{selectedHazard.areaName || selectedHazard.area}</h3>
+                <p className="text-xs uppercase tracking-[0.2em] text-red-400 font-black">{selectedHazard.type}</p>
+                <h3 className="text-xl font-bold text-white">{selectedHazard.areaName || selectedHazard.area}</h3>
               </div>
               <button
                 onClick={() => setSelectedHazardId(null)}
-                className="rounded-full p-2 text-gray-400 hover:bg-white/5 hover:text-white"
+                className="rounded-xl p-2 text-gray-400 hover:bg-white/5 hover:text-white transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr]">
-              <div className="bg-gray-950 min-h-[320px] flex items-center justify-center">
+              <div className="bg-black/40 min-h-[240px] md:min-h-[320px] flex items-center justify-center border-b lg:border-b-0 lg:border-r border-white/10">
                 {selectedHazard.imageUrl ? (
                   <img
                     src={selectedHazard.imageUrl}
                     alt={selectedHazard.type}
-                    className="w-full h-full max-h-[70vh] object-contain"
+                    className="w-full h-auto max-h-[40vh] lg:max-h-[70vh] object-contain p-2"
                   />
                 ) : (
-                  <div className="text-center text-gray-500 p-8">
-                    <AlertTriangle className="w-10 h-10 mx-auto mb-3" />
-                    <p>No photo was attached to this report.</p>
+                  <div className="text-center text-gray-600 p-8">
+                    <AlertTriangle className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                    <p className="text-xs font-bold uppercase tracking-widest">No evidence photo provided</p>
                   </div>
                 )}
               </div>
 
-              <div className="p-6 space-y-5 overflow-y-auto max-h-[70vh]">
+              <div className="p-6 space-y-5 lg:overflow-y-auto lg:max-h-[70vh]">
                 <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-2">
                   <p className="text-xs uppercase tracking-widest text-gray-500 font-bold">Reported</p>
                   <p className="text-sm text-white">{new Date(selectedHazard.reportedAt).toLocaleString()}</p>
