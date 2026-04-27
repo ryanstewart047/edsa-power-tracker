@@ -24,7 +24,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
 
   const filteredAreas = FREETOWN_AREAS.filter(area => 
     area.name.toLowerCase().includes(searchTerm.toLowerCase())
-  ).slice(0, 5);
+  );
 
   const handleFinish = () => {
     if (selectedArea) {
@@ -76,7 +76,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
                 />
               </div>
 
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                 {filteredAreas.map((area) => (
                   <button
                     key={area.name}
