@@ -107,36 +107,9 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
   const [resolvingHazardId, setResolvingHazardId] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const [hazardFilter, setHazardFilter] = useState<'active' | 'resolved' | 'all'>('all');
-  const INACTIVITY_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
 
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
 
-    const resetTimer = () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
-        console.log('Inactivity detected. Logging out...');
-        void handleLogout();
-      }, INACTIVITY_THRESHOLD_MS);
-    };
 
-    // Events to monitor for activity
-    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-
-    activityEvents.forEach(event => {
-      window.addEventListener(event, resetTimer);
-    });
-
-    // Initial start
-    resetTimer();
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      activityEvents.forEach(event => {
-        window.removeEventListener(event, resetTimer);
-      });
-    };
-  }, [handleLogout]);
   const fetchStats = useCallback(async (options?: { initial?: boolean }) => {
     const isInitial = options?.initial ?? false;
     if (isInitial) {
@@ -263,6 +236,34 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
       setSigningOut(false);
     }
   }, [router]);
+
+  // Automatic logout for inactivity
+  useEffect(() => {
+    const INACTIVITY_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+    let timeoutId: NodeJS.Timeout;
+
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        console.log('Inactivity detected. Logging out...');
+        void handleLogout();
+      }, INACTIVITY_THRESHOLD_MS);
+    };
+
+    const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    activityEvents.forEach(event => {
+      window.addEventListener(event, resetTimer);
+    });
+
+    resetTimer();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      activityEvents.forEach(event => {
+        window.removeEventListener(event, resetTimer);
+      });
+    };
+  }, [handleLogout]);
 
   const handleResolveHazard = useCallback(async (hazard: HazardItem) => {
     const confirmed = window.confirm(`Mark "${hazard.type}" in ${hazard.areaName || hazard.area} as resolved?`);
