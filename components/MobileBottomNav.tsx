@@ -7,11 +7,11 @@ import { Home, Map, ShieldCheck } from 'lucide-react';
 export default function MobileBottomNav() {
   const pathname = usePathname();
 
-  // Hide the global bottom nav on admin routes to prevent conflicts with the admin dashboard
-  // Alternatively, you can change this to `false` to show it globally
-  const isAdminRoute = pathname?.startsWith('/admin');
+  // Show the global bottom nav on auth pages (like /admin/login)
+  // Hide it on the protected admin dashboards (/admin, /admin/manage) to prevent UI conflicts
+  const isProtectedAdminRoute = pathname === '/admin' || pathname?.startsWith('/admin/manage');
 
-  if (isAdminRoute) return null;
+  if (isProtectedAdminRoute) return null;
 
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
