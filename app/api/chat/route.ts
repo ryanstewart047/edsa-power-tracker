@@ -1,5 +1,36 @@
 import { Groq } from 'groq-sdk';
 import { NextRequest, NextResponse } from 'next/server';
+import { searchWeb, formatSearchResultsForAI } from '@/lib/webSearch';
+
+/**
+ * Determine if a query should trigger a web search
+ */
+function shouldSearchWeb(query: string): boolean {
+  const searchTriggers = [
+    'what',
+    'who',
+    'when',
+    'where',
+    'how',
+    'latest',
+    'recent',
+    'current',
+    'today',
+    'news',
+    'find',
+    'search',
+    'tell me',
+    'information',
+    'explain',
+    'define',
+    'weather',
+    'price',
+    'cost',
+  ];
+  
+  const lowerQuery = query.toLowerCase();
+  return searchTriggers.some(trigger => lowerQuery.includes(trigger));
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,16 +59,50 @@ export async function POST(request: NextRequest) {
       apiKey: apiKey,
     });
 
+    // Get the last user message for context
+    const lastUserMessage = messages
+      .slice()
+      .reverse()
+      .find((msg: { role: string; content: string }) => msg.role === 'user')
+      ?.content || '';
+
+    // Determine if web search is needed and attempt it
+    let webSearchInfo = '';
+    if (shouldSearchWeb(lastUserMessage)) {
+      try {
+        console.log('Attempting web search for:', lastUserMessage);
+        const results = await Promise.race([
+          searchWeb(lastUserMessage, 3),
+          new Promise<never[]>((_, reject) =>
+            setTimeout(() => reject(new Error('Search timeout')), 4000)
+          ),
+        ]);
+        
+        if (results && results.length > 0) {
+          webSearchInfo = formatSearchResultsForAI(results);
+          console.log('Web search successful, found', results.length, 'results');
+        }
+      } catch (searchError) {
+        console.warn('Web search failed (continuing without web data):', searchError);
+        // Continue without web search - don't break the chat
+      }
+    }
+
     // Build messages with system prompt
-    const systemPrompt = `You are a helpful AI assistant for EDSA Power Tracker - a professional platform for electricity status reporting and hazard escalation in Freetown, Sierra Leone.
+    let systemPrompt = `You are a helpful AI assistant for EDSA Power Tracker - a professional platform for electricity status reporting and hazard escalation in Freetown, Sierra Leone.
 
 Your role:
 - Help users understand how to use EDSA (tracking power status, reporting hazards, managing operations)
 - Provide clear, actionable guidance
 - Answer questions about electricity, power outages, and safety
 - Be professional and supportive
+- When web search results are provided, use them to give current and accurate information
 
 Keep responses concise and helpful.`;
+
+    if (webSearchInfo) {
+      systemPrompt += `\n\nCurrent Web Search Results:\n${webSearchInfo}`;
+    }
 
     const allMessages = [
       {
