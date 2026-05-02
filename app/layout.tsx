@@ -48,6 +48,7 @@ const swScript = `
 
 import SplashScreen from "@/components/SplashScreen";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import ChatBot from "@/components/ChatBot";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <PWAInstallBanner />
         <FloatingPrompts />
         <MobileBottomNav />
+        <ChatBot />
         <script dangerouslySetInnerHTML={{ __html: swScript }} />
       </body>
     </html>
