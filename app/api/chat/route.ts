@@ -12,16 +12,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.GROQ_API_KEY) {
+    // Check for API key
+    const apiKey = process.env.GROQ_API_KEY;
+    if (!apiKey) {
+      console.error('GROQ_API_KEY is not set in environment variables');
       return NextResponse.json(
-        { error: 'GROQ_API_KEY is not configured' },
+        { error: 'API configuration error. GROQ_API_KEY is missing.' },
         { status: 500 }
       );
     }
 
+    console.log('Creating Groq client...');
     // Initialize Groq client only at runtime, not at build time
     const groq = new Groq({
-      apiKey: process.env.GROQ_API_KEY,
+      apiKey: apiKey,
     });
 
     // Build messages with system prompt
@@ -46,7 +50,7 @@ Keep responses concise and helpful.`;
       })),
     ];
 
-    console.log('Chat request received with', messages.length, 'messages');
+    console.log('Sending request to Groq API with', messages.length, 'user messages');
 
     const completion = await groq.chat.completions.create({
       messages: allMessages,
@@ -67,13 +71,12 @@ Keep responses concise and helpful.`;
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    console.error('Chat API error:', error);
-    
-    // Return a helpful error message
-    const errorMessage = error instanceof Error ? error.message : 'Failed to process chat request';
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Chat API error:', errorMessage);
+    console.error('Full error:', error);
     
     return NextResponse.json(
-      { error: errorMessage },
+      { error: `Server error: ${errorMessage}` },
       { status: 500 }
     );
   }

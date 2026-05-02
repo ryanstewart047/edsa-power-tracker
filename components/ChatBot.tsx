@@ -63,11 +63,11 @@ export default function ChatBot() {
         }),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to get response from AI');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response from AI');
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -79,11 +79,11 @@ export default function ChatBot() {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Error sending message:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content:
-          'Sorry, I encountered an error processing your request. Please try again.',
+        content: `⚠️ ${errorMsg}`,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
