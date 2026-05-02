@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Send, X, MessageCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Message {
   id: string;
@@ -126,18 +127,32 @@ export default function ChatBot() {
 
   if (!isOpen) {
     return (
-      <button
+      <motion.button
         onClick={() => setIsOpen(true)}
         className="fixed bottom-24 left-6 z-40 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 md:bottom-6 md:left-6"
         aria-label="Open chatbot"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+        whileHover={{ scale: 1.1 }}
+        whileTap={{ scale: 0.95 }}
       >
         <MessageCircle size={24} />
-      </button>
+      </motion.button>
     );
   }
 
   return (
-    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-md max-h-[30rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden md:bottom-6 md:right-6 md:left-auto md:translate-x-0 md:w-96 md:max-w-96">
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-md max-h-[30rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden md:bottom-6 md:right-6 md:left-auto md:translate-x-0 md:w-96 md:max-w-96"
+          initial={{ opacity: 0, scale: 0.8, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.8, y: 20 }}
+          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
       {/* Header */}
       <div className="bg-yellow-500 text-gray-950 p-4 flex justify-between items-center">
         <div>
@@ -149,18 +164,27 @@ export default function ChatBot() {
           className="hover:bg-yellow-600 p-1 rounded transition-colors"
           aria-label="Close chatbot"
         >
-          <X size={20} />
+          <motion.div
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ duration: 0.3 }}
+          >
+            <X size={20} />
+          </motion.div>
         </button>
       </div>
 
       {/* Messages Container */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {messages.map((message) => (
-          <div
+        {messages.map((message, index) => (
+          <motion.div
             key={message.id}
             className={`flex ${
               message.role === 'user' ? 'justify-end' : 'justify-start'
             }`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.1, duration: 0.3 }}
           >
             <div
               className={`max-w-xs px-4 py-2 rounded-lg ${
@@ -185,7 +209,7 @@ export default function ChatBot() {
                 })}
               </span>
             </div>
-          </div>
+          </motion.div>
         ))}
         {isLoading && (
           <div className="flex justify-start">
@@ -229,6 +253,8 @@ export default function ChatBot() {
           </button>
         </div>
       </div>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
