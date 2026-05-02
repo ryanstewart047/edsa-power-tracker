@@ -19,7 +19,7 @@ export async function searchWeb(query: string, numResults: number = 3): Promise<
     }
     
     // Fallback to Google
-    return await searchWithGoogle(query, numResults);
+    return await searchWithGoogle(query);
   } catch (error) {
     console.error('All search methods failed:', error);
     return [];
@@ -43,7 +43,7 @@ async function searchWithJina(query: string, numResults: number): Promise<Search
     });
 
     if (response.data && response.data.data) {
-      return response.data.data.map((item: any) => ({
+      return response.data.data.map((item: { title?: string; content?: string; description?: string; url?: string }) => ({
         title: item.title || 'Untitled',
         snippet: item.content || item.description || '',
         link: item.url || '#',
@@ -60,7 +60,7 @@ async function searchWithJina(query: string, numResults: number): Promise<Search
 /**
  * Fallback: Simple Google search result parsing
  */
-async function searchWithGoogle(query: string, numResults: number): Promise<SearchResult[]> {
+async function searchWithGoogle(query: string): Promise<SearchResult[]> {
   try {
     // For production, use a real search API like:
     // - Serper (free tier: 100 requests/month)

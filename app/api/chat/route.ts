@@ -39,7 +39,7 @@ Keep responses concise and helpful.`;
         role: 'system' as const,
         content: systemPrompt,
       },
-      ...messages.map((msg: any) => ({
+      ...messages.map((msg: { role: string; content: string }) => ({
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
       })),
@@ -65,11 +65,11 @@ Keep responses concise and helpful.`;
       message: assistantMessage,
       timestamp: new Date().toISOString(),
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Chat API error:', error);
     
     // Return a helpful error message
-    const errorMessage = error.message || 'Failed to process chat request';
+    const errorMessage = error instanceof Error ? error.message : 'Failed to process chat request';
     
     return NextResponse.json(
       { error: errorMessage },
