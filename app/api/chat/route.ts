@@ -1,10 +1,6 @@
 import { Groq } from 'groq-sdk';
 import { NextRequest, NextResponse } from 'next/server';
 
-const groq = new Groq({
-  apiKey: process.env.GROQ_API_KEY,
-});
-
 export async function POST(request: NextRequest) {
   try {
     const { messages } = await request.json();
@@ -22,6 +18,11 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Initialize Groq client only at runtime, not at build time
+    const groq = new Groq({
+      apiKey: process.env.GROQ_API_KEY,
+    });
 
     // Build messages with system prompt
     const systemPrompt = `You are a helpful AI assistant for EDSA Power Tracker - a professional platform for electricity status reporting and hazard escalation in Freetown, Sierra Leone.
