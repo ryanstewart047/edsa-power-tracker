@@ -54,7 +54,7 @@ Keep responses concise and helpful.`;
 
     const completion = await groq.chat.completions.create({
       messages: allMessages,
-      model: 'llama-3.1-70b-versatile',
+      model: 'llama-3.3-70b-versatile',
       max_tokens: 1024,
       temperature: 0.7,
       top_p: 1,
