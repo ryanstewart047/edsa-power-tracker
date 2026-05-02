@@ -112,7 +112,7 @@ export default function ChatBot() {
   }
 
   return (
-    <div className="fixed bottom-20 left-6 z-50 w-96 max-h-[32rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden md:bottom-6 md:right-6 md:left-auto md:w-96">
+    <div className="fixed bottom-24 left-6 right-6 z-50 w-full max-w-md max-h-[30rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden md:bottom-6 md:right-6 md:left-auto md:w-96 md:max-w-96">
       {/* Header */}
       <div className="bg-yellow-500 text-gray-950 p-4 flex justify-between items-center">
         <div>
