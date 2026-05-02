@@ -10,6 +10,31 @@ interface Message {
   timestamp: Date;
 }
 
+/**
+ * Parse message content and convert URLs to clickable links
+ */
+function renderMessageWithLinks(content: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = content.split(urlRegex);
+
+  return parts.map((part, index) => {
+    if (urlRegex.test(part)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:text-blue-800 underline break-all"
+        >
+          {part}
+        </a>
+      );
+    }
+    return <span key={index}>{part}</span>;
+  });
+}
+
 export default function ChatBot() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -144,7 +169,11 @@ export default function ChatBot() {
                   : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
             >
-              <p className="text-sm">{message.content}</p>
+              <p className="text-sm">
+                {message.role === 'user' 
+                  ? message.content 
+                  : renderMessageWithLinks(message.content)}
+              </p>
               <span
                 className={`text-xs mt-1 block ${
                   message.role === 'user' ? 'text-yellow-700' : 'text-gray-500'
