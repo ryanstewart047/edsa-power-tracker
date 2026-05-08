@@ -147,7 +147,7 @@ export default function ChatBot() {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-md max-h-[30rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden md:bottom-6 md:right-6 md:left-auto md:translate-x-0 md:w-96 md:max-w-96"
+          className="fixed bottom-24 left-4 right-4 z-50 w-auto max-w-md max-h-[30rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden mx-auto md:bottom-6 md:right-6 md:left-auto md:w-96 md:mx-0"
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
