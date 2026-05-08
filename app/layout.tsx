@@ -49,6 +49,7 @@ const swScript = `
 import SplashScreen from "@/components/SplashScreen";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ChatBot from "@/components/ChatBot";
+import Script from "next/script";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MobileBottomNav />
         <ChatBot />
         <script dangerouslySetInnerHTML={{ __html: swScript }} />
+        <Script src="https://itservicesfreetown.com/js/its-ads.js" strategy="afterInteractive" />
       </body>
     </html>
   );

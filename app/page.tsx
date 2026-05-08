@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 import WorkSlider from '@/components/WorkSlider';
+import AdUnit from '@/components/AdUnit';
 
 const highlights = [
   {
@@ -185,6 +186,8 @@ export default function WelcomePage() {
         <div className="mt-20">
           <SafetyGuidelines />
         </div>
+
+        <AdUnit />
       </section>
 
 

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
 import { AreaWithStatus, calculateDistanceKm, REPORTING_TOLERANCE_KM } from '@/lib/areas';
 import LocationOnboarding from '@/components/LocationOnboarding';
+import AdUnit from '@/components/AdUnit';
 
 const PRIMARY_AREA_BIAS_KM = 5.0; // If GPS is within 5km of primary area, trust the user choice more.
 
@@ -680,6 +681,8 @@ export default function Home() {
             ))}
           </div>
         </div>
+
+        <AdUnit />
 
         <div className="border-t border-white/5 pt-6">
           <button
