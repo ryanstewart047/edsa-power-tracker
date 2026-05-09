@@ -6,7 +6,7 @@ const AdUnit: React.FC = () => {
   useEffect(() => {
     // Manually trigger the script re-execution for this component
     const script = document.createElement('script');
-    script.src = "https://itservicesfreetown.com/js/its-ads.js";
+    script.src = "https://www.itservicesfreetown.com/js/its-ads.js";
     script.async = true;
     document.body.appendChild(script);
 
