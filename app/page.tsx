@@ -42,9 +42,9 @@ export default function WelcomePage() {
   return (
     <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden bg-[#020305]">
       {/* Background Image Layer */}
-      <div 
+      <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{ 
+        style={{
           backgroundImage: 'url("/assets/hero-bg.png")',
           filter: 'brightness(0.3) saturate(1.2)',
         }}
@@ -54,7 +54,7 @@ export default function WelcomePage() {
       <section className="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-20 lg:py-32">
         {/* Mobile-First Hero */}
         <div className="flex flex-col gap-12 lg:grid lg:grid-cols-2 lg:items-center">
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
@@ -86,7 +86,7 @@ export default function WelcomePage() {
                   <ArrowRight className="h-4 w-4" />
                 </div>
               </Link>
-              
+
               <div className="flex flex-wrap gap-2">
                 {featurePills.map((pill) => (
                   <span
@@ -117,43 +117,43 @@ export default function WelcomePage() {
 
         {/* Action Cards */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6">
-           <motion.div 
-             whileHover={{ y: -5 }}
-             className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-yellow-400/30 transition-all"
-           >
-              <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
-                  <Activity className="h-7 w-7 text-yellow-400" />
-                </div>
-                <Zap className="h-5 w-5 text-yellow-300/30" />
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-yellow-400/30 transition-all"
+          >
+            <div className="flex items-start justify-between mb-8">
+              <div className="h-14 w-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
+                <Activity className="h-7 w-7 text-yellow-400" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Community Interface</h3>
-              <p className="text-gray-400 leading-relaxed mb-8">
-                Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
-              </p>
-              <Link href="/tracker" className="inline-flex items-center gap-2 text-yellow-400 font-bold group-hover:gap-3 transition-all">
-                Access Tracker <ChevronRight className="h-4 w-4" />
-              </Link>
-           </motion.div>
+              <Zap className="h-5 w-5 text-yellow-300/30" />
+            </div>
+            <h3 className="text-2xl font-bold mb-4">Community Interface</h3>
+            <p className="text-gray-400 leading-relaxed mb-8">
+              Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
+            </p>
+            <Link href="/tracker" className="inline-flex items-center gap-2 text-yellow-400 font-bold group-hover:gap-3 transition-all">
+              Access Tracker <ChevronRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
 
-           <motion.div 
-             whileHover={{ y: -5 }}
-             className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/30 transition-all"
-           >
-              <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
-                  <BarChart3 className="h-7 w-7 text-blue-400" />
-                </div>
-                <ShieldCheck className="h-5 w-5 text-blue-300/30" />
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/30 transition-all"
+          >
+            <div className="flex items-start justify-between mb-8">
+              <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                <BarChart3 className="h-7 w-7 text-blue-400" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Admin Command</h3>
-              <p className="text-gray-400 leading-relaxed mb-8">
-                Operational dashboard for reviewing hazard reports, managing community status, and exporting data.
-              </p>
-              <Link href="/admin" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
-                Admin Portal <ChevronRight className="h-4 w-4" />
-              </Link>
-           </motion.div>
+              <ShieldCheck className="h-5 w-5 text-blue-300/30" />
+            </div>
+            <h3 className="text-2xl font-bold mb-4">Admin Command</h3>
+            <p className="text-gray-400 leading-relaxed mb-8">
+              Operational dashboard for reviewing hazard reports, managing community status, and exporting data.
+            </p>
+            <Link href="/admin" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
+              Admin Portal <ChevronRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
         </div>
 
         {/* Highlights Section */}
@@ -195,10 +195,10 @@ export default function WelcomePage() {
       <footer className="relative z-10 border-t border-white/5 py-12 px-6">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="flex items-center gap-4 text-gray-500">
-             <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
-               <Map className="h-4 w-4" />
-             </div>
-             <p className="text-xs font-bold uppercase tracking-widest">Freetown Operations Unit</p>
+            <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
+              <Map className="h-4 w-4" />
+            </div>
+            <p className="text-xs font-bold uppercase tracking-widest">Freetown Operations Unit</p>
           </div>
           <div className="flex flex-col items-center md:items-end gap-1">
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Developed by</p>
