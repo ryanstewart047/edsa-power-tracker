@@ -165,7 +165,7 @@ export default function AdminManagementPanel() {
                   type="email"
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
-                  placeholder="admin@edsa.sl"
+                  placeholder="example@mail.com"
                   className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 text-white placeholder-gray-600 transition-all"
                   disabled={isSubmitting}
                 />

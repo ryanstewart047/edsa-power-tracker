@@ -55,7 +55,7 @@ export default function ForgotPasswordForm() {
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            placeholder="admin@edsa.sl"
+            placeholder="example@mail.com"
             className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-yellow-400/50"
             required
           />
