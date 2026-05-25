@@ -2,8 +2,8 @@ import {
   AreaStatus,
   FREETOWN_CITY,
   MAX_REPORTING_DISTANCE_KM,
-  REPORTING_TOLERANCE_KM,
   findAreaByName,
+  getAreaMatchToleranceKm,
   getAreaProximity,
 } from './areas';
 
@@ -14,9 +14,9 @@ export const HAZARD_DUPLICATE_WINDOW_MINUTES = 10;
 export const RECENT_REPORT_WINDOW_MINUTES = 30;
 
 export const GEOLOCATION_TIMEOUT_MS = 15_000;
-export const GEOLOCATION_MAXIMUM_AGE_MS = 30_000;
+export const GEOLOCATION_MAXIMUM_AGE_MS = 5_000;
 export const GPS_WARNING_ACCURACY_METERS = 250;
-export const MAX_REPORTING_ACCURACY_METERS = 1_000;
+export const MAX_REPORTING_ACCURACY_METERS = 500;
 
 export const HAZARD_TYPES = [
   'Falling Pole',
@@ -37,6 +37,7 @@ export type ReporterLocationValidation =
       area: string;
       lat: number;
       lng: number;
+      accuracyMeters: number;
       closestAreaName: string;
       distanceKm: number;
     }
@@ -60,6 +61,11 @@ export function parseCoordinate(value: unknown): number | null {
   }
 
   return null;
+}
+
+export function parseAccuracyMeters(value: unknown): number | null {
+  const accuracy = parseCoordinate(value);
+  return accuracy !== null && accuracy >= 0 ? accuracy : null;
 }
 
 export function parseOptionalText(value: unknown, maxLength: number): string | null {
@@ -113,6 +119,7 @@ export function validateReporterLocation(
   areaInput: unknown,
   latInput: unknown,
   lngInput: unknown,
+  accuracyInput?: unknown,
 ): ReporterLocationValidation {
   const areaName = parseOptionalText(areaInput, 80);
   if (!areaName) {
@@ -140,6 +147,7 @@ export function validateReporterLocation(
 
   const lat = parseCoordinate(latInput);
   const lng = parseCoordinate(lngInput);
+  const accuracyMeters = parseAccuracyMeters(accuracyInput);
 
   if (lat === null || lng === null) {
     return {
@@ -148,6 +156,28 @@ export function validateReporterLocation(
       body: {
         error: 'Location required',
         message: 'Your GPS location is required to verify this report.',
+      },
+    };
+  }
+
+  if (accuracyMeters === null) {
+    return {
+      ok: false,
+      status: 403,
+      body: {
+        error: 'GPS accuracy required',
+        message: 'Your browser must provide GPS accuracy before this report can be verified.',
+      },
+    };
+  }
+
+  if (accuracyMeters > MAX_REPORTING_ACCURACY_METERS) {
+    return {
+      ok: false,
+      status: 403,
+      body: {
+        error: 'Low GPS accuracy',
+        message: `Your GPS signal is too broad (${Math.round(accuracyMeters)}m). Refresh GPS or move outdoors before reporting.`,
       },
     };
   }
@@ -169,7 +199,7 @@ export function validateReporterLocation(
 
   if (
     closestArea &&
-    targetArea.distanceKm > closestArea.distanceKm + REPORTING_TOLERANCE_KM
+    targetArea.distanceKm > closestArea.distanceKm + getAreaMatchToleranceKm(accuracyMeters)
   ) {
     return {
       ok: false,
@@ -186,6 +216,7 @@ export function validateReporterLocation(
     area: area.name,
     lat,
     lng,
+    accuracyMeters: Math.round(accuracyMeters),
     closestAreaName: closestArea?.name ?? area.name,
     distanceKm: Number(targetArea.distanceKm.toFixed(2)),
   };

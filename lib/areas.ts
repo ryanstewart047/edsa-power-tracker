@@ -7,6 +7,9 @@ export interface AreaDefinition {
 export const FREETOWN_CITY = 'Freetown';
 export const REPORTING_TOLERANCE_KM = 2.5;
 export const MAX_REPORTING_DISTANCE_KM = 15;
+export const AREA_MATCH_TOLERANCE_KM = 0.75;
+export const AREA_CANDIDATE_PADDING_KM = 0.4;
+export const AREA_CANDIDATE_LIMIT = 4;
 
 // Freetown neighbourhoods with approximate coordinates for map display
 export const FREETOWN_AREAS: AreaDefinition[] = [
@@ -93,6 +96,46 @@ export function getAreaDistances(lat: number, lng: number): AreaDistance[] {
 
 export function getClosestArea(lat: number, lng: number): AreaDistance | null {
   return getAreaDistances(lat, lng)[0] ?? null;
+}
+
+function getAccuracyKm(accuracyMeters: number | null | undefined): number {
+  if (typeof accuracyMeters !== 'number' || !Number.isFinite(accuracyMeters) || accuracyMeters < 0) {
+    return 0;
+  }
+
+  return accuracyMeters / 1000;
+}
+
+export function getAreaMatchToleranceKm(accuracyMeters?: number | null): number {
+  const accuracyKm = getAccuracyKm(accuracyMeters);
+  return Math.min(
+    REPORTING_TOLERANCE_KM,
+    Math.max(AREA_MATCH_TOLERANCE_KM, accuracyKm + AREA_CANDIDATE_PADDING_KM),
+  );
+}
+
+export function getAreaCandidates(
+  lat: number,
+  lng: number,
+  accuracyMeters?: number | null,
+): AreaDistance[] {
+  const distances = getAreaDistances(lat, lng);
+  const closestArea = distances[0];
+
+  if (!closestArea) {
+    return [];
+  }
+
+  const candidateRadiusKm = Math.min(
+    MAX_REPORTING_DISTANCE_KM,
+    closestArea.distanceKm + getAreaMatchToleranceKm(accuracyMeters),
+  );
+
+  const candidates = distances
+    .filter((area) => area.distanceKm <= candidateRadiusKm)
+    .slice(0, AREA_CANDIDATE_LIMIT);
+
+  return candidates.length > 0 ? candidates : distances.slice(0, 1);
 }
 
 export function getAreaProximity(areaName: string, lat: number, lng: number): AreaProximity {

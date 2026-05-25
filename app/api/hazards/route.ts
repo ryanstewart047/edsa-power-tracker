@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as Record<string, unknown>;
     const type = normalizeHazardType(body.type);
-    const locationValidation = validateReporterLocation(body.area, body.lat, body.lng);
+    const locationValidation = validateReporterLocation(body.area, body.lat, body.lng, body.accuracy);
     const areaName = parseOptionalText(body.areaName, 120);
     const streetName = parseOptionalText(body.streetName, 120);
     const houseNumber = parseOptionalText(body.houseNumber, 40);

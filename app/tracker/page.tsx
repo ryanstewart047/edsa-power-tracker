@@ -4,11 +4,9 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
-import { AreaWithStatus, calculateDistanceKm, REPORTING_TOLERANCE_KM } from '@/lib/areas';
+import { AreaWithStatus, calculateDistanceKm, getAreaCandidates, MAX_REPORTING_DISTANCE_KM } from '@/lib/areas';
 import LocationOnboarding from '@/components/LocationOnboarding';
 import AdUnit from '@/components/AdUnit';
-
-const PRIMARY_AREA_BIAS_KM = 5.0; // If GPS is within 5km of primary area, trust the user choice more.
 
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
@@ -18,6 +16,10 @@ import {
   HazardType,
   MAX_REPORTING_ACCURACY_METERS,
 } from '@/lib/reporting';
+
+const LOCATION_REFRESH_AFTER_MS = 45_000;
+const LOCATION_STALE_AFTER_MS = 2 * 60_000;
+const MOVEMENT_UPDATE_FLOOR_METERS = 75;
 
 const STATUS_META = {
   on: { label: 'Power ON', icon: Zap, dot: 'bg-green-400', ring: 'ring-green-500/30', card: 'border-green-500/30 bg-green-500/5', text: 'text-green-400' },
@@ -49,8 +51,50 @@ function timeAgo(dateStr: string | null): string {
 }
 
 function formatAccuracy(accuracy: number | null): string {
-  if (accuracy === null) return 'GPS locked';
+  if (accuracy === null) return 'GPS accuracy unknown';
   return `${Math.round(accuracy)}m accuracy`;
+}
+
+function createLocationSnapshot(pos: GeolocationPosition): LocationSnapshot {
+  return {
+    lat: pos.coords.latitude,
+    lng: pos.coords.longitude,
+    accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
+    capturedAt: new Date().toISOString(),
+  };
+}
+
+function getLocationAgeMs(location: LocationSnapshot): number {
+  const capturedAt = new Date(location.capturedAt).getTime();
+  return Number.isFinite(capturedAt) ? Date.now() - capturedAt : Infinity;
+}
+
+function shouldUseLocationFix(next: LocationSnapshot, current: LocationSnapshot | null): boolean {
+  if (!current) {
+    return true;
+  }
+
+  const nextAccuracy = next.accuracy ?? Infinity;
+  const currentAccuracy = current.accuracy ?? Infinity;
+
+  if (nextAccuracy <= currentAccuracy) {
+    return true;
+  }
+
+  if (getLocationAgeMs(current) > LOCATION_REFRESH_AFTER_MS && nextAccuracy <= MAX_REPORTING_ACCURACY_METERS) {
+    return true;
+  }
+
+  const movedMeters = calculateDistanceKm(next.lat, next.lng, current.lat, current.lng) * 1000;
+  const movementThresholdMeters = Math.max(
+    MOVEMENT_UPDATE_FLOOR_METERS,
+    Math.min(1000, currentAccuracy + nextAccuracy),
+  );
+
+  return (
+    movedMeters > movementThresholdMeters &&
+    nextAccuracy <= Math.max(MAX_REPORTING_ACCURACY_METERS, currentAccuracy * 1.5)
+  );
 }
 
 function getGeolocationErrorMessage(error: GeolocationPositionError): string {
@@ -137,12 +181,10 @@ export default function Home() {
   }, [fetchStatus]);
 
   const handleLocationSuccess = useCallback((pos: GeolocationPosition) => {
-    setLocation({
-      lat: pos.coords.latitude,
-      lng: pos.coords.longitude,
-      accuracy: Number.isFinite(pos.coords.accuracy) ? pos.coords.accuracy : null,
-      capturedAt: new Date().toISOString(),
-    });
+    const nextLocation = createLocationSnapshot(pos);
+    setLocation((currentLocation) => (
+      shouldUseLocationFix(nextLocation, currentLocation) ? nextLocation : currentLocation
+    ));
     setLocationError(null);
     setLocationLoading(false);
   }, []);
@@ -182,14 +224,14 @@ export default function Home() {
           {
             enableHighAccuracy: false,
             timeout: GEOLOCATION_TIMEOUT_MS * 2,
-            maximumAge: GEOLOCATION_MAXIMUM_AGE_MS * 2,
+            maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
           },
         );
       },
       {
         enableHighAccuracy: true,
         timeout: GEOLOCATION_TIMEOUT_MS,
-        maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
+        maximumAge: 0,
       },
     );
   }, [handleLocationError, handleLocationSuccess]);
@@ -235,13 +277,12 @@ export default function Home() {
     resetHazardForm();
   }, [resetHazardForm]);
 
-  const locationAccurateEnough = useMemo(() => {
-    if (!location) {
-      return false;
-    }
-
-    return location.accuracy === null || location.accuracy <= MAX_REPORTING_ACCURACY_METERS;
-  }, [location]);
+  const locationFreshEnough = location ? getLocationAgeMs(location) <= LOCATION_STALE_AFTER_MS : false;
+  const locationAccurateEnough =
+    locationFreshEnough &&
+    location?.accuracy !== null &&
+    location?.accuracy !== undefined &&
+    location.accuracy <= MAX_REPORTING_ACCURACY_METERS;
 
   const locationHelpMessage = useMemo(() => {
     if (locationError) {
@@ -252,12 +293,24 @@ export default function Home() {
       return 'Enable GPS to verify your reporting area.';
     }
 
+    if (!locationFreshEnough) {
+      return 'Refresh GPS to verify your current position before reporting.';
+    }
+
+    if (location.accuracy === null) {
+      return 'Your browser did not provide a GPS accuracy radius. Refresh GPS before reporting.';
+    }
+
     if (!locationAccurateEnough) {
       return `Your GPS signal is too broad (${formatAccuracy(location.accuracy)}). Refresh your location or move outdoors before reporting.`;
     }
 
+    if (location.accuracy > GPS_WARNING_ACCURACY_METERS) {
+      return `GPS locked at ${formatAccuracy(location.accuracy)}. You can report, but refresh GPS or move outdoors if the suggested area looks wrong.`;
+    }
+
     return null;
-  }, [location, locationAccurateEnough, locationError]);
+  }, [location, locationAccurateEnough, locationError, locationFreshEnough]);
 
   const handleReport = useCallback(async (status: 'on' | 'out') => {
     if (!reportModal) {
@@ -286,7 +339,8 @@ export default function Home() {
           status,
           deviceId: getDeviceId(),
           lat: location.lat,
-          lng: location.lng
+          lng: location.lng,
+          accuracy: location.accuracy,
         }),
       });
 
@@ -373,7 +427,8 @@ export default function Home() {
           imageUrl: hazardImage,
           deviceId: getDeviceId(),
           lat: location.lat,
-          lng: location.lng
+          lng: location.lng,
+          accuracy: location.accuracy,
         }),
       });
 
@@ -413,39 +468,33 @@ export default function Home() {
 
   const areasWithProximity = useMemo(() => {
     if (!location) {
-      return areas.map(area => ({ ...area, isNearby: false, distance: null, isClosest: false, isSecondClosest: false }));
+      return areas.map(area => ({
+        ...area,
+        isCandidate: false,
+        distance: null,
+        isClosest: false,
+        isSecondClosest: false,
+      }));
     }
 
-    const withDist = areas.map(area => ({
-      ...area,
-      distance: calculateDistanceKm(location.lat, location.lng, area.lat, area.lng),
-    })).sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
-
-    let closestName = withDist[0]?.name;
-    const secondClosestName = withDist[1]?.name;
-
-    // Smart Override: If primary area is set and GPS is within 5km of it,
-    // we assume the user is actually at their primary location.
-    if (primaryArea) {
-      const primaryAreaObj = withDist.find(a => a.name === primaryArea);
-      if (primaryAreaObj && (primaryAreaObj.distance ?? Infinity) <= PRIMARY_AREA_BIAS_KM) {
-        closestName = primaryArea;
-      }
-    }
+    const areaCandidates = getAreaCandidates(location.lat, location.lng, location.accuracy);
+    const candidateNames = new Set(areaCandidates.map(area => area.name));
+    const closestName = areaCandidates[0]?.name;
+    const secondClosestName = areaCandidates[1]?.name;
 
     return areas.map(area => {
       const distance = calculateDistanceKm(location.lat, location.lng, area.lat, area.lng);
+      const isCandidate = candidateNames.has(area.name);
       const isClosest = area.name === closestName;
       const isSecondClosest = area.name === secondClosestName && !isClosest;
-      const isNearby = distance <= REPORTING_TOLERANCE_KM;
-      return { ...area, isNearby, distance, isClosest, isSecondClosest };
+      return { ...area, isCandidate, distance, isClosest, isSecondClosest };
     });
-  }, [areas, location, primaryArea]);
+  }, [areas, location]);
 
   const nearbyAreas = useMemo(() => {
     if (!location) return [];
     return areasWithProximity
-      .filter(a => a.isClosest || a.isSecondClosest)
+      .filter(a => a.isCandidate)
       .sort((a, b) => (a.distance || 0) - (b.distance || 0));
   }, [areasWithProximity, location]);
 
@@ -463,7 +512,7 @@ export default function Home() {
 
   const locationChipTone = !location
     ? 'bg-white/5 border-white/10 text-gray-500'
-    : !locationAccurateEnough
+    : !locationAccurateEnough || (location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS)
       ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-300'
       : 'bg-green-500/5 border-green-500/20 text-green-400';
 
@@ -471,9 +520,16 @@ export default function Home() {
     ? 'Locating...'
     : !locationAccurateEnough
       ? 'Low GPS accuracy'
-      : formatAccuracy(location.accuracy);
+      : location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
+        ? 'Broad GPS lock'
+        : formatAccuracy(location.accuracy);
 
-  const locationActionLabel = location ? 'Refresh GPS' : 'Enable GPS';
+  const locationActionLabel =
+    location && (!locationAccurateEnough || (location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS))
+      ? 'Improve GPS'
+      : location
+        ? 'Refresh GPS'
+        : 'Enable GPS';
 
   return (
     <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
@@ -570,57 +626,62 @@ export default function Home() {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {nearbyAreas.map((area) => (
-                  <div key={area.name} className="relative p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-500 group/card">
-                    <h3 className="text-xl font-bold text-white mb-1">
-                      {area.name}
-                      {area.isClosest && <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-black tracking-tighter">Current Position</span>}
-                      {area.isSecondClosest && <span className="text-[10px] bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-bold">Closest Area</span>}
-                    </h3>
-                    <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>
-                      {area.isSecondClosest ? 'View status only' : STATUS_META[area.status].label}
-                    </p>
+                {nearbyAreas.map((area) => {
+                  const canReportForArea =
+                    locationAccurateEnough &&
+                    area.distance !== null &&
+                    area.distance <= MAX_REPORTING_DISTANCE_KM;
 
-                    <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
-                      <span className="rounded bg-white/10 px-1.5 py-0.5">
-                        {area.distance !== null ? `${area.distance.toFixed(2)} km away` : 'Distance unavailable'}
-                      </span>
-                      {location && area.isClosest && (
-                        <span className={`rounded px-1.5 py-0.5 ${location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
-                            ? 'bg-yellow-500/15 text-yellow-200'
-                            : 'bg-green-500/10 text-green-200'
-                          }`}>
-                          Acc: {formatAccuracy(location.accuracy)}
+                  return (
+                    <div key={area.name} className="relative p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-500 group/card">
+                      <h3 className="text-xl font-bold text-white mb-1">
+                        {area.name}
+                        {area.isClosest ? (
+                          <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-black tracking-tighter">GPS Closest</span>
+                        ) : (
+                          <span className="text-[10px] bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-bold">Nearby Match</span>
+                        )}
+                        {area.name === primaryArea && <span className="text-[10px] bg-white/10 text-gray-300 border border-white/10 px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-bold">Saved Area</span>}
+                      </h3>
+                      <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>
+                        {STATUS_META[area.status].label}
+                      </p>
+
+                      <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
+                        <span className="rounded bg-white/10 px-1.5 py-0.5">
+                          {area.distance !== null ? `${area.distance.toFixed(2)} km away` : 'Distance unavailable'}
                         </span>
-                      )}
-                    </div>
+                        {location && area.isClosest && (
+                          <span className={`rounded px-1.5 py-0.5 ${location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
+                              ? 'bg-yellow-500/15 text-yellow-200'
+                              : 'bg-green-500/10 text-green-200'
+                            }`}>
+                            Acc: {formatAccuracy(location.accuracy)}
+                          </span>
+                        )}
+                      </div>
 
-                    {area.isClosest ? (
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setReportModal(area); setReportResult(null); }}
-                          disabled={!locationAccurateEnough || (area.distance !== null && area.distance > 15)}
+                          disabled={!canReportForArea}
                           className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                          title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > 15 ? "Too far from this area" : ""}
+                          title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > MAX_REPORTING_DISTANCE_KM ? "Too far from this area" : ""}
                         >
                           <Zap className="w-3.5 h-3.5" /> Report Status
                         </button>
                         <button
                           onClick={() => { setHazardModal(area); setReportResult(null); }}
-                          disabled={!locationAccurateEnough || (area.distance !== null && area.distance > 15)}
+                          disabled={!canReportForArea}
                           className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                          title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > 15 ? "Too far from this area" : ""}
+                          title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > MAX_REPORTING_DISTANCE_KM ? "Too far from this area" : ""}
                         >
                           <AlertTriangle className="w-3.5 h-3.5" /> Report Hazard
                         </button>
                       </div>
-                    ) : (
-                      <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-center">
-                        <p className="text-[10px] text-gray-500 uppercase font-bold tracking-widest">Reporting restricted to current position</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
               <p className="text-xs text-gray-400 text-center mt-2 pt-2 border-t border-white/5">
                 Select the correct exact neighbourhood from above to submit your report.
@@ -701,7 +762,11 @@ export default function Home() {
                   filtered.map(area => {
                     const meta = STATUS_META[area.status];
                     const Icon = meta.icon;
-                    const canReport = (area.isClosest ? (area.distance !== null && area.distance <= 15) : area.isNearby) && locationAccurateEnough;
+                    const canReport =
+                      area.isCandidate &&
+                      area.distance !== null &&
+                      area.distance <= MAX_REPORTING_DISTANCE_KM &&
+                      locationAccurateEnough;
 
                     return (
                       <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>

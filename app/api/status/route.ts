@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const locationValidation = validateReporterLocation(body.area, body.lat, body.lng);
+    const locationValidation = validateReporterLocation(body.area, body.lat, body.lng, body.accuracy);
     if (!locationValidation.ok) {
       return NextResponse.json(locationValidation.body, { status: locationValidation.status });
     }
@@ -181,6 +181,7 @@ export async function POST(req: NextRequest) {
       reportsNeeded,
       totalReports: submittedCount,
       competingReports: competingCount,
+      accuracyMeters: locationValidation.accuracyMeters,
       distanceKm: locationValidation.distanceKm,
       closestArea: locationValidation.closestAreaName,
       message,
