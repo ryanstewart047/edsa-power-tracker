@@ -40,7 +40,7 @@ Navigate to any page of the application, and you should see a blue chat button (
 #### 1. **API Route** (`/app/api/chat/route.ts`)
 - Handles incoming chat requests
 - Communicates with Groq API
-- Uses the `mixtral-8x7b-32768` model for responses
+- Uses active Groq production models with automated fallback (`openai/gpt-oss-120b`, `openai/gpt-oss-20b`, `qwen/qwen3.8-27b`, `qwen/qwen3.6-27b`, `groq/compound`)
 - Configuration: max_tokens: 1024, temperature: 0.7
 
 #### 2. **ChatBot Component** (`/components/ChatBot.tsx`)
@@ -69,24 +69,23 @@ Navigate to any page of the application, and you should see a blue chat button (
 - Mobile-responsive design
 
 ### AI Capabilities
-- Uses Groq's `mixtral-8x7b-32768` model (fast, high-quality responses)
+- Uses Groq's active production models with automated fallback
 - Maintains conversation context
 - Handles multi-turn conversations
-- Error handling with user-friendly messages
+- Error handling with automatic fallback to next available model
 
 ## Model Selection
 
-The chatbot uses **Mixtral 8x7B**, which is:
-- **Fast**: Low-latency responses (ideal for real-time chat)
-- **Cost-effective**: Groq's free tier is generous
-- **Capable**: Good reasoning and knowledge across domains
-- **Available**: Always accessible via free tier
+The chatbot utilizes Groq's production models in an automated fallback hierarchy:
+1. **Primary Flagship Model**: `openai/gpt-oss-120b` (Ultra-fast 120B reasoning model)
+2. **Fast Utility Model**: `openai/gpt-oss-20b` (Fast, efficient utility model)
+3. **Fallback Models**:
+   - `qwen/qwen3.8-27b`
+   - `qwen/qwen3.6-27b`
+   - `groq/compound`
 
-Alternative models available:
-- `gemma-7b-it` (Lighter weight, faster)
-- `llama2-70b-4096` (Larger, more capable)
-
-To change the model, edit the `model` field in `/app/api/chat/route.ts`.
+If a model is unavailable or encounters an error, the system automatically falls back to the next model in line.
+You can optionally set `GROQ_MODEL` in `.env.local` to prioritize a specific model.
 
 ## Customization
 

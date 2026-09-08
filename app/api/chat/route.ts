@@ -125,24 +125,59 @@ Important: When asked about current events, latest information, or real-time dat
       })),
     ];
 
+    // Groq Active Production Models:
+    // Primary: openai/gpt-oss-120b
+    // Fast Utility: openai/gpt-oss-20b
+    // Fallbacks: qwen/qwen3.8-27b, qwen/qwen3.6-27b, groq/compound
+    const modelsToTry = Array.from(
+      new Set(
+        [
+          process.env.GROQ_MODEL,
+          'openai/gpt-oss-120b',
+          'openai/gpt-oss-20b',
+          'qwen/qwen3.8-27b',
+          'qwen/qwen3.6-27b',
+          'groq/compound',
+        ].filter((m): m is string => Boolean(m && m.trim()))
+      )
+    );
+
     console.log('Sending request to Groq API with', messages.length, 'user messages');
 
-    const completion = await groq.chat.completions.create({
-      messages: allMessages,
-      model: 'llama-3.3-70b-versatile',
-      max_tokens: 1024,
-      temperature: 0.7,
-      top_p: 1,
-      stream: false,
-    });
+    let completion = null;
+    let successfulModel = '';
+    let lastError: unknown = null;
+
+    for (const model of modelsToTry) {
+      try {
+        console.log(`Attempting Groq completion with model: ${model}`);
+        completion = await groq.chat.completions.create({
+          messages: allMessages,
+          model,
+          max_tokens: 1024,
+          temperature: 0.7,
+          top_p: 1,
+          stream: false,
+        });
+        successfulModel = model;
+        console.log(`Chat response successfully generated with model: ${model}`);
+        break;
+      } catch (err) {
+        lastError = err;
+        console.warn(`Groq model '${model}' failed:`, err instanceof Error ? err.message : err);
+      }
+    }
+
+    if (!completion) {
+      throw lastError || new Error('All Groq model attempts failed.');
+    }
 
     const assistantMessage =
       completion.choices[0]?.message?.content || 'I encountered an issue generating a response. Please try again.';
 
-    console.log('Chat response generated successfully');
-
     return NextResponse.json({
       message: assistantMessage,
+      model: successfulModel,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
