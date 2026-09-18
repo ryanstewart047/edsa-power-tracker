@@ -113,9 +113,9 @@ export default function PrivacyPolicyPage() {
 
         {/* Your Rights */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">8. Your Rights</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">8. Your Rights & Data Deletion</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
-            You have the right to access, correct, or request deletion of personal data we hold about you. To exercise these rights, contact us at <a href={`mailto:${contactEmail}`} className="text-yellow-400 underline">{contactEmail}</a>.
+            You have the right to access, correct, or request deletion of personal data we hold about you. To submit a formal data deletion request or learn how your data is handled, visit our dedicated <a href="/data-deletion" className="text-yellow-400 underline font-semibold">User Data Deletion Request Page</a> or contact us directly at <a href={`mailto:${contactEmail}`} className="text-yellow-400 underline">{contactEmail}</a>.
           </p>
         </section>
 
