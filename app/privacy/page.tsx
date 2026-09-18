@@ -7,7 +7,8 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   const lastUpdated = 'September 18, 2026';
-  const contactEmail = 'itservicesfreetown@gmail.com';
+  const contactEmail = 'support@itservicesfreetown.com';
+  const contactPhone = '+23233399391';
   const companyName = 'BridgeTech IT Services';
   const appName = 'EDSA Power Tracker';
 
@@ -135,6 +136,7 @@ export default function PrivacyPolicyPage() {
           <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-1 text-sm">
             <p className="font-black text-white">{companyName}</p>
             <p className="text-gray-400">Email: <a href={`mailto:${contactEmail}`} className="text-yellow-400 underline">{contactEmail}</a></p>
+            <p className="text-gray-400">Phone: <a href={`tel:${contactPhone}`} className="text-yellow-400 underline">{contactPhone}</a></p>
             <p className="text-gray-400">Location: Freetown, Sierra Leone</p>
           </div>
         </section>
