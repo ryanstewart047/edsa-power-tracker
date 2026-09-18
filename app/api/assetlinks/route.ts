@@ -8,6 +8,7 @@ export async function GET() {
         namespace: "android_app",
         package_name: "com.bridgetech.edsapowertracker",
         sha256_cert_fingerprints: [
+          "BD:31:70:7E:31:87:1E:F0:58:32:E3:C3:00:DA:02:B1:2E:7A:31:8D:83:D8:92:17:04:65:C3:0A:6A:26:C5:C4",
           "CC:8F:FE:21:68:04:2A:CD:B5:5F:46:69:BE:B3:53:B1:77:3C:A5:41:B1:49:0C:27:2E:E1:1F:AA:8E:16:28:80",
           "FB:E1:23:AA:F8:E3:E6:FD:7A:94:55:FD:F2:AF:B1:0B:F6:65:10:A1:73:7E:19:38:D0:2E:E2:99:C8:C2:48:1C"
         ]
