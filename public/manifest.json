@@ -1,39 +1,75 @@
 {
+  "id": "/?source=pwa",
   "name": "EDSA Native Power Tracker",
   "short_name": "EDSA Tracker",
   "description": "Real-time crowdsourced power outage tracking and hazard reporting for Freetown, Sierra Leone.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#020617",
   "theme_color": "#eab308",
-  "orientation": "portrait",
-  "categories": ["utilities", "productivity", "government"],
+  "orientation": "portrait-primary",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["utilities", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/assets/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/assets/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "/assets/screenshot-1.png",
+      "src": "/assets/screenshot-narrow.png",
       "sizes": "1080x1920",
       "type": "image/png",
-      "label": "Live Power Tracker"
+      "form_factor": "narrow",
+      "label": "Live Power Grid Status and Fault Reporting"
     },
     {
-      "src": "/assets/screenshot-2.png",
-      "sizes": "1080x1920",
+      "src": "/assets/screenshot-wide.png",
+      "sizes": "1920x1080",
       "type": "image/png",
-      "label": "Hazard Escalation"
+      "form_factor": "wide",
+      "label": "EDSA Command Center and Area Monitoring"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Live Grid Tracker",
+      "short_name": "Tracker",
+      "description": "View live electricity status across Freetown",
+      "url": "/?shortcut=tracker",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Report Hazard",
+      "short_name": "Report",
+      "description": "Quickly report power line hazards and broken transformers",
+      "url": "/?shortcut=report",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }
