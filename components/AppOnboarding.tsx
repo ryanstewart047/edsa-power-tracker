@@ -6,12 +6,10 @@ import {
   Zap, 
   AlertTriangle, 
   Bot, 
-  Bell, 
   ChevronRight, 
   ChevronLeft, 
   ShieldCheck, 
   Sparkles,
-  ArrowRight,
   Activity,
   CheckCircle2
 } from 'lucide-react';
@@ -124,7 +122,7 @@ export default function AppOnboarding() {
             </div>
             <div className="space-y-1">
               <div className="bg-white/5 border border-white/10 rounded-xl rounded-tl-none p-2.5 text-[11px] text-gray-200">
-                "Power restored in Aberdeen! Check current voltage before connecting heavy appliances."
+                &ldquo;Power restored in Aberdeen! Check current voltage before connecting heavy appliances.&rdquo;
               </div>
               <div className="text-[9px] text-gray-500 font-semibold pl-1">EDSA AI Assistant • Just now</div>
             </div>
