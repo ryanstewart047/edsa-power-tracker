@@ -74,3 +74,59 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Push notification handling
+self.addEventListener('push', (event) => {
+  let data = {};
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch {
+      data = { body: event.data.text() };
+    }
+  }
+
+  const title = data.title || 'EDSA Power Tracker';
+  const options = {
+    body: data.body || 'Power status or emergency update for your area.',
+    icon: '/assets/icon-192.png',
+    badge: '/assets/icon-192.png',
+    data: data.url || '/'
+  };
+
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Notification click handling
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
+    })
+  );
+});
+
+// Background sync handling
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'sync-reports') {
+    event.waitUntil(Promise.resolve());
+  }
+});
+
+// Periodic background sync handling
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'periodic-power-check') {
+    event.waitUntil(Promise.resolve());
+  }
+});
+
