@@ -3,6 +3,24 @@ import { NextRequest, NextResponse } from 'next/server';
 import { searchWeb, formatSearchResultsForAI } from '@/lib/webSearch';
 
 /**
+ * Strips markdown symbols (**bold**, ## headings, stray asterisks) into clean plain text
+ */
+function cleanPlainText(text: string): string {
+  if (!text) return '';
+  return text
+    // Remove markdown headers: #, ##, ### at start of lines
+    .replace(/^#{1,6}\s+/gm, '')
+    // Remove bold/italic markdown asterisks: **bold** -> bold, *italic* -> italic
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    // Remove standalone decorative asterisks
+    .replace(/\*/g, '')
+    // Convert markdown bullet dashes/asterisks into clean dots
+    .replace(/^[-*]\s+/gm, '• ')
+    .trim();
+}
+
+/**
  * Determine if a query should trigger a web search
  */
 function shouldSearchWeb(query: string): boolean {
@@ -94,7 +112,7 @@ export async function POST(request: NextRequest) {
 About the Developer:
 Ryan Josiah Stewart is a Full Stack Developer, System Administrator, and Cloud Solutions Architect passionate about creating innovative web solutions and providing expert IT services. He specializes in building scalable applications with modern technologies and delivering exceptional user experiences.
 - Portfolio: https://www.itservicesfreetown.com/ryanjstewart
-- Company: IT Services Freetown
+- Company: BridgeTech IT Services
 
 About You (The AI Assistant):
 Your role:
@@ -106,7 +124,11 @@ Your role:
 - When sharing the portfolio URL, do not add trailing punctuation characters
 - Be professional and supportive
 
-Keep responses concise and helpful.
+Strict Text Formatting Rules:
+- Write in 100% natural, clean plain text only.
+- Do NOT use markdown symbols: NEVER use asterisks for bold or italic (**word** or *word*), NEVER use hashes for titles (## or ###), and do NOT use decorative slashes (/).
+- Use simple plain paragraphs, clean line breaks, or regular numbers (1., 2., 3.) for steps.
+- Keep responses concise, friendly, and easy to read on mobile phone screens.
 
 Important: When asked about current events, latest information, or real-time data, you have the ability to search the web for the most current information.`;
 
@@ -172,8 +194,10 @@ Important: When asked about current events, latest information, or real-time dat
       throw lastError || new Error('All Groq model attempts failed.');
     }
 
-    const assistantMessage =
+    const rawAssistantMessage =
       completion.choices[0]?.message?.content || 'I encountered an issue generating a response. Please try again.';
+
+    const assistantMessage = cleanPlainText(rawAssistantMessage);
 
     return NextResponse.json({
       message: assistantMessage,

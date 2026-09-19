@@ -12,11 +12,25 @@ interface Message {
 }
 
 /**
+ * Strip markdown markers (**bold**, ## headings, stray asterisks)
+ */
+function stripMarkdown(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*(.*?)\*\*/g, '$1')
+    .replace(/\*(.*?)\*/g, '$1')
+    .replace(/\*/g, '')
+    .replace(/^[-*]\s+/gm, '• ');
+}
+
+/**
  * Parse message content and convert URLs to clickable links
  */
 function renderMessageWithLinks(content: string) {
+  const cleanedContent = stripMarkdown(content);
   const urlRegex = /(https?:\/\/[^\s]+)/g;
-  const parts = content.split(urlRegex);
+  const parts = cleanedContent.split(urlRegex);
 
   return parts.map((part, index) => {
     if (urlRegex.test(part)) {
