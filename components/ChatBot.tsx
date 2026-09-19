@@ -143,7 +143,7 @@ export default function ChatBot() {
     return (
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-24 left-6 z-40 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-full p-4 shadow-lg transition-all duration-300 hover:scale-110 md:bottom-6 md:left-6"
+        className="fixed bottom-20 left-4 z-40 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-full p-3.5 md:p-4 shadow-xl transition-all duration-300 hover:scale-110 md:bottom-24 md:left-6"
         aria-label="Open chatbot"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -161,7 +161,7 @@ export default function ChatBot() {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed bottom-24 left-4 right-4 z-50 w-auto max-w-md max-h-[30rem] bg-white rounded-lg shadow-2xl flex flex-col overflow-hidden mx-auto md:bottom-6 md:right-6 md:left-auto md:w-96 md:mx-0"
+          className="fixed bottom-20 left-4 right-4 z-50 w-auto max-w-md max-h-[30rem] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden mx-auto md:bottom-24 md:right-6 md:left-auto md:w-96 md:mx-0"
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}

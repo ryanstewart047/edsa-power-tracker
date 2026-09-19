@@ -59,7 +59,7 @@ export default function FloatingPrompts() {
   const Icon = active.icon;
 
   return (
-    <div className="fixed bottom-24 right-4 z-40 pointer-events-none md:bottom-8 md:right-8">
+    <div className="fixed bottom-20 right-4 z-40 pointer-events-none md:bottom-24 md:right-8">
       <AnimatePresence>
         {show && (
           <motion.div

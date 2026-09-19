@@ -85,7 +85,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} bg-gray-950 text-white min-h-screen pb-20 md:pb-0`}>
+      <body className={`${inter.className} bg-gray-950 text-white min-h-screen pb-24 md:pb-24`}>
         <SplashScreen />
         <AppOnboarding />
         {children}

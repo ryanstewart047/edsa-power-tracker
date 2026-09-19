@@ -781,14 +781,14 @@ export default function Home() {
                           <button
                             onClick={() => { if (canReport) { setReportModal(area); setReportResult(null); } }}
                             disabled={!canReport}
-                            className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all disabled:opacity-0"
+                            className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                           >
                             Report Status
                           </button>
                           <button
                             onClick={() => { if (canReport) { setHazardModal(area); setReportResult(null); } }}
                             disabled={!canReport}
-                            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 disabled:opacity-0 transition-all"
+                            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                             title={canReport ? "Report Hazard" : "Move to this area and verify GPS to report"}
                           >
                             <AlertTriangle className="w-4 h-4" />
