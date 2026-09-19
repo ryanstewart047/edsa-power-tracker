@@ -5,44 +5,44 @@ export interface AreaDefinition {
 }
 
 export const FREETOWN_CITY = 'Freetown';
-export const REPORTING_TOLERANCE_KM = 2.5;
+export const REPORTING_TOLERANCE_KM = 3.0;
 export const MAX_REPORTING_DISTANCE_KM = 15;
-export const AREA_MATCH_TOLERANCE_KM = 0.75;
-export const AREA_CANDIDATE_PADDING_KM = 0.4;
-export const AREA_CANDIDATE_LIMIT = 4;
+export const AREA_MATCH_TOLERANCE_KM = 1.35;
+export const AREA_CANDIDATE_PADDING_KM = 0.5;
+export const AREA_CANDIDATE_LIMIT = 5;
 
-// Freetown neighbourhoods with approximate coordinates for map display
+// Verified Freetown neighbourhoods with accurate landmark & junction coordinates
 export const FREETOWN_AREAS: AreaDefinition[] = [
-  { name: "Aberdeen",        lat: 8.4988, lng: -13.2662 },
-  { name: "Lumley",          lat: 8.4839, lng: -13.2562 },
-  { name: "Goderich",        lat: 8.4485, lng: -13.2755 },
-  { name: "Wilberforce",     lat: 8.4800, lng: -13.2450 },
-  { name: "Hill Station",    lat: 8.4720, lng: -13.2380 },
-  { name: "Murray Town",     lat: 8.4880, lng: -13.2450 },
-  { name: "Congo Cross",     lat: 8.4750, lng: -13.2370 },
-  { name: "Tengbeh Town",    lat: 8.4810, lng: -13.2400 },
-  { name: "Brookfields",     lat: 8.4780, lng: -13.2330 },
-  { name: "New England",     lat: 8.4740, lng: -13.2350 },
-  { name: "Circular Road",   lat: 8.4820, lng: -13.2290 },
-  { name: "Tower Hill",      lat: 8.4850, lng: -13.2320 },
-  { name: "Kissy",           lat: 8.4750, lng: -13.1900 },
-  { name: "Wellington",      lat: 8.4600, lng: -13.1650 },
-  { name: "Calaba Town",     lat: 8.4550, lng: -13.1400 },
-  { name: "Allen Town",      lat: 8.4450, lng: -13.1250 },
-  { name: "Waterloo",        lat: 8.3500, lng: -13.0600 },
-  { name: "Regent",          lat: 8.4350, lng: -13.2150 },
-  { name: "Charlotte",       lat: 8.4150, lng: -13.2050 },
-  { name: "Tombo",           lat: 8.3200, lng: -13.0300 },
-  { name: "Jui Junction",    lat: 8.4100, lng: -13.1400 },
-  { name: "Grafton",         lat: 8.3950, lng: -13.1550 },
-  { name: "Leicester Peak",  lat: 8.4450, lng: -13.2050 },
-  { name: "Susan's Bay",     lat: 8.4900, lng: -13.2200 },
-  { name: "Magazine Cut",    lat: 8.4850, lng: -13.2200 },
-  { name: "Cline Town",      lat: 8.4850, lng: -13.2050 },
-  { name: "East End",        lat: 8.4800, lng: -13.2000 },
-  { name: "Fourah Bay",      lat: 8.4820, lng: -13.2100 },
-  { name: "Kroo Bay",        lat: 8.4900, lng: -13.2300 },
-  { name: "Fullah Town",     lat: 8.4850, lng: -13.2200 },
+  { name: "Aberdeen",        lat: 8.4988, lng: -13.2662 }, // Cape Sierra / Sir Samuel Lewis Rd
+  { name: "Lumley",          lat: 8.4650, lng: -13.2720 }, // Lumley Roundabout / Police Station / Grassfield
+  { name: "Goderich",        lat: 8.4350, lng: -13.2840 }, // Milton Margai / Funkia / Goderich Village
+  { name: "Wilberforce",     lat: 8.4720, lng: -13.2520 }, // Spur Road / Wilberforce Village / Barracks loop
+  { name: "Hill Station",    lat: 8.4550, lng: -13.2410 }, // State House / IMATT / Hill Station
+  { name: "Murray Town",     lat: 8.4910, lng: -13.2540 }, // Murray Town Village / Cole Farm
+  { name: "Congo Cross",     lat: 8.4780, lng: -13.2480 }, // Congo Cross Roundabout / Main Motor Rd
+  { name: "Tengbeh Town",    lat: 8.4770, lng: -13.2420 }, // Tengbeh Town Valley / Main Rd
+  { name: "Brookfields",     lat: 8.4740, lng: -13.2370 }, // National Stadium / Jomo Kenyatta Rd
+  { name: "New England",     lat: 8.4660, lng: -13.2380 }, // Youyi Building / New England Ville
+  { name: "Circular Road",   lat: 8.4820, lng: -13.2300 }, // Circular Rd / Model School
+  { name: "Tower Hill",      lat: 8.4840, lng: -13.2320 }, // Parliament Building / State Ave
+  { name: "Kissy",           lat: 8.4680, lng: -13.1950 }, // Kissy Old Rd / Shell / Bye-pass
+  { name: "Wellington",      lat: 8.4550, lng: -13.1700 }, // Wellington PMB / Industrial Estate
+  { name: "Calaba Town",     lat: 8.4420, lng: -13.1480 }, // Calaba Town Market / Roundabout
+  { name: "Allen Town",      lat: 8.4300, lng: -13.1320 }, // Allen Town Main Rd
+  { name: "Waterloo",        lat: 8.3380, lng: -13.0710 }, // Waterloo 555 / Roundabout
+  { name: "Regent",          lat: 8.4280, lng: -13.2200 }, // Regent Village Square
+  { name: "Charlotte",       lat: 8.4150, lng: -13.2050 }, // Charlotte Village
+  { name: "Tombo",           lat: 8.2300, lng: -13.0450 }, // Tombo Coastal Community
+  { name: "Jui Junction",    lat: 8.4080, lng: -13.1420 }, // Jui Junction / Hospital
+  { name: "Grafton",         lat: 8.3950, lng: -13.1550 }, // Grafton Main Rd
+  { name: "Leicester Peak",  lat: 8.4480, lng: -13.2120 }, // Leicester Peak Summit
+  { name: "Susan's Bay",     lat: 8.4900, lng: -13.2260 }, // Susan's Bay Coastal Community
+  { name: "Magazine Cut",    lat: 8.4870, lng: -13.2230 }, // Magazine / Eastern Police
+  { name: "Cline Town",      lat: 8.4850, lng: -13.2080 }, // Queen Elizabeth II Quay / Cline Town
+  { name: "East End",        lat: 8.4800, lng: -13.2050 }, // Kissy Road / East End Freetown
+  { name: "Fourah Bay",      lat: 8.4860, lng: -13.2160 }, // Fourah Bay Community
+  { name: "Kroo Bay",        lat: 8.4890, lng: -13.2340 }, // Kroo Bay Coastal Community
+  { name: "Fullah Town",     lat: 8.4830, lng: -13.2260 }, // Fullah Town / Mountain Cut
 ];
 
 export type AreaStatus = "on" | "out" | "unknown";
@@ -118,6 +118,7 @@ export function getAreaCandidates(
   lat: number,
   lng: number,
   accuracyMeters?: number | null,
+  preferredAreaName?: string | null,
 ): AreaDistance[] {
   const distances = getAreaDistances(lat, lng);
   const closestArea = distances[0];
@@ -126,14 +127,35 @@ export function getAreaCandidates(
     return [];
   }
 
+  const tolerance = getAreaMatchToleranceKm(accuracyMeters);
   const candidateRadiusKm = Math.min(
     MAX_REPORTING_DISTANCE_KM,
-    closestArea.distanceKm + getAreaMatchToleranceKm(accuracyMeters),
+    closestArea.distanceKm + tolerance,
   );
 
-  const candidates = distances
+  let candidates = distances
     .filter((area) => area.distanceKm <= candidateRadiusKm)
     .slice(0, AREA_CANDIDATE_LIMIT);
+
+  // If user has a saved / preferred primary area and it is within valid candidate range,
+  // ensure it is ranked first so minor GPS jitter on border streets does not flip to the next neighborhood!
+  if (preferredAreaName) {
+    const normalizedPreferred = preferredAreaName.trim().toLowerCase();
+    const preferredIndex = candidates.findIndex(
+      (area) => area.name.toLowerCase() === normalizedPreferred
+    );
+
+    if (preferredIndex > 0) {
+      const preferred = candidates[preferredIndex];
+      if (preferred.distanceKm <= closestArea.distanceKm + tolerance) {
+        candidates = [
+          preferred,
+          ...candidates.slice(0, preferredIndex),
+          ...candidates.slice(preferredIndex + 1),
+        ];
+      }
+    }
+  }
 
   return candidates.length > 0 ? candidates : distances.slice(0, 1);
 }

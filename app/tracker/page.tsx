@@ -81,18 +81,13 @@ function shouldUseLocationFix(next: LocationSnapshot, current: LocationSnapshot 
     return true;
   }
 
-  if (getLocationAgeMs(current) > LOCATION_REFRESH_AFTER_MS && nextAccuracy <= MAX_REPORTING_ACCURACY_METERS) {
+  if (getLocationAgeMs(current) > 15_000 && nextAccuracy <= MAX_REPORTING_ACCURACY_METERS) {
     return true;
   }
 
   const movedMeters = calculateDistanceKm(next.lat, next.lng, current.lat, current.lng) * 1000;
-  const movementThresholdMeters = Math.max(
-    MOVEMENT_UPDATE_FLOOR_METERS,
-    Math.min(1000, currentAccuracy + nextAccuracy),
-  );
-
   return (
-    movedMeters > movementThresholdMeters &&
+    movedMeters > 35 &&
     nextAccuracy <= Math.max(MAX_REPORTING_ACCURACY_METERS, currentAccuracy * 1.5)
   );
 }
@@ -474,10 +469,11 @@ export default function Home() {
         distance: null,
         isClosest: false,
         isSecondClosest: false,
+        isSavedArea: area.name === primaryArea,
       }));
     }
 
-    const areaCandidates = getAreaCandidates(location.lat, location.lng, location.accuracy);
+    const areaCandidates = getAreaCandidates(location.lat, location.lng, location.accuracy, primaryArea);
     const candidateNames = new Set(areaCandidates.map(area => area.name));
     const closestName = areaCandidates[0]?.name;
     const secondClosestName = areaCandidates[1]?.name;
@@ -487,15 +483,21 @@ export default function Home() {
       const isCandidate = candidateNames.has(area.name);
       const isClosest = area.name === closestName;
       const isSecondClosest = area.name === secondClosestName && !isClosest;
-      return { ...area, isCandidate, distance, isClosest, isSecondClosest };
+      const isSavedArea = area.name === primaryArea;
+      return { ...area, isCandidate, distance, isClosest, isSecondClosest, isSavedArea };
     });
-  }, [areas, location]);
+  }, [areas, location, primaryArea]);
 
   const nearbyAreas = useMemo(() => {
     if (!location) return [];
     return areasWithProximity
       .filter(a => a.isCandidate)
-      .sort((a, b) => (a.distance || 0) - (b.distance || 0));
+      .sort((a, b) => {
+        // Always put the saved primary area first to avoid GPS jitter flips
+        if (a.isSavedArea && !b.isSavedArea) return -1;
+        if (!a.isSavedArea && b.isSavedArea) return 1;
+        return (a.distance || 0) - (b.distance || 0);
+      });
   }, [areasWithProximity, location]);
 
   const filtered = areasWithProximity.filter(a => {
@@ -633,15 +635,18 @@ export default function Home() {
                     area.distance <= MAX_REPORTING_DISTANCE_KM;
 
                   return (
-                    <div key={area.name} className="relative p-5 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.05] transition-all duration-500 group/card">
-                      <h3 className="text-xl font-bold text-white mb-1">
+                    <div key={area.name} className={`relative p-5 rounded-2xl border transition-all duration-500 group/card ${area.isSavedArea ? 'border-yellow-400/30 bg-yellow-400/[0.04]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
+                      <h3 className="text-xl font-bold text-white mb-1 flex flex-wrap items-center gap-1.5">
                         {area.name}
-                        {area.isClosest ? (
-                          <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-black tracking-tighter">GPS Closest</span>
-                        ) : (
-                          <span className="text-[10px] bg-yellow-500/20 text-yellow-500 border border-yellow-500/30 px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-bold">Nearby Match</span>
+                        {area.isSavedArea && (
+                          <span className="text-[10px] bg-yellow-400 text-slate-950 px-1.5 py-0.5 rounded-md uppercase font-black tracking-tight">Your Area</span>
                         )}
-                        {area.name === primaryArea && <span className="text-[10px] bg-white/10 text-gray-300 border border-white/10 px-1.5 py-0.5 rounded-md ml-2 uppercase align-middle font-bold">Saved Area</span>}
+                        {area.isClosest && !area.isSavedArea && (
+                          <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md uppercase font-black tracking-tighter">GPS Closest</span>
+                        )}
+                        {!area.isClosest && !area.isSavedArea && (
+                          <span className="text-[10px] bg-white/10 text-gray-400 border border-white/10 px-1.5 py-0.5 rounded-md uppercase font-bold">Nearby</span>
+                        )}
                       </h3>
                       <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>
                         {STATUS_META[area.status].label}
@@ -649,14 +654,14 @@ export default function Home() {
 
                       <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
                         <span className="rounded bg-white/10 px-1.5 py-0.5">
-                          {area.distance !== null ? `${area.distance.toFixed(2)} km away` : 'Distance unavailable'}
+                          {area.distance !== null ? `${(area.distance * 1000).toFixed(0)}m away` : 'Distance unavailable'}
                         </span>
-                        {location && area.isClosest && (
+                        {location && (area.isClosest || area.isSavedArea) && (
                           <span className={`rounded px-1.5 py-0.5 ${location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
                               ? 'bg-yellow-500/15 text-yellow-200'
                               : 'bg-green-500/10 text-green-200'
                             }`}>
-                            Acc: {formatAccuracy(location.accuracy)}
+                            GPS ±{formatAccuracy(location.accuracy)}
                           </span>
                         )}
                       </div>
