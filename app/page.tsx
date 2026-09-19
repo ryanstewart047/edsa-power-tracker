@@ -206,9 +206,22 @@ export default function WelcomePage() {
             <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Amity University India</p>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-white/5 text-center">
-          <p className="text-[10px] text-gray-700 font-medium tracking-tight uppercase">
-            © {new Date().getFullYear()} EDSA Native Platform. Designed for daily field use.
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
+            <Link href="/feedback" className="hover:text-yellow-400 transition-colors">
+              Give Feedback
+            </Link>
+            <span>•</span>
+            <Link href="/privacy" className="hover:text-yellow-400 transition-colors">
+              Privacy Policy
+            </Link>
+            <span>•</span>
+            <Link href="/data-deletion" className="hover:text-yellow-400 transition-colors">
+              Data Deletion
+            </Link>
+          </div>
+          <p className="text-[10px] text-gray-600 font-medium tracking-tight uppercase">
+            © {new Date().getFullYear()} EDSA Power Tracker • BridgeTech IT Services
           </p>
         </div>
       </footer>
