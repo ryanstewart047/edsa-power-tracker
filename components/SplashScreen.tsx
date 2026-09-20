@@ -28,7 +28,7 @@ export default function SplashScreen() {
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#020617] text-white overflow-hidden"
         >
           {/* Background Ambient Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-yellow-500/20 blur-[100px] rounded-full" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-blue-600/25 blur-[110px] rounded-full" />
           
           <div className="relative flex flex-col items-center">
             <motion.div
@@ -41,15 +41,15 @@ export default function SplashScreen() {
               }}
               className="relative"
             >
-              <div className="h-24 w-24 rounded-[2rem] bg-yellow-400 flex items-center justify-center shadow-2xl shadow-yellow-400/20 ring-4 ring-yellow-400/10">
-                <Zap className="h-12 w-12 text-black fill-black" />
+              <div className="h-24 w-24 rounded-[2rem] bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-950 border border-blue-400/30 flex items-center justify-center shadow-2xl shadow-blue-600/40 ring-4 ring-blue-500/20">
+                <Zap className="h-12 w-12 text-red-500 fill-red-500 filter drop-shadow-[0_0_14px_rgba(239,68,68,0.7)]" />
               </div>
               
               {/* Spinning Ring */}
               <motion.div 
                 animate={{ rotate: 360 }}
                 transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-[-8px] border-2 border-dashed border-yellow-400/30 rounded-[2.5rem]"
+                className="absolute inset-[-8px] border-2 border-dashed border-blue-400/40 rounded-[2.5rem]"
               />
             </motion.div>
 
@@ -60,7 +60,7 @@ export default function SplashScreen() {
               className="mt-8 text-center"
             >
               <h2 className="text-xl font-black tracking-tight uppercase">EDSA Native</h2>
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-yellow-500/80 mt-1">Platform Operations</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-400/90 mt-1">Platform Operations</p>
             </motion.div>
           </div>
 

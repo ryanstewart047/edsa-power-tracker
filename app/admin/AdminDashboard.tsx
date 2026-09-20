@@ -360,15 +360,15 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
 
       <div className="relative z-10 min-h-screen flex flex-col md:flex-row">
         <aside className="w-full md:w-64 bg-black/40 backdrop-blur-3xl border-r border-white/10 p-6 space-y-8">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-yellow-500/20 flex items-center justify-center">
-            <Zap className="w-6 h-6 text-yellow-500" />
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-900 border border-blue-400/30 flex items-center justify-center shadow-md shadow-blue-500/20">
+              <Zap className="w-6 h-6 text-red-500 fill-red-500 filter drop-shadow-[0_0_6px_rgba(239,68,68,0.7)]" />
+            </div>
+            <div>
+              <h1 className="font-bold text-lg leading-tight">EDSA Admin</h1>
+              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Realtime Monitor</p>
+            </div>
           </div>
-          <div>
-            <h1 className="font-bold text-lg leading-tight">EDSA Admin</h1>
-            <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Realtime Monitor</p>
-          </div>
-        </div>
 
         <nav className="space-y-2">
           <SidebarItem label="Overview" icon={BarChart3} active={activeTab === 'overview'} onClick={() => setActiveTab('overview')} />

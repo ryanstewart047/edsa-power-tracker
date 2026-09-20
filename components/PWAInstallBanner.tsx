@@ -90,8 +90,8 @@ export default function PWAInstallBanner() {
         </button>
 
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center shrink-0 shadow-lg shadow-green-500/20">
-            <Zap className="w-8 h-8 text-white fill-white" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-900 border border-blue-400/30 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
+            <Zap className="w-8 h-8 text-red-500 fill-red-500 filter drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
           </div>
           
           <div className="flex-1 pr-6">
