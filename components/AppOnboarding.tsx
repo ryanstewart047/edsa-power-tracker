@@ -11,8 +11,11 @@ import {
   ShieldCheck, 
   Sparkles,
   Activity,
-  CheckCircle2
+  CheckCircle2,
+  FileText,
+  ExternalLink
 } from 'lucide-react';
+import Link from 'next/link';
 
 interface OnboardingStep {
   badge: string;
@@ -28,11 +31,18 @@ interface OnboardingStep {
 export default function AppOnboarding() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   useEffect(() => {
-    // Check if user has already completed onboarding
+    // Check if user has already completed onboarding and accepted terms
     const completed = localStorage.getItem('edsa_welcome_onboarding_v1');
-    if (!completed) {
+    const termsAcceptedStorage = localStorage.getItem('edsa_terms_accepted_v1');
+    
+    if (termsAcceptedStorage === 'true') {
+      setTermsAccepted(true);
+    }
+
+    if (!completed || !termsAcceptedStorage) {
       // Delay slightly so it shows after the splash screen finishes
       const timer = setTimeout(() => {
         setIsVisible(true);
@@ -43,10 +53,81 @@ export default function AppOnboarding() {
 
   const handleFinish = () => {
     localStorage.setItem('edsa_welcome_onboarding_v1', 'true');
+    localStorage.setItem('edsa_terms_accepted_v1', 'true');
     setIsVisible(false);
   };
 
   const steps: OnboardingStep[] = [
+    {
+      badge: 'COMMUNITY AGREEMENT',
+      title: 'Terms & Community Guidelines',
+      subtitle: 'Please review and accept to enter EDSA Tracker',
+      description:
+        'To keep Freetown electricity tracking safe, trustworthy, and accurate for everyone, please review and accept our usage guidelines.',
+      icon: FileText,
+      accentColor: 'text-yellow-400',
+      bgGlow: 'from-yellow-500/20 to-transparent',
+      preview: (
+        <div className="bg-slate-900/90 border border-white/10 rounded-2xl p-4 space-y-3 shadow-xl text-left">
+          <div className="space-y-2 text-xs text-gray-300">
+            <div className="flex items-start gap-2">
+              <span className="text-yellow-400 text-sm leading-none mt-0.5">⚡</span>
+              <p><strong className="text-white">Accurate Reports:</strong> Submit real power status only for your current community.</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-emerald-400 text-sm leading-none mt-0.5">📍</span>
+              <p><strong className="text-white">GPS Matching:</strong> GPS is used only to anchor outage and hazard reports to your zone.</p>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="text-amber-400 text-sm leading-none mt-0.5">🛡️</span>
+              <p><strong className="text-white">Zero False Alarms:</strong> Malicious or fake emergency reports are strictly forbidden.</p>
+            </div>
+          </div>
+
+          <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px]">
+            <Link 
+              href="/terms" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-yellow-400 hover:text-yellow-300 underline font-semibold flex items-center gap-1"
+            >
+              <span>Read Terms</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+            <Link 
+              href="/privacy" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="text-yellow-400 hover:text-yellow-300 underline font-semibold flex items-center gap-1"
+            >
+              <span>Privacy Policy</span>
+              <ExternalLink className="w-3 h-3" />
+            </Link>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setTermsAccepted(!termsAccepted)}
+            className={`w-full p-3 rounded-xl border flex items-center gap-3 text-left transition-all ${
+              termsAccepted
+                ? 'bg-yellow-400/15 border-yellow-400 text-yellow-300 shadow-md shadow-yellow-400/10'
+                : 'bg-white/5 border-white/15 text-gray-300 hover:bg-white/10'
+            }`}
+          >
+            <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all ${
+              termsAccepted
+                ? 'bg-yellow-400 border-yellow-400 text-slate-950'
+                : 'border-white/30 bg-white/5'
+            }`}>
+              {termsAccepted && <CheckCircle2 className="w-4 h-4 fill-slate-950 text-yellow-400" />}
+            </div>
+            <span className="text-xs font-bold leading-snug">
+              I accept the Terms & Conditions and Privacy Policy
+            </span>
+          </button>
+        </div>
+      ),
+    },
     {
       badge: 'REAL-TIME GRID TRACKING',
       title: 'Track Live Power in Your Community',
@@ -156,8 +237,11 @@ export default function AppOnboarding() {
   const step = steps[currentStep];
   const StepIcon = step.icon;
   const isLastStep = currentStep === steps.length - 1;
+  const isTermsStep = currentStep === 0;
+  const isNextDisabled = isTermsStep && !termsAccepted;
 
   const nextStep = () => {
+    if (isNextDisabled) return;
     if (isLastStep) {
       handleFinish();
     } else {
@@ -191,12 +275,12 @@ export default function AppOnboarding() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="relative w-full max-w-md bg-slate-950/95 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl flex flex-col justify-between overflow-hidden text-center min-h-[580px]"
         >
-          {/* Top Bar: Skip button and step counter */}
+          {/* Top Bar: Skip button (only available after agreeing to Terms) and step counter */}
           <div className="flex items-center justify-between mb-4">
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
               Step {currentStep + 1} of {steps.length}
             </div>
-            {!isLastStep && (
+            {!isLastStep && !isTermsStep && (
               <button
                 onClick={handleFinish}
                 className="text-xs font-bold text-gray-400 hover:text-white transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/5"
@@ -253,12 +337,17 @@ export default function AppOnboarding() {
               {steps.map((_, idx) => (
                 <button
                   key={idx}
-                  onClick={() => setCurrentStep(idx)}
+                  onClick={() => {
+                    if (idx === 0 || termsAccepted) {
+                      setCurrentStep(idx);
+                    }
+                  }}
+                  disabled={idx > 0 && !termsAccepted}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     idx === currentStep 
                       ? 'w-8 bg-yellow-400' 
                       : 'w-2 bg-white/20 hover:bg-white/40'
-                  }`}
+                  } ${idx > 0 && !termsAccepted ? 'opacity-30 cursor-not-allowed' : ''}`}
                   aria-label={`Go to step ${idx + 1}`}
                 />
               ))}
@@ -278,12 +367,22 @@ export default function AppOnboarding() {
 
               <button
                 onClick={nextStep}
-                className="flex-1 py-3.5 px-6 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-yellow-400/20 flex items-center justify-center gap-2 group"
+                disabled={isNextDisabled}
+                className={`flex-1 py-3.5 px-6 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 group ${
+                  isNextDisabled
+                    ? 'bg-yellow-400/30 text-slate-700 cursor-not-allowed border border-white/5'
+                    : 'bg-yellow-400 hover:bg-yellow-300 text-slate-950 shadow-lg shadow-yellow-400/20'
+                }`}
               >
                 {isLastStep ? (
                   <>
                     <span>Enter EDSA Tracker</span>
                     <Zap className="w-4 h-4 fill-slate-950" />
+                  </>
+                ) : isTermsStep ? (
+                  <>
+                    <span>{termsAccepted ? 'I Agree & Continue' : 'Accept Terms to Continue'}</span>
+                    <ChevronRight className={`w-4 h-4 ${termsAccepted ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
                   </>
                 ) : (
                   <>

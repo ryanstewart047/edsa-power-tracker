@@ -216,6 +216,10 @@ export default function WelcomePage() {
               Privacy Policy
             </Link>
             <span>•</span>
+            <Link href="/terms" className="hover:text-yellow-400 transition-colors">
+              Terms & Conditions
+            </Link>
+            <span>•</span>
             <Link href="/data-deletion" className="hover:text-yellow-400 transition-colors">
               Data Deletion
             </Link>
