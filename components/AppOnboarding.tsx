@@ -13,7 +13,11 @@ import {
   Activity,
   CheckCircle2,
   FileText,
-  ExternalLink
+  ExternalLink,
+  MapPin,
+  Navigation,
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,6 +36,10 @@ export default function AppOnboarding() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  const [locationGranted, setLocationGranted] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
 
   useEffect(() => {
     // Check if user has already completed onboarding and accepted terms
@@ -50,6 +58,51 @@ export default function AppOnboarding() {
       return () => clearTimeout(timer);
     }
   }, []);
+
+  // Probe if location is already granted in background
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then((res) => {
+        if (res.state === 'granted') {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              setLocationGranted(true);
+              setLocationAccuracy(Math.round(pos.coords.accuracy));
+            },
+            () => {},
+            { enableHighAccuracy: true, timeout: 6000 }
+          );
+        }
+      }).catch(() => {});
+    }
+  }, []);
+
+  const requestLocation = () => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationError('Geolocation is not supported on this browser or device.');
+      return;
+    }
+    setLocationLoading(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setLocationLoading(false);
+        setLocationGranted(true);
+        setLocationAccuracy(Math.round(pos.coords.accuracy));
+      },
+      (err) => {
+        setLocationLoading(false);
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationError('Permission was denied. Please allow location access to continue.');
+        } else if (err.code === err.POSITION_UNAVAILABLE) {
+          setLocationError('Device GPS is turned OFF. Please swipe down and turn on Location in Quick Settings.');
+        } else {
+          setLocationError('Unable to get GPS fix. Please verify location is enabled.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleFinish = () => {
     localStorage.setItem('edsa_welcome_onboarding_v1', 'true');
@@ -125,6 +178,71 @@ export default function AppOnboarding() {
               I accept the Terms & Conditions and Privacy Policy
             </span>
           </button>
+        </div>
+      ),
+    },
+    {
+      badge: 'PRECISION GPS REQUIRED',
+      title: 'Enable Device Location',
+      subtitle: 'Required for community matching & fraud prevention',
+      description:
+        'To prevent fake outage reports and dispatch emergency crews to exact coordinates, EDSA Tracker requires your active GPS location to operate.',
+      icon: Navigation,
+      accentColor: 'text-emerald-400',
+      bgGlow: 'from-emerald-500/20 to-transparent',
+      preview: (
+        <div className="bg-slate-900/90 border border-white/10 rounded-2xl p-4 space-y-3 shadow-xl text-left">
+          {locationGranted ? (
+            <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-emerald-400">GPS Successfully Linked</div>
+                <div className="text-[10px] text-gray-300">
+                  {locationAccuracy ? `Accuracy within ±${locationAccuracy}m • Ready` : 'Location verified for Freetown grid'}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="text-xs text-gray-300 space-y-1.5">
+                <div className="flex items-center gap-2 text-white font-bold">
+                  <MapPin className="w-4 h-4 text-emerald-400" />
+                  <span>Mandatory Location Access</span>
+                </div>
+                <p className="text-[11px] text-gray-400 leading-relaxed">
+                  Your coordinates are used strictly inside the app to link you to your nearest Freetown substation zone.
+                </p>
+              </div>
+
+              {locationError && (
+                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                  <span>{locationError}</span>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={requestLocation}
+                disabled={locationLoading}
+                className="w-full p-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+              >
+                {locationLoading ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+                    <span>Connecting GPS...</span>
+                  </>
+                ) : (
+                  <>
+                    <MapPin className="w-4 h-4 fill-slate-950" />
+                    <span>Allow & Verify GPS Access</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
         </div>
       ),
     },
@@ -238,7 +356,8 @@ export default function AppOnboarding() {
   const StepIcon = step.icon;
   const isLastStep = currentStep === steps.length - 1;
   const isTermsStep = currentStep === 0;
-  const isNextDisabled = isTermsStep && !termsAccepted;
+  const isLocationStep = currentStep === 1;
+  const isNextDisabled = (isTermsStep && !termsAccepted) || (isLocationStep && !locationGranted);
 
   const nextStep = () => {
     if (isNextDisabled) return;
@@ -275,12 +394,12 @@ export default function AppOnboarding() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="relative w-full max-w-md bg-slate-950/95 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl flex flex-col justify-between overflow-hidden text-center min-h-[580px]"
         >
-          {/* Top Bar: Skip button (only available after agreeing to Terms) and step counter */}
+          {/* Top Bar: Skip button (only available after agreeing to Terms and granting GPS) and step counter */}
           <div className="flex items-center justify-between mb-4">
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
               Step {currentStep + 1} of {steps.length}
             </div>
-            {!isLastStep && !isTermsStep && (
+            {!isLastStep && !isTermsStep && !isLocationStep && (
               <button
                 onClick={handleFinish}
                 className="text-xs font-bold text-gray-400 hover:text-white transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/5"
@@ -338,16 +457,17 @@ export default function AppOnboarding() {
                 <button
                   key={idx}
                   onClick={() => {
-                    if (idx === 0 || termsAccepted) {
-                      setCurrentStep(idx);
-                    }
+                    if (idx === 0) { setCurrentStep(0); return; }
+                    if (!termsAccepted) return;
+                    if (idx > 1 && !locationGranted) return;
+                    setCurrentStep(idx);
                   }}
-                  disabled={idx > 0 && !termsAccepted}
+                  disabled={(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     idx === currentStep 
                       ? 'w-8 bg-yellow-400' 
                       : 'w-2 bg-white/20 hover:bg-white/40'
-                  } ${idx > 0 && !termsAccepted ? 'opacity-30 cursor-not-allowed' : ''}`}
+                  } ${(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted) ? 'opacity-30 cursor-not-allowed' : ''}`}
                   aria-label={`Go to step ${idx + 1}`}
                 />
               ))}
@@ -383,6 +503,11 @@ export default function AppOnboarding() {
                   <>
                     <span>{termsAccepted ? 'I Agree & Continue' : 'Accept Terms to Continue'}</span>
                     <ChevronRight className={`w-4 h-4 ${termsAccepted ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
+                  </>
+                ) : isLocationStep ? (
+                  <>
+                    <span>{locationGranted ? 'GPS Verified — Continue' : 'Allow GPS to Continue'}</span>
+                    <ChevronRight className={`w-4 h-4 ${locationGranted ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
                   </>
                 ) : (
                   <>

@@ -59,6 +59,7 @@ const swScript = `
 
 import SplashScreen from "@/components/SplashScreen";
 import AppOnboarding from "@/components/AppOnboarding";
+import LocationGuard from "@/components/LocationGuard";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ChatBot from "@/components/ChatBot";
 
@@ -88,6 +89,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${inter.className} bg-gray-950 text-white min-h-screen pb-24 md:pb-24`}>
         <SplashScreen />
         <AppOnboarding />
+        <LocationGuard />
         {children}
         <PWAInstallBanner />
         <FloatingPrompts />
