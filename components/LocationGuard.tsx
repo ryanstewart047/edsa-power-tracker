@@ -304,11 +304,13 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
             </h2>
 
             <p className="text-xs text-gray-300 leading-relaxed max-w-sm mx-auto">
-              {state === 'GPS_OFF'
-                ? 'Your device location (GPS) is turned off. EDSA Tracker requires active GPS to detect your Freetown community and prevent false outage alarms.'
-                : state === 'PERMISSION_DENIED'
-                ? 'Permission to access location was denied. To protect grid integrity, you must enable location permissions for this app to proceed.'
-                : 'EDSA Power Tracker requires real-time GPS location to match your community, verify power reports, and dispatch emergency hazard crews.'}
+              {errorMessage || (
+                state === 'GPS_OFF'
+                  ? 'Your device location (GPS) is turned off. EDSA Tracker requires active GPS to detect your Freetown community and prevent false outage alarms.'
+                  : state === 'PERMISSION_DENIED'
+                  ? 'Permission to access location was denied. To protect grid integrity, you must enable location permissions for this app to proceed.'
+                  : 'EDSA Power Tracker requires real-time GPS location to match your community, verify power reports, and dispatch emergency hazard crews.'
+              )}
             </p>
           </div>
 
