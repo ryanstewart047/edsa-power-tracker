@@ -38,13 +38,14 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const permissionStatusRef = useRef<PermissionStatus | null>(null);
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Check if route is exempt from location enforcement (e.g. legal pages, admin)
+  // Check if route is exempt from location enforcement (e.g. legal pages, admin, topup)
   const isExemptRoute = 
     pathname.startsWith('/privacy') ||
     pathname.startsWith('/terms') ||
     pathname.startsWith('/data-deletion') ||
     pathname.startsWith('/admin') ||
-    pathname.startsWith('/feedback');
+    pathname.startsWith('/feedback') ||
+    pathname.startsWith('/topup');
 
   // Detect Android device
   useEffect(() => {

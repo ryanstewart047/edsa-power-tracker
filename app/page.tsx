@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map, Smartphone, KeyRound } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 import WorkSlider from '@/components/WorkSlider';
 import AdUnit from '@/components/AdUnit';
@@ -33,9 +33,10 @@ const highlights = [
 
 const featurePills = [
   'GPS-Verified',
+  'Meter Top-Up',
+  'Token Vault',
   'Hazard Evidence',
   'Real-Time Status',
-  'WhatsApp Sharing',
 ];
 
 export default function WelcomePage() {
@@ -116,21 +117,23 @@ export default function WelcomePage() {
         </div>
 
         {/* Action Cards */}
-        <div className="mt-20 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
             whileHover={{ y: -5 }}
-            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-yellow-400/30 transition-all"
+            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-yellow-400/30 transition-all flex flex-col justify-between"
           >
-            <div className="flex items-start justify-between mb-8">
-              <div className="h-14 w-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
-                <Activity className="h-7 w-7 text-yellow-400" />
+            <div>
+              <div className="flex items-start justify-between mb-8">
+                <div className="h-14 w-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
+                  <Activity className="h-7 w-7 text-yellow-400" />
+                </div>
+                <Zap className="h-5 w-5 text-yellow-300/30" />
               </div>
-              <Zap className="h-5 w-5 text-yellow-300/30" />
+              <h3 className="text-2xl font-bold mb-4">Live Tracker</h3>
+              <p className="text-gray-400 leading-relaxed mb-8">
+                Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-4">Community Interface</h3>
-            <p className="text-gray-400 leading-relaxed mb-8">
-              Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
-            </p>
             <Link href="/tracker" className="inline-flex items-center gap-2 text-yellow-400 font-bold group-hover:gap-3 transition-all">
               Access Tracker <ChevronRight className="h-4 w-4" />
             </Link>
@@ -138,18 +141,41 @@ export default function WelcomePage() {
 
           <motion.div
             whileHover={{ y: -5 }}
-            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/30 transition-all"
+            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-emerald-400/30 transition-all flex flex-col justify-between"
           >
-            <div className="flex items-start justify-between mb-8">
-              <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
-                <BarChart3 className="h-7 w-7 text-blue-400" />
+            <div>
+              <div className="flex items-start justify-between mb-8">
+                <div className="h-14 w-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
+                  <Smartphone className="h-7 w-7 text-emerald-400" />
+                </div>
+                <KeyRound className="h-5 w-5 text-emerald-300/30" />
               </div>
-              <ShieldCheck className="h-5 w-5 text-blue-300/30" />
+              <h3 className="text-2xl font-bold mb-4">Top-Up & Vault</h3>
+              <p className="text-gray-400 leading-relaxed mb-8">
+                Instant USSD quick-dial for Orange & Afrimoney, kWh units calculator, and offline 20-digit token storage.
+              </p>
             </div>
-            <h3 className="text-2xl font-bold mb-4">Admin Command</h3>
-            <p className="text-gray-400 leading-relaxed mb-8">
-              Operational dashboard for reviewing hazard reports, managing community status, and exporting data.
-            </p>
+            <Link href="/topup" className="inline-flex items-center gap-2 text-emerald-400 font-bold group-hover:gap-3 transition-all">
+              Buy Tokens & Vault <ChevronRight className="h-4 w-4" />
+            </Link>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ y: -5 }}
+            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/30 transition-all flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-start justify-between mb-8">
+                <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
+                  <BarChart3 className="h-7 w-7 text-blue-400" />
+                </div>
+                <ShieldCheck className="h-5 w-5 text-blue-300/30" />
+              </div>
+              <h3 className="text-2xl font-bold mb-4">Admin Command</h3>
+              <p className="text-gray-400 leading-relaxed mb-8">
+                Operational dashboard for reviewing hazard reports, managing community status, and exporting data.
+              </p>
+            </div>
             <Link href="/admin" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
               Admin Portal <ChevronRight className="h-4 w-4" />
             </Link>

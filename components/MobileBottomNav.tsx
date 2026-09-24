@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Map, ShieldCheck } from 'lucide-react';
+import { Home, Map, Zap, ShieldCheck } from 'lucide-react';
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
@@ -16,6 +16,7 @@ export default function MobileBottomNav() {
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Tracker', href: '/tracker', icon: Map },
+    { name: 'Top-Up', href: '/topup', icon: Zap },
     { name: 'Admin', href: '/admin', icon: ShieldCheck },
   ];
 
