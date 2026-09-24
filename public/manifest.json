@@ -11,7 +11,7 @@
     "client_mode": ["navigate-existing", "auto"]
   },
   "share_target": {
-    "action": "/?source=share",
+    "action": "/topup",
     "method": "GET",
     "params": {
       "title": "title",
@@ -84,6 +84,13 @@
       "short_name": "Report",
       "description": "Quickly report power line hazards and broken transformers",
       "url": "/?shortcut=report",
+      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Meter Top-Up & Vault",
+      "short_name": "Top-Up",
+      "description": "Prepaid meter token vault and USSD top-up",
+      "url": "/topup",
       "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]

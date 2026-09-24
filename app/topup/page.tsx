@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
@@ -20,8 +21,12 @@ import {
   CheckCircle2, 
   Sparkles,
   Eye,
-  X
+  X,
+  ClipboardPaste,
+  MessageSquare,
+  AlertCircle
 } from 'lucide-react';
+import { parseTokenSms, ParsedSmsToken } from '@/lib/tokenParser';
 
 interface MeterProfile {
   id: string;
@@ -41,7 +46,8 @@ interface StoredToken {
   loaded: boolean;
 }
 
-export default function TopUpPage() {
+function TopUpContent() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<'buy' | 'vault' | 'calc' | 'meters'>('buy');
   
   // Meters state
@@ -66,6 +72,12 @@ export default function TopUpPage() {
   const [tokenAmountInput, setTokenAmountInput] = useState('');
   const [tokenUnitsInput, setTokenUnitsInput] = useState('');
   const [keypadModalToken, setKeypadModalToken] = useState<StoredToken | null>(null);
+
+  // SMS & Clipboard Parsing state (Options A, B, C)
+  const [rawSmsInput, setRawSmsInput] = useState('');
+  const [parsedPreview, setParsedPreview] = useState<ParsedSmsToken | null>(null);
+  const [detectedClipboardToken, setDetectedClipboardToken] = useState<ParsedSmsToken | null>(null);
+  const [clipboardStatusMessage, setClipboardStatusMessage] = useState<string | null>(null);
 
   // Load meters and tokens from localStorage
   useEffect(() => {
@@ -120,6 +132,124 @@ export default function TopUpPage() {
       navigator.clipboard.writeText(text);
       setCopiedKey(key);
       setTimeout(() => setCopiedKey(null), 2500);
+    }
+  };
+
+  // Apply parsed token to form inputs
+  const applyParsedToken = useCallback((parsed: ParsedSmsToken) => {
+    if (parsed.token) {
+      setTokenInput(parsed.token);
+    }
+    if (parsed.amount) {
+      setTokenAmountInput(String(parsed.amount));
+    }
+    if (parsed.units) {
+      setTokenUnitsInput(String(parsed.units));
+    }
+    if (parsed.meterNumber) {
+      const existing = meters.find(m => m.meterNumber === parsed.meterNumber);
+      if (existing) {
+        setSelectedMeterId(existing.id);
+      }
+    }
+  }, [meters]);
+
+  // Option A: Handle incoming Web Share Target text (e.g. user shares SMS directly to app)
+  useEffect(() => {
+    const sharedText = searchParams?.get('text') || searchParams?.get('title') || '';
+    if (sharedText) {
+      const parsed = parseTokenSms(sharedText);
+      if (parsed.token) {
+        applyParsedToken(parsed);
+        setActiveTab('vault');
+        setShowAddTokenModal(true);
+      }
+    }
+  }, [searchParams, applyParsedToken]);
+
+  // Option B: Check clipboard for 20-digit tokens
+  const checkClipboardForToken = useCallback(async (manual = false) => {
+    try {
+      if (typeof navigator === 'undefined' || !navigator.clipboard || !navigator.clipboard.readText) {
+        if (manual) setClipboardStatusMessage('Clipboard access not supported on this browser.');
+        return;
+      }
+      const clipText = await navigator.clipboard.readText();
+      if (!clipText || clipText.trim().length === 0) {
+        if (manual) {
+          setClipboardStatusMessage('Clipboard is empty.');
+          setTimeout(() => setClipboardStatusMessage(null), 3000);
+        }
+        return;
+      }
+
+      const parsed = parseTokenSms(clipText);
+      if (parsed.token) {
+        // Check if token is already in vault
+        const alreadySaved = tokens.some(t => t.token === parsed.token);
+        if (alreadySaved) {
+          if (manual) {
+            setClipboardStatusMessage('Token in clipboard is already saved in your vault.');
+            setTimeout(() => setClipboardStatusMessage(null), 3500);
+          }
+        } else {
+          setDetectedClipboardToken(parsed);
+        }
+      } else if (manual) {
+        setClipboardStatusMessage('No 20-digit token found in your copied clipboard text.');
+        setTimeout(() => setClipboardStatusMessage(null), 3500);
+      }
+    } catch {
+      if (manual) {
+        setClipboardStatusMessage('Permission needed to read clipboard. You can paste into the box below.');
+        setTimeout(() => setClipboardStatusMessage(null), 4000);
+      }
+    }
+  }, [tokens]);
+
+  // Listen to focus and visibilitychange to detect new copied tokens when returning from SMS app
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        checkClipboardForToken(false);
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleVisibility);
+    // Initial check
+    checkClipboardForToken(false);
+
+    return () => {
+      window.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleVisibility);
+    };
+  }, [checkClipboardForToken]);
+
+  // Option C: Real-time SMS text parser
+  const handleRawSmsChange = (text: string) => {
+    setRawSmsInput(text);
+    if (!text.trim()) {
+      setParsedPreview(null);
+      return;
+    }
+    const parsed = parseTokenSms(text);
+    setParsedPreview(parsed);
+    if (parsed.token) {
+      applyParsedToken(parsed);
+    }
+  };
+
+  // Paste into raw SMS box
+  const pasteFromClipboardToSmsBox = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.readText) {
+        const text = await navigator.clipboard.readText();
+        if (text) {
+          handleRawSmsChange(text);
+        }
+      }
+    } catch {
+      // Fallback
     }
   };
 
@@ -185,6 +315,8 @@ export default function TopUpPage() {
     setTokenInput('');
     setTokenAmountInput('');
     setTokenUnitsInput('');
+    setRawSmsInput('');
+    setParsedPreview(null);
     setShowAddTokenModal(false);
   };
 
@@ -265,6 +397,78 @@ export default function TopUpPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 pt-4 space-y-5 relative z-10">
+        {/* OPTION B: CLIPBOARD AUTO-DETECTION NOTIFICATION BANNER */}
+        <AnimatePresence>
+          {detectedClipboardToken && (
+            <motion.div
+              initial={{ opacity: 0, y: -20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.95 }}
+              className="bg-gradient-to-r from-yellow-500/20 via-emerald-500/20 to-yellow-500/20 border-2 border-yellow-400/50 rounded-2xl p-4 shadow-2xl backdrop-blur-xl space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="p-2 rounded-xl bg-yellow-400 text-slate-950 font-black shrink-0">
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                  <div>
+                    <div className="text-xs font-black uppercase text-yellow-400 tracking-wider">
+                      20-Digit Token Detected from Clipboard!
+                    </div>
+                    <div className="text-[11px] text-gray-300">
+                      {detectedClipboardToken.amount ? `Amount: NLe ${detectedClipboardToken.amount} • ` : ''}
+                      {detectedClipboardToken.units ? `Units: ${detectedClipboardToken.units} kWh` : 'Ready to save'}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setDetectedClipboardToken(null)}
+                  className="p-1 rounded-lg text-gray-400 hover:text-white"
+                  aria-label="Dismiss banner"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <div className="font-mono text-base font-black text-white bg-slate-950/80 p-3 rounded-xl border border-yellow-400/40 text-center tracking-widest selection:bg-yellow-400 selection:text-slate-950">
+                {detectedClipboardToken.formattedToken}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    applyParsedToken(detectedClipboardToken);
+                    setDetectedClipboardToken(null);
+                    setActiveTab('vault');
+                    setShowAddTokenModal(true);
+                  }}
+                  className="flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-yellow-400/20 active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Save This Token to Vault</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDetectedClipboardToken(null)}
+                  className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 text-xs font-bold transition-colors"
+                >
+                  Dismiss
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Temporary clipboard toast message */}
+        {clipboardStatusMessage && (
+          <div className="p-3 rounded-xl bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs flex items-center gap-2">
+            <Info className="w-4 h-4 shrink-0" />
+            <span>{clipboardStatusMessage}</span>
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <div className="grid grid-cols-4 gap-1.5 p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
           <button
@@ -549,7 +753,7 @@ export default function TopUpPage() {
                 <div className="space-y-1">
                   <div className="font-bold text-white">Received your 20-digit token SMS?</div>
                   <p className="text-gray-300">
-                    Save it into your <strong>Token Vault</strong> below so you can display it in huge high-contrast digits while standing at your meter keypad!
+                    Copy the SMS text or share it to EDSA Power Tracker — our smart parser will automatically extract the 20 digits for your vault!
                   </p>
                   <button
                     type="button"
@@ -571,21 +775,41 @@ export default function TopUpPage() {
         {/* TAB 2: TOKEN HISTORY VAULT */}
         {activeTab === 'vault' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-            {/* Header & Add Button */}
-            <div className="flex items-center justify-between">
+            {/* Header & Action Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg font-black text-white">Your Saved Tokens</h2>
                 <p className="text-xs text-gray-400">Offline vault — accessible even without data or electricity</p>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setShowAddTokenModal(true)}
-                className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-yellow-400/20"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Save Token</span>
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Check Clipboard Button */}
+                <button
+                  type="button"
+                  onClick={() => checkClipboardForToken(true)}
+                  className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+                  title="Check clipboard for copied token"
+                >
+                  <ClipboardPaste className="w-4 h-4 text-yellow-400" />
+                  <span>Scan Clipboard</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTokenInput('');
+                    setTokenAmountInput('');
+                    setTokenUnitsInput('');
+                    setRawSmsInput('');
+                    setParsedPreview(null);
+                    setShowAddTokenModal(true);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-yellow-400/20 active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Save Token</span>
+                </button>
+              </div>
             </div>
 
             {/* Token List */}
@@ -596,15 +820,25 @@ export default function TopUpPage() {
                 </div>
                 <div className="text-sm font-bold text-white">No Tokens Stored Yet</div>
                 <p className="text-xs text-gray-400 max-w-sm mx-auto">
-                  When you buy electricity via mobile money or scratch card, save the 20-digit code here so you never lose an SMS.
+                  When you buy electricity via mobile money or scratch card, copy the SMS and save it here. The app will auto-extract the 20 digits so you never lose them.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setShowAddTokenModal(true)}
-                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-white transition-colors"
-                >
-                  Add Your First Token
-                </button>
+                <div className="flex justify-center gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => checkClipboardForToken(true)}
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-yellow-400 transition-colors flex items-center gap-1.5"
+                  >
+                    <ClipboardPaste className="w-4 h-4" />
+                    <span>Scan Clipboard</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddTokenModal(true)}
+                    className="px-4 py-2 rounded-xl bg-yellow-400 text-slate-950 text-xs font-bold transition-colors"
+                  >
+                    Enter Manually
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -641,6 +875,7 @@ export default function TopUpPage() {
                         <div className="flex items-center gap-3 text-xs text-gray-400">
                           {token.amountNle > 0 && <span>Paid: <strong className="text-white">NLe {token.amountNle}</strong></span>}
                           {token.kwhUnits && <span>Units: <strong className="text-emerald-400">{token.kwhUnits} kWh</strong></span>}
+                          <span className="font-mono text-[11px] text-gray-500">Meter: {token.meterNumber}</span>
                         </div>
                       </div>
 
@@ -994,18 +1229,21 @@ export default function TopUpPage() {
         )}
       </AnimatePresence>
 
-      {/* MODAL 2: ADD TOKEN TO VAULT */}
+      {/* MODAL 2: ADD TOKEN TO VAULT (WITH OPTION C: SMART SMS PARSER) */}
       <AnimatePresence>
         {showAddTokenModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
             <motion.div
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-slate-900 border border-white/10 rounded-[2rem] p-6 w-full max-w-md shadow-2xl space-y-4"
+              className="bg-slate-900 border border-white/10 rounded-[2rem] p-6 w-full max-w-lg shadow-2xl space-y-4 my-8"
             >
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-white">Save Token into Vault</h3>
+                <div>
+                  <h3 className="text-lg font-black text-white">Save Token into Vault</h3>
+                  <p className="text-[11px] text-gray-400">Auto-parse from SMS or enter directly</p>
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowAddTokenModal(false)}
@@ -1015,23 +1253,90 @@ export default function TopUpPage() {
                 </button>
               </div>
 
+              {/* SMART SMS PARSER BOX (OPTION C) */}
+              <div className="p-4 rounded-2xl bg-white/5 border border-yellow-400/20 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-yellow-400 uppercase tracking-wider">
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Smart SMS Parser</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={pasteFromClipboardToSmsBox}
+                    className="px-2.5 py-1 rounded-lg bg-yellow-400 text-slate-950 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-all"
+                  >
+                    <ClipboardPaste className="w-3 h-3" />
+                    <span>Paste Clipboard</span>
+                  </button>
+                </div>
+
+                <textarea
+                  rows={2}
+                  placeholder="Paste your whole SMS from Orange Money or Afrimoney here..."
+                  value={rawSmsInput}
+                  onChange={(e) => handleRawSmsChange(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-yellow-400"
+                />
+
+                {/* Live Parser Feedback */}
+                {parsedPreview && (
+                  <div className="space-y-1.5 pt-1 border-t border-white/10">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase">Detected components:</div>
+                    <div className="flex flex-wrap gap-1.5 text-[11px]">
+                      {parsedPreview.token ? (
+                        <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold flex items-center gap-1">
+                          <Check className="w-3 h-3" /> 20-Digit Token
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                          <AlertCircle className="w-3 h-3" /> No 20 digits found
+                        </span>
+                      )}
+
+                      {parsedPreview.amount && (
+                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-gray-200 border border-white/10 font-bold">
+                          NLe {parsedPreview.amount}
+                        </span>
+                      )}
+
+                      {parsedPreview.units && (
+                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-emerald-300 border border-white/10 font-bold">
+                          {parsedPreview.units} kWh
+                        </span>
+                      )}
+
+                      {parsedPreview.meterNumber && (
+                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-yellow-300 border border-white/10 font-mono">
+                          Meter: {parsedPreview.meterNumber}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Direct Form */}
               <form onSubmit={handleAddToken} className="space-y-4 text-left">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-300">20-Digit STS Token Code</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-300">20-Digit STS Token Code</label>
+                    <span className={tokenInput.replace(/\D/g, '').length === 20 ? 'text-emerald-400 font-bold text-[11px]' : 'text-amber-400 font-bold text-[11px]'}>
+                      {tokenInput.replace(/\D/g, '').length} / 20 digits
+                    </span>
+                  </div>
                   <textarea
                     rows={2}
                     required
-                    placeholder="Enter or paste 20 digits from SMS"
+                    placeholder="Enter or paste 20 digits"
                     value={tokenInput}
                     onChange={(e) => setTokenInput(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-base focus:outline-none focus:border-yellow-400 tracking-wider"
                   />
-                  <div className="flex items-center justify-between text-[11px] text-gray-400">
-                    <span>Clean digits count:</span>
-                    <span className={tokenInput.replace(/\D/g, '').length === 20 ? 'text-emerald-400 font-bold' : 'text-amber-400 font-bold'}>
-                      {tokenInput.replace(/\D/g, '').length} / 20 digits
-                    </span>
-                  </div>
+                  {tokenInput.replace(/\D/g, '').length === 20 && (
+                    <div className="font-mono text-xs text-emerald-400 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-center tracking-widest">
+                      {formatTokenDisplay(tokenInput)}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -1039,7 +1344,7 @@ export default function TopUpPage() {
                     <label className="text-xs font-bold text-gray-300">Amount (NLe)</label>
                     <input
                       type="number"
-                      placeholder="e.g. 100"
+                      placeholder="e.g. 50"
                       value={tokenAmountInput}
                       onChange={(e) => setTokenAmountInput(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-yellow-400"
@@ -1047,16 +1352,32 @@ export default function TopUpPage() {
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-gray-300">Units (kWh) Optional</label>
+                    <label className="text-xs font-bold text-gray-300">Units (kWh)</label>
                     <input
                       type="number"
                       step="0.1"
-                      placeholder="e.g. 40.8"
+                      placeholder="e.g. 10.3"
                       value={tokenUnitsInput}
                       onChange={(e) => setTokenUnitsInput(e.target.value)}
                       className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-yellow-400"
                     />
                   </div>
+                </div>
+
+                {/* Target Meter Selection */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-gray-300">Target Meter</label>
+                  <select
+                    value={selectedMeterId}
+                    onChange={(e) => setSelectedMeterId(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-yellow-400"
+                  >
+                    {meters.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.name} ({m.meterNumber})
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="pt-2 flex gap-2">
@@ -1160,5 +1481,20 @@ export default function TopUpPage() {
         )}
       </AnimatePresence>
     </main>
+  );
+}
+
+export default function TopUpPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#020305] text-white flex items-center justify-center p-4">
+        <div className="flex items-center gap-2 text-sm font-bold text-yellow-400">
+          <Zap className="w-5 h-5 animate-pulse" />
+          <span>Loading EDSA Top-Up & Vault...</span>
+        </div>
+      </div>
+    }>
+      <TopUpContent />
+    </Suspense>
   );
 }
