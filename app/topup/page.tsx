@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
@@ -356,96 +357,125 @@ export default function TopUpPage() {
         {/* TAB 1: USSD QUICK-PAY */}
         {activeTab === 'buy' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-            {/* Provider Switcher */}
+            {/* Provider Switcher with Brand Logos */}
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setUssdProvider('orange')}
-                className={`p-4 rounded-2xl border text-left transition-all ${
+                className={`p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2.5 ${
                   ussdProvider === 'orange'
-                    ? 'bg-orange-500/15 border-orange-500 shadow-lg shadow-orange-500/10'
+                    ? 'bg-orange-500/15 border-orange-500 shadow-lg shadow-orange-500/20'
                     : 'bg-white/5 border-white/10 hover:bg-white/10'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-extrabold text-orange-400 uppercase tracking-wider">Orange Money</span>
-                  <span className="text-[11px] font-mono font-bold bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded-full">
-                    *144#
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center overflow-hidden rounded-2xl shadow-md border border-white/10 bg-black">
+                  <Image
+                    src="/assets/orange-money-logo.png"
+                    alt="Orange Money"
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[11px] sm:text-xs font-mono font-black bg-orange-500/20 text-orange-300 border border-orange-500/30 px-2 py-0.5 rounded-full">
+                    *144*3*1*1#
                   </span>
                 </div>
-                <div className="text-sm font-bold text-white">Direct USSD Top-Up</div>
-                <div className="text-[11px] text-gray-400 mt-1">Pay EDSA bill & receive 20-digit token SMS</div>
+                <div className="text-[10px] text-gray-400 font-semibold text-center">
+                  Asks for Amount
+                </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setUssdProvider('africell')}
-                className={`p-4 rounded-2xl border text-left transition-all ${
+                className={`p-4 rounded-2xl border transition-all flex flex-col items-center justify-center gap-2.5 ${
                   ussdProvider === 'africell'
-                    ? 'bg-purple-500/15 border-purple-500 shadow-lg shadow-purple-500/10'
+                    ? 'bg-purple-500/15 border-purple-500 shadow-lg shadow-purple-500/20'
                     : 'bg-white/5 border-white/10 hover:bg-white/10'
                 }`}
               >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-extrabold text-purple-400 uppercase tracking-wider">Afrimoney</span>
-                  <span className="text-[11px] font-mono font-bold bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded-full">
-                    *161#
+                <div className="relative w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center overflow-hidden rounded-2xl shadow-md border border-white/10 bg-[#831843]">
+                  <Image
+                    src="/assets/afrimoney-logo.webp"
+                    alt="AfriMoney"
+                    width={64}
+                    height={64}
+                    className="object-contain"
+                  />
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[11px] sm:text-xs font-mono font-black bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded-full">
+                    *161*2*2*1*1#
                   </span>
                 </div>
-                <div className="text-sm font-bold text-white">Africell USSD Top-Up</div>
-                <div className="text-[11px] text-gray-400 mt-1">Instant electricity tokens via Afrimoney wallet</div>
+                <div className="text-[10px] text-gray-400 font-semibold text-center">
+                  Asks for Meter Number
+                </div>
               </button>
             </div>
 
             {/* Quick Dialer Action Card */}
             <div className="bg-slate-900 border border-white/10 rounded-[2rem] p-6 shadow-xl space-y-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="text-xs font-bold text-yellow-400 uppercase tracking-wider">One-Tap USSD Launcher</div>
-                  <h3 className="text-xl font-black text-white">
-                    {ussdProvider === 'orange' ? 'Orange Money EDSA Flow' : 'Afrimoney EDSA Flow'}
-                  </h3>
-                  <p className="text-xs text-gray-400">
-                    Tap to open your phone dialer, then follow the numbered steps below.
-                  </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl overflow-hidden shrink-0 border border-white/10">
+                    <Image
+                      src={ussdProvider === 'orange' ? '/assets/orange-money-logo.png' : '/assets/afrimoney-logo.webp'}
+                      alt={ussdProvider === 'orange' ? 'Orange Money' : 'AfriMoney'}
+                      width={48}
+                      height={48}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-yellow-400">
+                      Straight USSD Launcher
+                    </div>
+                    <h3 className="text-lg sm:text-xl font-black text-white">
+                      {ussdProvider === 'orange' ? '*144*3*1*1#' : '*161*2*2*1*1#'}
+                    </h3>
+                    <p className="text-[11px] text-gray-400">
+                      {ussdProvider === 'orange' 
+                        ? 'Straight code: skips all menus and directly prompts for top-up amount.'
+                        : 'Straight code: skips all menus and directly prompts for meter number.'}
+                    </p>
+                  </div>
                 </div>
 
                 <a
-                  href={`tel:${ussdProvider === 'orange' ? '*144%23' : '*161%23'}`}
-                  className={`inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg active:scale-95 ${
+                  href={`tel:${ussdProvider === 'orange' ? '*144*3*1*1%23' : '*161*2*2*1*1%23'}`}
+                  className={`inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg active:scale-95 shrink-0 ${
                     ussdProvider === 'orange'
                       ? 'bg-orange-500 hover:bg-orange-400 text-white shadow-orange-500/20'
                       : 'bg-purple-600 hover:bg-purple-500 text-white shadow-purple-600/20'
                   }`}
                 >
                   <PhoneCall className="w-4 h-4" />
-                  <span>Dial {ussdProvider === 'orange' ? '*144#' : '*161#'}</span>
+                  <span>Dial {ussdProvider === 'orange' ? '*144*3*1*1#' : '*161*2*2*1*1#'}</span>
                 </a>
               </div>
 
               {/* Numbered Steps */}
               <div className="space-y-2.5 pt-4 border-t border-white/10">
                 <div className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2">
-                  Follow these steps on your phone keypad:
+                  Keypad sequence on your phone:
                 </div>
 
                 {ussdProvider === 'orange' ? (
                   <div className="space-y-2 text-xs">
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">1. Dial *144# and press Call</span>
-                      <span className="text-[10px] font-mono bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded">USSD</span>
+                      <span className="font-semibold text-gray-300">1. Tap button above to dial <strong>*144*3*1*1#</strong></span>
+                      <span className="text-[10px] font-mono bg-orange-500/20 text-orange-300 px-2 py-0.5 rounded font-bold">START</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">2. Select Option <strong>4</strong> (Pay Bill)</span>
-                      <span className="font-mono text-gray-400 font-bold">4</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">3. Select Option <strong>1</strong> (EDSA Electricity)</span>
-                      <span className="font-mono text-gray-400 font-bold">1</span>
+                      <span className="font-semibold text-gray-300">2. Enter your <strong>Top-Up Amount</strong> (in NLe) & press Send</span>
+                      <span className="font-mono text-gray-400 font-bold">Amount</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-yellow-400/20 flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-white">4. Enter Meter Number:</div>
+                        <div className="font-semibold text-white">3. Enter Meter Number:</div>
                         <div className="font-mono text-sm font-bold text-yellow-400 mt-0.5">
                           {selectedMeter?.meterNumber || 'Select a meter above'}
                         </div>
@@ -454,7 +484,7 @@ export default function TopUpPage() {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(selectedMeter.meterNumber, 'step-meter-orange')}
-                          className="px-3 py-1.5 rounded-lg bg-yellow-400 text-slate-950 font-bold text-[11px] flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg bg-yellow-400 text-slate-950 font-bold text-[11px] flex items-center gap-1 active:scale-95"
                         >
                           {copiedKey === 'step-meter-orange' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                           <span>{copiedKey === 'step-meter-orange' ? 'Copied' : 'Copy'}</span>
@@ -462,31 +492,23 @@ export default function TopUpPage() {
                       )}
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">5. Enter Top-Up Amount (in NLe)</span>
-                      <span className="font-mono text-gray-400 font-bold">Amount</span>
+                      <span className="font-semibold text-gray-300">4. Enter your Orange Money Secret PIN to confirm</span>
+                      <span className="font-mono text-emerald-400 font-bold">PIN</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">6. Enter Orange Money PIN to confirm</span>
-                      <span className="font-mono text-emerald-400 font-bold">PIN</span>
+                      <span className="font-semibold text-gray-300">5. Receive SMS with your 20-digit token code</span>
+                      <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">TOKEN</span>
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2 text-xs">
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">1. Dial *161# and press Call</span>
-                      <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded">USSD</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">2. Select Option <strong>2</strong> (Pay Bills / Utilities)</span>
-                      <span className="font-mono text-gray-400 font-bold">2</span>
-                    </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">3. Select Option <strong>1</strong> (EDSA)</span>
-                      <span className="font-mono text-gray-400 font-bold">1</span>
+                      <span className="font-semibold text-gray-300">1. Tap button above to dial <strong>*161*2*2*1*1#</strong></span>
+                      <span className="text-[10px] font-mono bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded font-bold">START</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-purple-400/20 flex items-center justify-between">
                       <div>
-                        <div className="font-semibold text-white">4. Enter Meter Number:</div>
+                        <div className="font-semibold text-white">2. Enter Meter Number:</div>
                         <div className="font-mono text-sm font-bold text-purple-400 mt-0.5">
                           {selectedMeter?.meterNumber || 'Select a meter above'}
                         </div>
@@ -495,7 +517,7 @@ export default function TopUpPage() {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(selectedMeter.meterNumber, 'step-meter-africell')}
-                          className="px-3 py-1.5 rounded-lg bg-purple-500 text-white font-bold text-[11px] flex items-center gap-1"
+                          className="px-3 py-1.5 rounded-lg bg-purple-500 text-white font-bold text-[11px] flex items-center gap-1 active:scale-95"
                         >
                           {copiedKey === 'step-meter-africell' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                           <span>{copiedKey === 'step-meter-africell' ? 'Copied' : 'Copy'}</span>
@@ -503,12 +525,16 @@ export default function TopUpPage() {
                       )}
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">5. Enter Amount in NLe</span>
+                      <span className="font-semibold text-gray-300">3. Enter Top-Up Amount (in NLe) & press Send</span>
                       <span className="font-mono text-gray-400 font-bold">Amount</span>
                     </div>
                     <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
-                      <span className="font-semibold text-gray-300">6. Enter Afrimoney Secret PIN to validate</span>
+                      <span className="font-semibold text-gray-300">4. Enter your Afrimoney Secret PIN to validate</span>
                       <span className="font-mono text-emerald-400 font-bold">PIN</span>
+                    </div>
+                    <div className="p-3 rounded-xl bg-white/5 border border-white/5 flex items-center justify-between">
+                      <span className="font-semibold text-gray-300">5. Receive SMS with your 20-digit token code</span>
+                      <span className="text-[10px] font-mono bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded font-bold">TOKEN</span>
                     </div>
                   </div>
                 )}
