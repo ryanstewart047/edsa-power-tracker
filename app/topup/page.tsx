@@ -126,8 +126,8 @@ export default function TopUpPage() {
   // Add Meter
   const handleAddMeter = (e: React.FormEvent) => {
     e.preventDefault();
-    const cleanNum = newMeterNumber.replace(/\D/g, '');
-    if (!cleanNum || cleanNum.length < 9) return;
+    const cleanNum = newMeterNumber.replace(/\D/g, '').slice(0, 11);
+    if (cleanNum.length !== 11) return;
 
     const newMeter: MeterProfile = {
       id: `meter-${Date.now()}`,
@@ -203,19 +203,22 @@ export default function TopUpPage() {
     }
   };
 
-  // Tariff calculation (EDSA Sierra Leone rates estimate)
-  // Residential: ~2.45 NLe / kWh average (inclusive of GST)
-  // Commercial: ~3.80 NLe / kWh
+  // Calibrated real-world rate: Le 50 = 10.3 units (0.206 kWh per NLe / ~4.854 NLe per kWh)
   const estimatedKwh = useMemo(() => {
-    if (!calcAmount || calcAmount <= 0) return 0;
-    const ratePerKwh = calcTariffType === 'residential' ? 2.45 : 3.80;
-    return (calcAmount / ratePerKwh).toFixed(1);
+    if (!calcAmount || calcAmount <= 0) return '0.0';
+    if (calcTariffType === 'residential') {
+      // Benchmark: Le 50 = 10.3 units
+      return ((calcAmount * 10.3) / 50).toFixed(1);
+    } else {
+      // Commercial benchmark rate (~1.45x)
+      return ((calcAmount * 10.3) / (50 * 1.45)).toFixed(1);
+    }
   }, [calcAmount, calcTariffType]);
 
   const estimatedDays = useMemo(() => {
     const kwh = Number(estimatedKwh);
     if (!kwh || kwh <= 0) return 0;
-    // Typical modest Freetown household consumes ~6 kWh/day
+    // Typical modest Freetown household consumes ~5 to 6 kWh/day
     return Math.max(1, Math.round(kwh / 6));
   }, [estimatedKwh]);
 
@@ -766,7 +769,7 @@ export default function TopUpPage() {
                     }`}
                   >
                     <div className="font-bold text-xs">Residential Household</div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">~NLe 2.45 / kWh avg</div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">10.3 kWh / NLe 50 benchmark</div>
                   </button>
 
                   <button
@@ -779,7 +782,7 @@ export default function TopUpPage() {
                     }`}
                   >
                     <div className="font-bold text-xs">Commercial / Business</div>
-                    <div className="text-[10px] text-gray-400 mt-0.5">~NLe 3.80 / kWh avg</div>
+                    <div className="text-[10px] text-gray-400 mt-0.5">~NLe 7.04 / kWh benchmark</div>
                   </button>
                 </div>
               </div>
@@ -815,7 +818,7 @@ export default function TopUpPage() {
               <div className="text-[11px] text-gray-500 flex items-start gap-1.5">
                 <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-gray-400" />
                 <span>
-                  Estimates are calculated according to current EWRC / EDSA Sierra Leone multi-tier billing tariffs. Exact units on your receipt may vary slightly based on lifeline consumption tiers and municipal charges.
+                  Calibrated directly from verified live Orange Money vending rates (10.3 units per NLe 50). Exact units may vary slightly based on government lifeline adjustments and municipal service deductions.
                 </span>
               </div>
             </div>
@@ -949,16 +952,24 @@ export default function TopUpPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-gray-300">Meter Number (11 or 12 digits)</label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-gray-300">Meter Number (11 digits only)</label>
+                    <span className={`text-[10px] font-mono font-bold ${
+                      newMeterNumber.replace(/\D/g, '').length === 11 ? 'text-emerald-400' : 'text-amber-400'
+                    }`}>
+                      {newMeterNumber.replace(/\D/g, '').length} / 11 digits
+                    </span>
+                  </div>
                   <input
                     type="text"
                     required
+                    maxLength={11}
                     placeholder="e.g. 01423859201"
                     value={newMeterNumber}
-                    onChange={(e) => setNewMeterNumber(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-yellow-400"
+                    onChange={(e) => setNewMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-yellow-400 tracking-wider"
                   />
-                  <span className="text-[10px] text-gray-400">Found on the barcode sticker on your wall meter</span>
+                  <span className="text-[10px] text-gray-400">Found on the barcode sticker on your wall meter (must be exactly 11 digits)</span>
                 </div>
 
                 <div className="pt-2 flex gap-2">
@@ -971,7 +982,8 @@ export default function TopUpPage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-yellow-400/20"
+                    disabled={newMeterNumber.replace(/\D/g, '').length !== 11}
+                    className="flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-yellow-400/20 disabled:opacity-50"
                   >
                     Save Meter
                   </button>

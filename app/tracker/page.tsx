@@ -902,12 +902,13 @@ export default function Home() {
                   {hazardType === 'Stolen Meter' && (
                     <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-yellow-400">Meter Number <span className="text-red-400">*</span></label>
+                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-yellow-400">Meter Number (11 digits) <span className="text-red-400">*</span></label>
                         <input
                           value={meterNumber}
-                          onChange={e => setMeterNumber(e.target.value)}
-                          placeholder="e.g. 0012345"
-                          className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                          maxLength={11}
+                          onChange={e => setMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                          placeholder="11 digits (e.g. 01423859201)"
+                          className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500 font-mono"
                         />
                       </div>
                       <div className="space-y-2">
