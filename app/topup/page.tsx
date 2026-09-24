@@ -14,13 +14,10 @@ import {
   Trash2, 
   ArrowLeft, 
   ExternalLink, 
-  ShieldCheck, 
   PhoneCall, 
   Info, 
   CheckCircle2, 
-  Clock, 
   Sparkles,
-  HelpCircle,
   Eye,
   X
 } from 'lucide-react';
