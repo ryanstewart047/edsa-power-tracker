@@ -18,6 +18,7 @@ import {
 } from '@/lib/locationConfig';
 
 const LOCATION_STALE_AFTER_MS = 2 * 60_000;
+const GPS_REFRESH_INTERVAL_MS = 30_000;
 
 const STATUS_META = {
   on: { label: 'Power ON', icon: Zap, dot: 'bg-green-400', ring: 'ring-green-500/30', card: 'border-green-500/30 bg-green-500/5', text: 'text-green-400' },
@@ -254,6 +255,7 @@ export default function Home() {
       return undefined;
     }
 
+    const refreshInterval = window.setInterval(requestLocation, GPS_REFRESH_INTERVAL_MS);
     const watchId = navigator.geolocation.watchPosition(
       handleLocationSuccess,
       handleLocationError,
@@ -264,7 +266,10 @@ export default function Home() {
       },
     );
 
-    return () => navigator.geolocation.clearWatch(watchId);
+    return () => {
+      window.clearInterval(refreshInterval);
+      navigator.geolocation.clearWatch(watchId);
+    };
   }, [handleLocationError, handleLocationSuccess, requestLocation]);
 
   const closeReportModal = useCallback(() => {
