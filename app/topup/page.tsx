@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
+import { useState, useEffect, useMemo, Suspense, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -24,9 +24,24 @@ import {
   X,
   ClipboardPaste,
   MessageSquare,
-  AlertCircle
+  AlertCircle,
+  ScanLine
 } from 'lucide-react';
 import { parseTokenSms, ParsedSmsToken } from '@/lib/tokenParser';
+
+type BarcodeDetection = { rawValue: string };
+
+type BarcodeDetectorInstance = {
+  detect: (source: ImageBitmapSource) => Promise<BarcodeDetection[]>;
+};
+
+type BarcodeDetectorConstructor = new (options?: { formats?: string[] }) => BarcodeDetectorInstance;
+
+declare global {
+  interface Window {
+    BarcodeDetector?: BarcodeDetectorConstructor;
+  }
+}
 
 interface MeterProfile {
   id: string;
@@ -56,6 +71,9 @@ function TopUpContent() {
   const [newMeterName, setNewMeterName] = useState('');
   const [newMeterNumber, setNewMeterNumber] = useState('');
   const [showAddMeterModal, setShowAddMeterModal] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scannerError, setScannerError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // USSD Quick-Pay state
   const [ussdProvider, setUssdProvider] = useState<'orange' | 'africell'>('orange');
@@ -273,6 +291,98 @@ function TopUpContent() {
     setNewMeterNumber('');
     setShowAddMeterModal(false);
   };
+
+  const openMeterScanner = () => {
+    setScannerError(null);
+    setScannerOpen(true);
+  };
+
+  useEffect(() => {
+    if (!scannerOpen) return undefined;
+
+    let stream: MediaStream | null = null;
+    let animationFrame: number | null = null;
+    let detecting = false;
+    let active = true;
+
+    const stopScanner = () => {
+      if (animationFrame !== null) cancelAnimationFrame(animationFrame);
+      stream?.getTracks().forEach((track) => track.stop());
+    };
+
+    const startScanner = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setScannerError('Camera access is not supported by this browser. Enter the 11-digit meter number manually.');
+        return;
+      }
+
+      if (!window.BarcodeDetector) {
+        setScannerError('Barcode scanning is not supported by this browser. Enter the 11-digit meter number manually.');
+        return;
+      }
+
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          audio: false,
+          video: { facingMode: { ideal: 'environment' } },
+        });
+
+        if (!active || !videoRef.current) {
+          stopScanner();
+          return;
+        }
+
+        const video = videoRef.current;
+        video.srcObject = stream;
+        await video.play();
+        const detector = new window.BarcodeDetector({
+          formats: ['code_128', 'code_39', 'ean_13', 'ean_8', 'upc_a', 'upc_e', 'itf', 'qr_code'],
+        });
+
+        const scanFrame = async () => {
+          if (!active || !videoRef.current) return;
+
+          if (!detecting && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+            detecting = true;
+            try {
+              const barcodes = await detector.detect(video);
+              const rawValue = barcodes[0]?.rawValue ?? '';
+              const meterNumber = rawValue.match(/\d{11}/)?.[0];
+
+              if (meterNumber) {
+                setNewMeterNumber(meterNumber);
+                setScannerOpen(false);
+                return;
+              }
+
+              if (rawValue) {
+                setScannerError('Barcode found, but it does not contain an 11-digit meter number. Try the meter label or enter it manually.');
+              }
+            } catch {
+              // A transient detector failure should not interrupt the live camera preview.
+            } finally {
+              detecting = false;
+            }
+          }
+
+          if (active) animationFrame = requestAnimationFrame(scanFrame);
+        };
+
+        animationFrame = requestAnimationFrame(scanFrame);
+      } catch {
+        stopScanner();
+        if (active) {
+          setScannerError('Unable to open the camera. Allow camera access, then try again or enter the meter number manually.');
+        }
+      }
+    };
+
+    startScanner();
+    return () => {
+      active = false;
+      stopScanner();
+    };
+  }, [scannerOpen]);
 
   // Delete Meter
   const handleDeleteMeter = (id: string) => {
@@ -1166,7 +1276,10 @@ function TopUpContent() {
                 <h3 className="text-lg font-black text-white">Add New Meter</h3>
                 <button
                   type="button"
-                  onClick={() => setShowAddMeterModal(false)}
+                  onClick={() => {
+                    setShowAddMeterModal(false);
+                    setScannerOpen(false);
+                  }}
                   className="p-1.5 rounded-lg bg-white/5 text-gray-400 hover:text-white"
                 >
                   <X className="w-5 h-5" />
@@ -1204,13 +1317,24 @@ function TopUpContent() {
                     onChange={(e) => setNewMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
                     className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-yellow-400 tracking-wider"
                   />
+                  <button
+                    type="button"
+                    onClick={openMeterScanner}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-yellow-300 transition-colors hover:bg-yellow-400/20"
+                  >
+                    <ScanLine className="h-4 w-4" />
+                    Scan barcode
+                  </button>
                   <span className="text-[10px] text-gray-400">Found on the barcode sticker on your wall meter (must be exactly 11 digits)</span>
                 </div>
 
                 <div className="pt-2 flex gap-2">
                   <button
                     type="button"
-                    onClick={() => setShowAddMeterModal(false)}
+                    onClick={() => {
+                      setShowAddMeterModal(false);
+                      setScannerOpen(false);
+                    }}
                     className="flex-1 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs uppercase"
                   >
                     Cancel
@@ -1226,6 +1350,58 @@ function TopUpContent() {
               </form>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {scannerOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black p-4"
+          >
+            <div className="relative flex h-full w-full max-w-lg flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-2xl">
+              <div className="relative z-10 flex items-center justify-between border-b border-white/10 bg-slate-950 px-5 py-4">
+                <div>
+                  <h3 className="font-bold text-white">Scan meter barcode</h3>
+                  <p className="mt-0.5 text-xs text-gray-400">Align the barcode inside the frame</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setScannerOpen(false)}
+                  className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-white/10 hover:text-white"
+                  aria-label="Close barcode scanner"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="relative flex min-h-0 flex-1 items-center justify-center bg-black">
+                {!scannerError && (
+                  <video
+                    ref={videoRef}
+                    muted
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                )}
+                {!scannerError && (
+                  <div className="pointer-events-none absolute inset-8 rounded-lg border-2 border-yellow-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.32)]" />
+                )}
+                {scannerError && (
+                  <div className="max-w-sm px-8 text-center">
+                    <ScanLine className="mx-auto mb-4 h-10 w-10 text-yellow-400" />
+                    <p className="text-sm leading-relaxed text-gray-200">{scannerError}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="border-t border-white/10 bg-slate-950 px-5 py-4 text-center text-xs text-gray-400">
+                The meter number is saved only after you confirm the Add Meter form.
+              </div>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
