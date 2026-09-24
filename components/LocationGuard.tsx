@@ -13,11 +13,16 @@ import {
   AlertTriangle,
   ChevronRight
 } from 'lucide-react';
+import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/reporting';
+
+const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
 export type LocationState = 
   | 'INITIALIZING'
   | 'PERMISSION_PROMPT'
   | 'GPS_OFF'
+  | 'GPS_UNAVAILABLE'
+  | 'LOW_ACCURACY'
   | 'PERMISSION_DENIED'
   | 'READY'
   | 'UNSUPPORTED';
@@ -63,8 +68,12 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     };
 
     checkOnboarding();
-    const interval = setInterval(checkOnboarding, 800);
-    return () => clearInterval(interval);
+    window.addEventListener(LOCATION_ONBOARDING_COMPLETE_EVENT, checkOnboarding);
+    window.addEventListener('storage', checkOnboarding);
+    return () => {
+      window.removeEventListener(LOCATION_ONBOARDING_COMPLETE_EVENT, checkOnboarding);
+      window.removeEventListener('storage', checkOnboarding);
+    };
   }, []);
 
   // Core function to test GPS availability and acquire coordinates
@@ -80,6 +89,18 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
+        const accuracy = position.coords.accuracy;
+        if (!Number.isFinite(accuracy) || accuracy > MAX_REPORTING_ACCURACY_METERS) {
+          const roundedAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
+          setState('LOW_ACCURACY');
+          setErrorMessage(
+            roundedAccuracy === null
+              ? 'Your device did not provide a GPS accuracy radius. Turn on Precise Location and try again.'
+              : `Your current GPS accuracy is about ${roundedAccuracy}m. Move outdoors or turn on Precise Location to reach the required ${MAX_REPORTING_ACCURACY_METERS}m accuracy.`,
+          );
+          setIsRequesting(false);
+          return;
+        }
         setState('READY');
         setErrorMessage(null);
         setIsRequesting(false);
@@ -93,29 +114,21 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           setState('PERMISSION_DENIED');
           setErrorMessage('Location permission was denied. EDSA Tracker requires access to your GPS to operate.');
         } else if (error.code === error.POSITION_UNAVAILABLE) {
-          // System GPS is switched off on device
+          // This is the closest reliable browser signal for location services being unavailable.
           setState('GPS_OFF');
           setErrorMessage('Your device location (GPS) is turned OFF. Please enable location services in your device settings.');
         } else if (error.code === error.TIMEOUT) {
-          // Timeout acquiring fix - retry with low accuracy
-          navigator.geolocation.getCurrentPosition(
-            (fallbackPos) => {
-              setState('READY');
-              setErrorMessage(null);
-              if (onLocationReady) onLocationReady(fallbackPos);
-            },
-            () => {
-              setState('GPS_OFF');
-              setErrorMessage('Unable to acquire GPS fix. Please verify location services are toggled on.');
-            },
-            { enableHighAccuracy: false, timeout: 8000 }
-          );
+          setState('GPS_UNAVAILABLE');
+          setErrorMessage('We could not get an accurate GPS fix. Move to an open area, turn on Precise Location, then try again.');
+        } else {
+          setState('GPS_UNAVAILABLE');
+          setErrorMessage('We could not verify your location. Check Location services and try again.');
         }
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 10000,
+        timeout: GEOLOCATION_TIMEOUT_MS,
+        maximumAge: 0,
       }
     );
   }, [onLocationReady]);
@@ -179,6 +192,9 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     window.addEventListener('focus', handleRecheck);
 
     return () => {
+      if (permissionStatusRef.current) {
+        permissionStatusRef.current.onchange = null;
+      }
       window.removeEventListener('visibilitychange', handleRecheck);
       window.removeEventListener('focus', handleRecheck);
     };
@@ -186,7 +202,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
 
   // Auto-polling when blocked to catch quick settings toggle
   useEffect(() => {
-    if (state === 'GPS_OFF' || state === 'PERMISSION_DENIED') {
+    if (state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY') {
       pollTimerRef.current = setInterval(() => {
         if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
           probeLocation(true);
@@ -214,7 +230,8 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const handleOpenLocationSettings = () => {
     if (isAndroid) {
       try {
-        // Android intent to open system location settings
+        // Best-effort Android system settings link. Other browser/PWA environments
+        // intentionally fall back to the visible, device-specific instructions.
         window.location.href = 'intent:#Intent;action=android.settings.LOCATION_SOURCE_SETTINGS;end';
       } catch {
         setShowManualGuide(true);
@@ -227,8 +244,9 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const handleOpenAppSettings = () => {
     if (isAndroid) {
       try {
-        // Android intent to open app details/permissions
-        window.location.href = 'intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;data=package:com.bridgetech.edsapowertracker;end';
+        // A browser PWA does not have a stable Android package ID. Open the
+        // browser's app-permission surface when the platform supports it.
+        window.location.href = 'intent:#Intent;action=android.settings.APPLICATION_DETAILS_SETTINGS;end';
       } catch {
         setShowManualGuide(true);
       }
@@ -262,7 +280,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
         >
           {/* Header Icon Indicator */}
           <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
-            {state === 'GPS_OFF' ? (
+            {state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' ? (
               <>
                 <div className="absolute inset-0 rounded-3xl bg-amber-500/10 border border-amber-500/20 animate-pulse" />
                 <MapPinOff className="w-12 h-12 text-amber-400" />
@@ -283,14 +301,18 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           {/* Badge & Title */}
           <div className="space-y-2">
             <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
-              state === 'GPS_OFF' 
+              state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE'
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
                 : state === 'PERMISSION_DENIED'
                 ? 'bg-red-500/10 border-red-500/30 text-red-400'
                 : 'bg-blue-500/10 border-blue-500/30 text-blue-400'
             }`}>
-              {state === 'GPS_OFF' 
+              {state === 'GPS_OFF'
                 ? 'DEVICE GPS TURNED OFF' 
+                : state === 'GPS_UNAVAILABLE'
+                ? 'GPS SIGNAL UNAVAILABLE'
+                : state === 'LOW_ACCURACY'
+                ? 'GPS NEEDS IMPROVEMENT'
                 : state === 'PERMISSION_DENIED'
                 ? 'PERMISSION BLOCKED'
                 : 'LOCATION REQUIRED'}
@@ -299,6 +321,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
               {state === 'GPS_OFF'
                 ? 'Enable Location Services'
+                : state === 'GPS_UNAVAILABLE'
+                ? 'Improve GPS Signal'
+                : state === 'LOW_ACCURACY'
+                ? 'Improve GPS Accuracy'
                 : state === 'PERMISSION_DENIED'
                 ? 'Location Access Denied'
                 : 'Allow Location Access'}
@@ -308,6 +334,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               {errorMessage || (
                 state === 'GPS_OFF'
                   ? 'Your device location (GPS) is turned off. EDSA Tracker requires active GPS to detect your Freetown community and prevent false outage alarms.'
+                  : state === 'GPS_UNAVAILABLE'
+                  ? 'Your location signal is currently unavailable. An open area and Precise Location help the app verify your exact community.'
+                  : state === 'LOW_ACCURACY'
+                  ? `A GPS radius of ${MAX_REPORTING_ACCURACY_METERS}m or better is required to match your Freetown community accurately.`
                   : state === 'PERMISSION_DENIED'
                   ? 'Permission to access location was denied. To protect grid integrity, you must enable location permissions for this app to proceed.'
                   : 'EDSA Power Tracker requires real-time GPS location to match your community, verify power reports, and dispatch emergency hazard crews.'
@@ -369,7 +399,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                   </>
                 )}
               </button>
-            ) : state === 'GPS_OFF' ? (
+            ) : state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY' ? (
               <>
                 <button
                   type="button"
@@ -377,7 +407,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                   className="w-full py-4 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 active:scale-95"
                 >
                   <Settings className="w-4 h-4" />
-                  <span>Turn On Device GPS</span>
+                  <span>{state === 'GPS_OFF' ? 'Turn On Device GPS' : 'Open Location Settings'}</span>
                 </button>
 
                 <button
@@ -413,7 +443,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               </>
             )}
 
-            {!showManualGuide && (state === 'GPS_OFF' || state === 'PERMISSION_DENIED') && (
+            {!showManualGuide && (state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY' || state === 'PERMISSION_DENIED') && (
               <button
                 type="button"
                 onClick={() => setShowManualGuide(true)}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, 
@@ -20,6 +20,9 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/reporting';
+
+const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
 interface OnboardingStep {
   badge: string;
@@ -40,6 +43,10 @@ export default function AppOnboarding() {
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationIssue, setLocationIssue] = useState<'denied' | 'unavailable' | 'accuracy' | null>(null);
+  const [showLocationHelp, setShowLocationHelp] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
+  const hasRequestedLocationRef = useRef(false);
 
   useEffect(() => {
     // Check if user has already completed onboarding and accepted terms
@@ -51,30 +58,101 @@ export default function AppOnboarding() {
     }
 
     if (!completed || !termsAcceptedStorage) {
-      // Delay slightly so it shows after the splash screen finishes
+      // The splash screen remains visible for 2.5 seconds, so do not leave a gap
+      // where location-dependent features can be used before onboarding appears.
       const timer = setTimeout(() => {
         setIsVisible(true);
-      }, 2600);
+      }, 2500);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  // Probe if location is already granted in background
-  useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'geolocation' }).then((res) => {
-        if (res.state === 'granted') {
+  const handleLocationSuccess = useCallback((pos: GeolocationPosition) => {
+    const accuracy = pos.coords.accuracy;
+    if (!Number.isFinite(accuracy) || accuracy > MAX_REPORTING_ACCURACY_METERS) {
+      const roundedAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
+      setLocationAccuracy(roundedAccuracy);
+      setLocationGranted(false);
+      setLocationIssue('accuracy');
+      setLocationError(
+        roundedAccuracy === null
+          ? 'Your device did not provide a GPS accuracy radius. Turn on Precise Location to continue.'
+          : `GPS accuracy is currently about ${roundedAccuracy}m. Move outdoors or enable Precise Location to continue.`,
+      );
+      return;
+    }
+
+    setLocationAccuracy(Math.round(accuracy));
+    setLocationGranted(true);
+    setLocationIssue(null);
+    setLocationError(null);
+    setShowLocationHelp(false);
+  }, []);
+
+  const handleLocationFailure = useCallback((err: GeolocationPositionError) => {
+    setLocationLoading(false);
+    setLocationGranted(false);
+    if (err.code === err.PERMISSION_DENIED) {
+      setLocationIssue('denied');
+      setLocationError('Permission was denied. Allow location access in browser or app settings to continue.');
+    } else if (err.code === err.POSITION_UNAVAILABLE) {
+      setLocationIssue('unavailable');
+      setLocationError('Location services are unavailable. Turn on device Location, then try again.');
+    } else {
+      setLocationIssue('accuracy');
+      setLocationError('Unable to get an accurate GPS fix. Move to an open area, then try again.');
+    }
+  }, []);
+
+  const checkExistingLocation = useCallback(() => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      return;
+    }
+
+    if (navigator.permissions?.query) {
+      navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
+        if (permission.state === 'granted') {
           navigator.geolocation.getCurrentPosition(
-            (pos) => {
-              setLocationGranted(true);
-              setLocationAccuracy(Math.round(pos.coords.accuracy));
-            },
-            () => {},
-            { enableHighAccuracy: true, timeout: 6000 }
+            handleLocationSuccess,
+            handleLocationFailure,
+            { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
           );
+        } else if (permission.state === 'denied') {
+          setLocationGranted(false);
+          setLocationIssue('denied');
+          setLocationError('Permission was denied. Allow location access in browser or app settings to continue.');
         }
       }).catch(() => {});
+      return;
     }
+
+    if (hasRequestedLocationRef.current) {
+      navigator.geolocation.getCurrentPosition(
+        handleLocationSuccess,
+        handleLocationFailure,
+        { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
+      );
+    }
+  }, [handleLocationFailure, handleLocationSuccess]);
+
+  // Re-check an existing grant when the app returns from system or browser settings.
+  useEffect(() => {
+    checkExistingLocation();
+    const recheckWhenVisible = () => {
+      if (document.visibilityState === 'visible') {
+        checkExistingLocation();
+      }
+    };
+    window.addEventListener('visibilitychange', recheckWhenVisible);
+    window.addEventListener('focus', recheckWhenVisible);
+    return () => {
+      window.removeEventListener('visibilitychange', recheckWhenVisible);
+      window.removeEventListener('focus', recheckWhenVisible);
+    };
+  }, [checkExistingLocation]);
+
+  useEffect(() => {
+    setIsAndroid(/android/i.test(navigator.userAgent));
   }, []);
 
   const requestLocation = () => {
@@ -82,31 +160,36 @@ export default function AppOnboarding() {
       setLocationError('Geolocation is not supported on this browser or device.');
       return;
     }
+    hasRequestedLocationRef.current = true;
     setLocationLoading(true);
     setLocationError(null);
+    setLocationIssue(null);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLocationLoading(false);
-        setLocationGranted(true);
-        setLocationAccuracy(Math.round(pos.coords.accuracy));
+        handleLocationSuccess(pos);
       },
-      (err) => {
-        setLocationLoading(false);
-        if (err.code === err.PERMISSION_DENIED) {
-          setLocationError('Permission was denied. Please allow location access to continue.');
-        } else if (err.code === err.POSITION_UNAVAILABLE) {
-          setLocationError('Device GPS is turned OFF. Please swipe down and turn on Location in Quick Settings.');
-        } else {
-          setLocationError('Unable to get GPS fix. Please verify location is enabled.');
-        }
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
+      handleLocationFailure,
+      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 }
     );
+  };
+
+  const openLocationSettings = () => {
+    if (isAndroid) {
+      const action = locationIssue === 'denied'
+        ? 'android.settings.APPLICATION_DETAILS_SETTINGS'
+        : 'android.settings.LOCATION_SOURCE_SETTINGS';
+      window.location.href = `intent:#Intent;action=${action};end`;
+      return;
+    }
+
+    setShowLocationHelp(true);
   };
 
   const handleFinish = () => {
     localStorage.setItem('edsa_welcome_onboarding_v1', 'true');
     localStorage.setItem('edsa_terms_accepted_v1', 'true');
+    window.dispatchEvent(new Event(LOCATION_ONBOARDING_COMPLETE_EVENT));
     setIsVisible(false);
   };
 
@@ -217,9 +300,25 @@ export default function AppOnboarding() {
               </div>
 
               {locationError && (
-                <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] flex items-start gap-2">
-                  <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
-                  <span>{locationError}</span>
+                <div className="space-y-2">
+                  <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-[11px] flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                    <span>{locationError}</span>
+                  </div>
+                  {locationIssue && (
+                    <button
+                      type="button"
+                      onClick={openLocationSettings}
+                      className="w-full p-2.5 rounded-xl border border-amber-400/30 bg-amber-400/10 text-amber-200 text-[11px] font-bold hover:bg-amber-400/20 transition-colors"
+                    >
+                      {locationIssue === 'denied' ? 'Open Permission Settings' : 'Open Location Settings'}
+                    </button>
+                  )}
+                  {showLocationHelp && (
+                    <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-gray-300 text-[11px] leading-relaxed">
+                      Open your device Settings, turn on Location, then allow Location access for this browser or installed app. Return here and the check will run automatically.
+                    </div>
+                  )}
                 </div>
               )}
 
