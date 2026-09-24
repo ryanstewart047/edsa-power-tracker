@@ -150,13 +150,13 @@ export default function WelcomePage() {
                 </div>
                 <KeyRound className="h-5 w-5 text-emerald-300/30" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Top-Up & Vault</h3>
+              <h3 className="text-2xl font-bold mb-4">Meter Top-Up & Vault</h3>
               <p className="text-gray-400 leading-relaxed mb-8">
                 Instant USSD quick-dial for Orange & Afrimoney, kWh units calculator, and offline 20-digit token storage.
               </p>
             </div>
             <Link href="/topup" className="inline-flex items-center gap-2 text-emerald-400 font-bold group-hover:gap-3 transition-all">
-              Buy Tokens & Vault <ChevronRight className="h-4 w-4" />
+              Meter Top-Up & Vault <ChevronRight className="h-4 w-4" />
             </Link>
           </motion.div>
 

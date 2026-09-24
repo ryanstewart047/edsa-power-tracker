@@ -16,7 +16,7 @@ export default function MobileBottomNav() {
   const navItems = [
     { name: 'Home', href: '/', icon: Home },
     { name: 'Tracker', href: '/tracker', icon: Map },
-    { name: 'Top-Up', href: '/topup', icon: Zap },
+    { name: 'Meter Top-Up', href: '/topup', icon: Zap },
     { name: 'Admin', href: '/admin', icon: ShieldCheck },
   ];
 
