@@ -11,7 +11,7 @@ const highlights = [
   {
     icon: Zap,
     title: 'Live Community Signals',
-    description: 'Track what is happening around Freetown in real time with location-aware power reporting.',
+    description: 'Track power and hazards across Sierra Leone in real time with location-aware reporting.',
     color: 'text-yellow-400',
     bg: 'bg-yellow-400/10',
   },
@@ -70,7 +70,7 @@ export default function WelcomePage() {
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-black leading-[1.1] tracking-tight">
-              Freetown Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600">Operations.</span>
+              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600">Operations.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-xl">
@@ -224,7 +224,7 @@ export default function WelcomePage() {
             <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
               <Map className="h-4 w-4" />
             </div>
-            <p className="text-xs font-bold uppercase tracking-widest">Freetown Operations Unit</p>
+            <p className="text-xs font-bold uppercase tracking-widest">Sierra Leone Operations Unit</p>
           </div>
           <div className="flex flex-col items-center md:items-end gap-1">
             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Developed by</p>

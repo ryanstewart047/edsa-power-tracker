@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { FREETOWN_AREAS } from '@/lib/areas';
+import { FREETOWN_AREAS, findAreaById } from '@/lib/areas';
 
 export type AdminOverviewStats = {
   totalReports: number;
@@ -64,10 +64,27 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
     totalReports,
     totalHazards,
     totalResolvedHazards,
-    areaSummary: FREETOWN_AREAS.map((area) => {
-      const status = areaStatusLookup.get(area.name);
-      return {
+    areaSummary: [
+      ...FREETOWN_AREAS.map((area) => ({
+        id: area.id,
         name: area.name,
+        region: area.region,
+      })),
+      ...areaStatuses
+        .filter((status) => !FREETOWN_AREAS.some((area) => area.id === status.area || area.name === status.area))
+        .map((status) => {
+          const area = findAreaById(status.area);
+          return {
+            id: status.area,
+            name: area?.name ?? status.area,
+            region: area?.region ?? null,
+          };
+        }),
+    ].map((area) => {
+      // Older Freetown reports used names; nationwide reports use stable location IDs.
+      const status = areaStatusLookup.get(area.id) ?? areaStatusLookup.get(area.name);
+      return {
+        name: area.region ? `${area.name} (${area.region})` : area.name,
         status: (status?.status || 'unknown') as 'on' | 'out' | 'unknown',
         reportCount: status?.reportCount || 0,
         confidence: status?.confidence || 0,

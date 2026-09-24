@@ -18,7 +18,7 @@ const slides = [
   {
     url: '/assets/slide3.png',
     title: 'Community Response',
-    description: 'Rapid maintenance teams responding to field reports across Freetown.',
+    description: 'Rapid maintenance teams responding to field reports across Sierra Leone.',
   },
 ];
 

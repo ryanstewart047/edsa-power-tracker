@@ -4,10 +4,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
-import { AreaWithStatus, calculateDistanceKm, getAreaCandidates, MAX_REPORTING_DISTANCE_KM } from '@/lib/areas';
+import type { AreaWithStatus } from '@/lib/areas';
+import { calculateDistanceKm, MAX_REPORTING_DISTANCE_KM } from '@/lib/locationMath';
 import LocationOnboarding from '@/components/LocationOnboarding';
 import AdUnit from '@/components/AdUnit';
-
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
@@ -15,7 +15,7 @@ import {
   HAZARD_TYPES,
   HazardType,
   MAX_REPORTING_ACCURACY_METERS,
-} from '@/lib/reporting';
+} from '@/lib/locationConfig';
 
 const LOCATION_STALE_AFTER_MS = 2 * 60_000;
 
@@ -135,7 +135,11 @@ export default function Home() {
   useEffect(() => {
     // Load primary area from local storage
     const saved = localStorage.getItem('edsa_primary_area');
-    if (saved) setPrimaryArea(saved);
+    if (saved?.startsWith('ft-') || saved?.startsWith('gn-')) {
+      setPrimaryArea(saved);
+    } else if (saved) {
+      localStorage.removeItem('edsa_primary_area');
+    }
   }, []);
 
   // Hazard Report State
@@ -148,9 +152,17 @@ export default function Home() {
   const [meterNumber, setMeterNumber] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
-  const fetchStatus = useCallback(async () => {
+  const fetchStatus = useCallback(async (snapshot: LocationSnapshot | null = null, query = '') => {
     try {
-      const res = await fetch('/api/status', { cache: 'no-store' });
+      const params = new URLSearchParams();
+      if (query.trim()) params.set('search', query.trim());
+      if (snapshot) {
+        params.set('lat', String(snapshot.lat));
+        params.set('lng', String(snapshot.lng));
+        if (snapshot.accuracy !== null) params.set('accuracy', String(snapshot.accuracy));
+      }
+      const suffix = params.size > 0 ? `?${params.toString()}` : '';
+      const res = await fetch(`/api/status${suffix}`, { cache: 'no-store' });
       if (!res.ok) {
         throw new Error('Unable to load the latest area status right now.');
       }
@@ -172,6 +184,13 @@ export default function Home() {
     const interval = setInterval(fetchStatus, 60_000);
     return () => clearInterval(interval);
   }, [fetchStatus]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      fetchStatus(location, search);
+    }, search.trim() ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchStatus, location, search]);
 
   const handleLocationSuccess = useCallback((pos: GeolocationPosition) => {
     const nextLocation = createLocationSnapshot(pos);
@@ -328,7 +347,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          area: reportModal.name,
+          area: reportModal.id,
           status,
           deviceId: getDeviceId(),
           lat: location.lat,
@@ -341,8 +360,8 @@ export default function Home() {
 
       if (res.ok) {
         // Behavioral Learning: Update primary area if user reports for a specific area
-        localStorage.setItem('edsa_primary_area', reportModal.name);
-        setPrimaryArea(reportModal.name);
+        localStorage.setItem('edsa_primary_area', reportModal.id);
+        setPrimaryArea(reportModal.id);
 
         setReportResult({
           success: true,
@@ -409,7 +428,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          area: hazardModal.name,
+          area: hazardModal.id,
           type: hazardType,
           areaName: hazardAreaName,
           streetName: hazardStreet,
@@ -467,21 +486,24 @@ export default function Home() {
         distance: null,
         isClosest: false,
         isSecondClosest: false,
-        isSavedArea: area.name === primaryArea,
+        isSavedArea: area.id === primaryArea,
       }));
     }
 
-    const areaCandidates = getAreaCandidates(location.lat, location.lng, location.accuracy, primaryArea);
-    const candidateNames = new Set(areaCandidates.map(area => area.name));
-    const closestName = areaCandidates[0]?.name;
-    const secondClosestName = areaCandidates[1]?.name;
+    const nearbyAreas = areas
+      .filter((area) => area.isNearby)
+      .map((area) => ({ ...area, distance: calculateDistanceKm(location.lat, location.lng, area.lat, area.lng) }))
+      .sort((a, b) => a.distance - b.distance);
+    const candidateIds = new Set(nearbyAreas.map((area) => area.id));
+    const closestId = nearbyAreas[0]?.id;
+    const secondClosestId = nearbyAreas[1]?.id;
 
     return areas.map(area => {
       const distance = calculateDistanceKm(location.lat, location.lng, area.lat, area.lng);
-      const isCandidate = candidateNames.has(area.name);
-      const isClosest = area.name === closestName;
-      const isSecondClosest = area.name === secondClosestName && !isClosest;
-      const isSavedArea = area.name === primaryArea;
+      const isCandidate = candidateIds.has(area.id);
+      const isClosest = area.id === closestId;
+      const isSecondClosest = area.id === secondClosestId && !isClosest;
+      const isSavedArea = area.id === primaryArea;
       return { ...area, isCandidate, distance, isClosest, isSecondClosest, isSavedArea };
     });
   }, [areas, location, primaryArea]);
@@ -572,7 +594,7 @@ export default function Home() {
                 {locationLoading ? 'Refreshing GPS...' : locationChipLabel}
               </div>
               <button
-                onClick={fetchStatus}
+                onClick={() => fetchStatus(location, search)}
                 className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
@@ -633,7 +655,7 @@ export default function Home() {
                     area.distance <= MAX_REPORTING_DISTANCE_KM;
 
                   return (
-                    <div key={area.name} className={`relative p-5 rounded-2xl border transition-all duration-500 group/card ${area.isSavedArea ? 'border-yellow-400/30 bg-yellow-400/[0.04]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
+                    <div key={area.id} className={`relative p-5 rounded-2xl border transition-all duration-500 group/card ${area.isSavedArea ? 'border-yellow-400/30 bg-yellow-400/[0.04]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
                       <h3 className="text-xl font-bold text-white mb-1 flex flex-wrap items-center gap-1.5">
                         {area.name}
                         {area.isSavedArea && (
@@ -646,9 +668,8 @@ export default function Home() {
                           <span className="text-[10px] bg-white/10 text-gray-400 border border-white/10 px-1.5 py-0.5 rounded-md uppercase font-bold">Nearby</span>
                         )}
                       </h3>
-                      <p className={`text-xs font-medium mb-3 ${STATUS_META[area.status].text}`}>
-                        {STATUS_META[area.status].label}
-                      </p>
+                      <p className={`text-xs font-medium mb-1 ${STATUS_META[area.status].text}`}>{STATUS_META[area.status].label}</p>
+                      <p className="text-[10px] text-gray-500 mb-3">{area.region}</p>
 
                       <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
                         <span className="rounded bg-white/10 px-1.5 py-0.5">
@@ -721,7 +742,7 @@ export default function Home() {
               type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Search neighbourhood…"
+              placeholder="Search Sierra Leone locations..."
               className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
             />
             <div className="flex gap-2">
@@ -772,12 +793,13 @@ export default function Home() {
                       locationAccurateEnough;
 
                     return (
-                      <div key={area.name} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
+                      <div key={area.id} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
                         <div className="flex items-start justify-between mb-2">
                           <div className={`w-3 h-3 rounded-full mt-1 ${meta.dot}`} />
                           <Icon className={`w-5 h-5 ${meta.text}`} />
                         </div>
                         <h3 className="font-bold text-lg">{area.name}</h3>
+                        <p className="text-[10px] text-gray-500">{area.region}</p>
                         <p className={`text-sm font-medium ${meta.text}`}>{meta.label}</p>
 
                         <div className="mt-4 flex items-center gap-2">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { FREETOWN_CITY } from '@/lib/areas';
+import { SIERRA_LEONE_COUNTRY } from '@/lib/areas';
 import {
   HAZARD_DUPLICATE_WINDOW_MINUTES,
   normalizeHazardImage,
@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error: 'Duplicate hazard',
-            message: `You already reported this ${type.toLowerCase()} hazard in ${area} recently.`,
+            message: `You already reported this ${type.toLowerCase()} hazard in ${locationValidation.areaName} recently.`,
           },
           { status: 429 },
         );
@@ -138,7 +138,7 @@ export async function POST(req: NextRequest) {
         areaName,
         imageUrl,
         area,
-        city: FREETOWN_CITY,
+        city: SIERRA_LEONE_COUNTRY,
         lat: locationValidation.lat,
         lng: locationValidation.lng,
         deviceId,
@@ -150,7 +150,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: true,
       hazard,
-      message: `Hazard report saved for ${area}. Authorities can now review it.`,
+      message: `Hazard report saved for ${locationValidation.areaName}. Authorities can now review it.`,
     });
   } catch (error) {
     console.error('POST /api/hazards error:', error);

@@ -3,28 +3,55 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, CheckCircle, ChevronRight, Search, Zap } from 'lucide-react';
-import { FREETOWN_AREAS } from '@/lib/areas';
 
 interface LocationOnboardingProps {
-  onComplete: (areaName: string) => void;
+  onComplete: (areaId: string) => void;
 }
 
 export default function LocationOnboarding({ onComplete }: LocationOnboardingProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedArea, setSelectedArea] = useState<string | null>(null);
+  const [areas, setAreas] = useState<Array<{ id: string; name: string; region: string }>>([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
-    const hasSetLocation = localStorage.getItem('edsa_primary_area');
-    if (!hasSetLocation) {
+    const savedArea = localStorage.getItem('edsa_primary_area');
+    const hasStableLocationId = /^((ft|gn)-)/.test(savedArea ?? '');
+    if (!hasStableLocationId) {
+      if (savedArea) localStorage.removeItem('edsa_primary_area');
       const timer = setTimeout(() => setIsOpen(true), 3500); // Show after splash and initial load
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const filteredAreas = FREETOWN_AREAS.filter(area => 
-    area.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    if (searchTerm.trim().length < 2) {
+      setAreas([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = window.setTimeout(async () => {
+      setSearching(true);
+      try {
+        const response = await fetch(`/api/status?search=${encodeURIComponent(searchTerm.trim())}`, {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
+        if (response.ok) setAreas(await response.json());
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) setAreas([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 250);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(timer);
+    };
+  }, [searchTerm]);
 
   const handleFinish = () => {
     if (selectedArea) {
@@ -61,7 +88,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
 
               <div className="space-y-2">
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  Which community do you primarily live in or report for? This helps us provide 100% accurate power signals for your area.
+                  Search for the community where you primarily live or report. Your live GPS location is always used to verify reports.
                 </p>
               </div>
 
@@ -69,7 +96,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <input
                   type="text"
-                  placeholder="Search your neighborhood..."
+                  placeholder="Search any Sierra Leone location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-4 text-sm focus:outline-none focus:border-yellow-500/50 transition-all text-white"
@@ -77,18 +104,25 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
               </div>
 
               <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                {filteredAreas.map((area) => (
+                {searchTerm.trim().length < 2 && (
+                  <p className="px-2 py-5 text-center text-xs text-gray-500">Enter at least two letters to search all Sierra Leone locations.</p>
+                )}
+                {searching && <p className="px-2 py-5 text-center text-xs text-gray-500">Searching locations...</p>}
+                {!searching && areas.map((area) => (
                   <button
-                    key={area.name}
-                    onClick={() => setSelectedArea(area.name)}
+                    key={area.id}
+                    onClick={() => setSelectedArea(area.id)}
                     className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
-                      selectedArea === area.name 
+                      selectedArea === area.id
                         ? 'bg-yellow-400 border-yellow-400 text-black shadow-lg shadow-yellow-400/20' 
                         : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10'
                     }`}
                   >
-                    <span className="font-bold text-sm">{area.name}</span>
-                    {selectedArea === area.name && <CheckCircle className="h-4 w-4" />}
+                    <span className="text-left">
+                      <span className="block font-bold text-sm">{area.name}</span>
+                      <span className="block text-[10px] opacity-70 mt-0.5">{area.region}</span>
+                    </span>
+                    {selectedArea === area.id && <CheckCircle className="h-4 w-4" />}
                   </button>
                 ))}
               </div>

@@ -1,11 +1,28 @@
 import {
-  AreaStatus,
-  FREETOWN_CITY,
   MAX_REPORTING_DISTANCE_KM,
-  findAreaByName,
+  SIERRA_LEONE_COUNTRY,
+  findAreaById,
   getAreaMatchToleranceKm,
   getAreaProximity,
 } from './areas';
+import type { AreaStatus } from './areas';
+import {
+  GEOLOCATION_MAXIMUM_AGE_MS,
+  GEOLOCATION_TIMEOUT_MS,
+  GPS_WARNING_ACCURACY_METERS,
+  HAZARD_TYPES,
+  MAX_REPORTING_ACCURACY_METERS,
+} from './locationConfig';
+import type { HazardType } from './locationConfig';
+
+export {
+  GEOLOCATION_MAXIMUM_AGE_MS,
+  GEOLOCATION_TIMEOUT_MS,
+  GPS_WARNING_ACCURACY_METERS,
+  HAZARD_TYPES,
+  MAX_REPORTING_ACCURACY_METERS,
+} from './locationConfig';
+export type { HazardType } from './locationConfig';
 
 export const REPORT_EXPIRY_HOURS = 6;
 export const MIN_REPORTS_TO_CONFIRM = 3;
@@ -13,28 +30,14 @@ export const DUPLICATE_WINDOW_HOURS = 2;
 export const HAZARD_DUPLICATE_WINDOW_MINUTES = 10;
 export const RECENT_REPORT_WINDOW_MINUTES = 30;
 
-export const GEOLOCATION_TIMEOUT_MS = 15_000;
-export const GEOLOCATION_MAXIMUM_AGE_MS = 5_000;
-export const GPS_WARNING_ACCURACY_METERS = 250;
-export const MAX_REPORTING_ACCURACY_METERS = 500;
-
-export const HAZARD_TYPES = [
-  'Falling Pole',
-  'Sparking Cable',
-  'Transformer Issue',
-  'Illegal Connection',
-  'Stolen Meter',
-  'Other Danger',
-] as const;
-
-export type HazardType = (typeof HAZARD_TYPES)[number];
-
 const MAX_IMAGE_LENGTH = 2_000_000;
 
 export type ReporterLocationValidation =
   | {
       ok: true;
       area: string;
+      areaName: string;
+      region: string;
       lat: number;
       lng: number;
       accuracyMeters: number;
@@ -121,8 +124,8 @@ export function validateReporterLocation(
   lngInput: unknown,
   accuracyInput?: unknown,
 ): ReporterLocationValidation {
-  const areaName = parseOptionalText(areaInput, 80);
-  if (!areaName) {
+  const areaId = parseOptionalText(areaInput, 80);
+  if (!areaId) {
     return {
       ok: false,
       status: 400,
@@ -133,14 +136,14 @@ export function validateReporterLocation(
     };
   }
 
-  const area = findAreaByName(areaName);
+  const area = findAreaById(areaId);
   if (!area) {
     return {
       ok: false,
       status: 400,
       body: {
         error: 'Unknown area',
-        message: 'That area is not part of the tracked Freetown coverage list.',
+        message: 'That location is not part of the tracked Sierra Leone coverage list.',
       },
     };
   }
@@ -182,7 +185,7 @@ export function validateReporterLocation(
     };
   }
 
-  const proximity = getAreaProximity(area.name, lat, lng);
+  const proximity = getAreaProximity(area.id, lat, lng);
   const targetArea = proximity.targetArea;
   const closestArea = proximity.closestArea;
 
@@ -192,7 +195,7 @@ export function validateReporterLocation(
       status: 403,
       body: {
         error: 'Out of bounds',
-        message: `You are too far from ${FREETOWN_CITY} to submit a report.`,
+        message: `You are too far from ${SIERRA_LEONE_COUNTRY} to submit a report.`,
       },
     };
   }
@@ -206,14 +209,16 @@ export function validateReporterLocation(
       status: 403,
       body: {
         error: 'Location mismatch',
-        message: `You appear to be closer to ${closestArea.name}. Please report for your current area.`,
+        message: `You appear to be closer to ${closestArea.name}, ${closestArea.region}. Please report for your current location.`,
       },
     };
   }
 
   return {
     ok: true,
-    area: area.name,
+    area: area.id,
+    areaName: area.name,
+    region: area.region,
     lat,
     lng,
     accuracyMeters: Math.round(accuracyMeters),

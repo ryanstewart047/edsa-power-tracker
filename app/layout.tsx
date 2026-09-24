@@ -14,8 +14,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "EDSA Native Platform — Freetown",
-  description: "Professional native-style power tracking and hazard operations platform for Freetown, Sierra Leone.",
+  title: "EDSA Native Platform — Sierra Leone",
+  description: "Professional native-style power tracking and hazard operations platform for Sierra Leone.",
   manifest: "/manifest.json",
   keywords: ["EDSA", "power", "electricity", "Freetown", "Sierra Leone", "outage", "hazard", "operations"],
   icons: {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "EDSA Native Platform",
-    description: "Track electricity status, escalate hazards, and manage operations across Freetown.",
+    description: "Track electricity status, escalate hazards, and manage operations across Sierra Leone.",
     type: "website",
     siteName: "EDSA Native",
   },
@@ -69,7 +69,7 @@ const jsonLd = {
   "name": "EDSA Native Power Tracker",
   "operatingSystem": "Android, iOS, Windows, macOS",
   "applicationCategory": "UtilitiesApplication",
-  "description": "Real-time crowdsourced power outage tracking and hazard reporting for Freetown.",
+  "description": "Real-time crowdsourced power outage tracking and hazard reporting for Sierra Leone.",
   "offers": {
     "@type": "Offer",
     "price": "0",

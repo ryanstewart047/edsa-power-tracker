@@ -13,7 +13,7 @@ import {
   AlertTriangle,
   ChevronRight
 } from 'lucide-react';
-import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/reporting';
+import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/locationConfig';
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
@@ -333,11 +333,11 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
             <p className="text-xs text-gray-300 leading-relaxed max-w-sm mx-auto">
               {errorMessage || (
                 state === 'GPS_OFF'
-                  ? 'Your device location (GPS) is turned off. EDSA Tracker requires active GPS to detect your Freetown community and prevent false outage alarms.'
+                  ? 'Your device location (GPS) is turned off. EDSA Tracker requires active GPS to detect your Sierra Leone community and prevent false outage alarms.'
                   : state === 'GPS_UNAVAILABLE'
                   ? 'Your location signal is currently unavailable. An open area and Precise Location help the app verify your exact community.'
                   : state === 'LOW_ACCURACY'
-                  ? `A GPS radius of ${MAX_REPORTING_ACCURACY_METERS}m or better is required to match your Freetown community accurately.`
+                  ? `A GPS radius of ${MAX_REPORTING_ACCURACY_METERS}m or better is required to match your Sierra Leone community accurately.`
                   : state === 'PERMISSION_DENIED'
                   ? 'Permission to access location was denied. To protect grid integrity, you must enable location permissions for this app to proceed.'
                   : 'EDSA Power Tracker requires real-time GPS location to match your community, verify power reports, and dispatch emergency hazard crews.'
@@ -353,7 +353,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-400 font-bold leading-none mt-0.5">•</span>
-              <p><strong className="text-white">Auto-Detection:</strong> Anchors power status directly to your exact Freetown community.</p>
+              <p><strong className="text-white">Auto-Detection:</strong> Anchors power status directly to your exact Sierra Leone community.</p>
             </div>
             <div className="flex items-start gap-2">
               <span className="text-emerald-400 font-bold leading-none mt-0.5">•</span>

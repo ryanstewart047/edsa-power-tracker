@@ -199,7 +199,7 @@ export default function AppOnboarding() {
       title: 'Terms & Community Guidelines',
       subtitle: 'Please review and accept to enter EDSA Tracker',
       description:
-        'To keep Freetown electricity tracking safe, trustworthy, and accurate for everyone, please review and accept our usage guidelines.',
+        'To keep Sierra Leone electricity tracking safe, trustworthy, and accurate for everyone, please review and accept our usage guidelines.',
       icon: FileText,
       accentColor: 'text-yellow-400',
       bgGlow: 'from-yellow-500/20 to-transparent',
@@ -283,7 +283,7 @@ export default function AppOnboarding() {
               <div>
                 <div className="text-xs font-bold text-emerald-400">GPS Successfully Linked</div>
                 <div className="text-[10px] text-gray-300">
-                  {locationAccuracy ? `Accuracy within ±${locationAccuracy}m • Ready` : 'Location verified for Freetown grid'}
+                  {locationAccuracy ? `Accuracy within ±${locationAccuracy}m • Ready` : 'Location verified for Sierra Leone coverage'}
                 </div>
               </div>
             </div>
@@ -295,7 +295,7 @@ export default function AppOnboarding() {
                   <span>Mandatory Location Access</span>
                 </div>
                 <p className="text-[11px] text-gray-400 leading-relaxed">
-                  Your coordinates are used strictly inside the app to link you to your nearest Freetown substation zone.
+                  Your coordinates are used strictly inside the app to link you to your nearest Sierra Leone community.
                 </p>
               </div>
 
@@ -350,7 +350,7 @@ export default function AppOnboarding() {
       title: 'Track Live Power in Your Community',
       subtitle: 'Know your electricity status before you travel',
       description:
-        'Get live crowdsourced power reports across all Freetown communities. Easily see which zones currently have active power, planned maintenance, or load shedding.',
+        'Get live crowdsourced power reports across Sierra Leone communities. Easily see which zones currently have active power, planned maintenance, or load shedding.',
       icon: Zap,
       accentColor: 'text-yellow-400',
       bgGlow: 'from-yellow-500/20 to-transparent',

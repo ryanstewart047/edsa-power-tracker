@@ -1,18 +1,42 @@
+import sierraLeoneGazetteer from '@/data/sierra-leone-places.json';
+import {
+  AREA_CANDIDATE_PADDING_KM,
+  AREA_MATCH_TOLERANCE_KM,
+  MAX_REPORTING_DISTANCE_KM,
+  REPORTING_TOLERANCE_KM,
+  calculateDistanceKm,
+} from './locationMath';
+
+export {
+  AREA_CANDIDATE_PADDING_KM,
+  AREA_MATCH_TOLERANCE_KM,
+  MAX_REPORTING_DISTANCE_KM,
+  REPORTING_TOLERANCE_KM,
+  calculateDistanceKm,
+} from './locationMath';
+
 export interface AreaDefinition {
+  id: string;
   name: string;
+  region: string;
   lat: number;
   lng: number;
 }
 
 export const FREETOWN_CITY = 'Freetown';
-export const REPORTING_TOLERANCE_KM = 3.0;
-export const MAX_REPORTING_DISTANCE_KM = 15;
-export const AREA_MATCH_TOLERANCE_KM = 1.35;
-export const AREA_CANDIDATE_PADDING_KM = 0.5;
+export const SIERRA_LEONE_COUNTRY = 'Sierra Leone';
 export const AREA_CANDIDATE_LIMIT = 5;
 
-// Verified Freetown neighbourhoods with accurate landmark & junction coordinates
-export const FREETOWN_AREAS: AreaDefinition[] = [
+const REGION_NAMES: Record<string, string> = {
+  '01': 'Eastern Province',
+  '02': 'Northern Province',
+  '03': 'Southern Province',
+  '04': 'Western Area',
+  '05': 'North West Province',
+};
+
+// Verified Freetown neighbourhoods with accurate landmark & junction coordinates.
+const FREETOWN_AREA_SEEDS = [
   { name: "Aberdeen",        lat: 8.4988, lng: -13.2662 }, // Cape Sierra / Sir Samuel Lewis Rd
   { name: "Lumley",          lat: 8.4650, lng: -13.2720 }, // Lumley Roundabout / Police Station / Grassfield
   { name: "Goderich",        lat: 8.4350, lng: -13.2840 }, // Milton Margai / Funkia / Goderich Village
@@ -43,18 +67,40 @@ export const FREETOWN_AREAS: AreaDefinition[] = [
   { name: "Fourah Bay",      lat: 8.4860, lng: -13.2160 }, // Fourah Bay Community
   { name: "Kroo Bay",        lat: 8.4890, lng: -13.2340 }, // Kroo Bay Coastal Community
   { name: "Fullah Town",     lat: 8.4830, lng: -13.2260 }, // Fullah Town / Mountain Cut
+] as const;
+
+export const FREETOWN_AREAS: AreaDefinition[] = FREETOWN_AREA_SEEDS.map((area) => ({
+  ...area,
+  id: `ft-${area.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`,
+  region: 'Western Area',
+}));
+
+export const SIERRA_LEONE_AREAS: AreaDefinition[] = [
+  ...FREETOWN_AREAS,
+  ...sierraLeoneGazetteer.places.map((place) => ({
+    id: place.id,
+    name: place.name,
+    region: REGION_NAMES[place.region] ?? 'Sierra Leone',
+    lat: place.lat,
+    lng: place.lng,
+  })),
 ];
+
+const AREA_BY_ID = new Map(SIERRA_LEONE_AREAS.map((area) => [area.id, area]));
 
 export type AreaStatus = "on" | "out" | "unknown";
 
 export interface AreaWithStatus {
+  id: string;
   name: string;
+  region: string;
   lat: number;
   lng: number;
   status: AreaStatus;
   confidence: number;
   reportCount: number;
   lastUpdated: string | null;
+  isNearby?: boolean;
 }
 
 export interface AreaDistance extends AreaDefinition {
@@ -66,27 +112,29 @@ export interface AreaProximity {
   targetArea: AreaDistance | null;
 }
 
-export function calculateDistanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const earthRadiusKm = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return earthRadiusKm * c;
-}
-
 export function findAreaByName(name: string): AreaDefinition | undefined {
   const normalized = name.trim().toLowerCase();
-  return FREETOWN_AREAS.find((area) => area.name.toLowerCase() === normalized);
+  return SIERRA_LEONE_AREAS.find((area) => area.name.toLowerCase() === normalized);
+}
+
+export function findAreaById(id: string): AreaDefinition | undefined {
+  return AREA_BY_ID.get(id);
+}
+
+export function searchAreas(query: string, limit = 40): AreaDefinition[] {
+  const normalized = query.trim().toLocaleLowerCase();
+  if (!normalized) return [];
+
+  return SIERRA_LEONE_AREAS
+    .filter((area) => (
+      area.name.toLocaleLowerCase().includes(normalized) ||
+      area.region.toLocaleLowerCase().includes(normalized)
+    ))
+    .slice(0, limit);
 }
 
 export function getAreaDistances(lat: number, lng: number): AreaDistance[] {
-  return FREETOWN_AREAS
+  return SIERRA_LEONE_AREAS
     .map((area) => ({
       ...area,
       distanceKm: calculateDistanceKm(lat, lng, area.lat, area.lng),
@@ -118,7 +166,7 @@ export function getAreaCandidates(
   lat: number,
   lng: number,
   accuracyMeters?: number | null,
-  preferredAreaName?: string | null,
+  preferredAreaId?: string | null,
 ): AreaDistance[] {
   const distances = getAreaDistances(lat, lng);
   const closestArea = distances[0];
@@ -139,10 +187,10 @@ export function getAreaCandidates(
 
   // If user has a saved / preferred primary area and it is within valid candidate range,
   // ensure it is ranked first so minor GPS jitter on border streets does not flip to the next neighborhood!
-  if (preferredAreaName) {
-    const normalizedPreferred = preferredAreaName.trim().toLowerCase();
+  if (preferredAreaId) {
+    const normalizedPreferred = preferredAreaId.trim();
     const preferredIndex = candidates.findIndex(
-      (area) => area.name.toLowerCase() === normalizedPreferred
+      (area) => area.id === normalizedPreferred
     );
 
     if (preferredIndex > 0) {
@@ -160,10 +208,10 @@ export function getAreaCandidates(
   return candidates.length > 0 ? candidates : distances.slice(0, 1);
 }
 
-export function getAreaProximity(areaName: string, lat: number, lng: number): AreaProximity {
+export function getAreaProximity(areaId: string, lat: number, lng: number): AreaProximity {
   const distances = getAreaDistances(lat, lng);
   return {
     closestArea: distances[0] ?? null,
-    targetArea: distances.find((area) => area.name === areaName) ?? null,
+    targetArea: distances.find((area) => area.id === areaId) ?? null,
   };
 }

@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { AreaStatus, FREETOWN_AREAS, AreaWithStatus, FREETOWN_CITY } from '@/lib/areas';
+import {
+  AreaStatus,
+  FREETOWN_AREAS,
+  AreaWithStatus,
+  SIERRA_LEONE_COUNTRY,
+  getAreaCandidates,
+  searchAreas,
+} from '@/lib/areas';
 import {
   DUPLICATE_WINDOW_HOURS,
   MIN_REPORTS_TO_CONFIRM,
@@ -8,30 +15,44 @@ import {
   REPORT_EXPIRY_HOURS,
   normalizePowerStatus,
   parseDeviceId,
+  parseCoordinate,
   validateReporterLocation,
 } from '@/lib/reporting';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/status — returns all Freetown areas with their current status
-export async function GET() {
+// GET /api/status — returns nearby or searched Sierra Leone locations.
+export async function GET(req: NextRequest) {
   try {
+    const search = req.nextUrl.searchParams.get('search') ?? '';
+    const lat = parseCoordinate(req.nextUrl.searchParams.get('lat'));
+    const lng = parseCoordinate(req.nextUrl.searchParams.get('lng'));
+    const accuracy = parseCoordinate(req.nextUrl.searchParams.get('accuracy'));
+    const requestedAreas = search.trim()
+      ? searchAreas(search)
+      : lat !== null && lng !== null
+        ? getAreaCandidates(lat, lng, accuracy)
+        : FREETOWN_AREAS;
+    const isNearbyQuery = !search.trim() && lat !== null && lng !== null;
     const statuses = await prisma.areaStatus.findMany({
-      where: { city: FREETOWN_CITY },
+      where: { area: { in: requestedAreas.map((area) => area.id) } },
     });
 
     const statusLookup = new Map(statuses.map((status) => [status.area, status]));
 
-    const areas: AreaWithStatus[] = FREETOWN_AREAS.map(area => {
-      const record = statusLookup.get(area.name);
+    const areas: AreaWithStatus[] = requestedAreas.map(area => {
+      const record = statusLookup.get(area.id);
       return {
+        id: area.id,
         name: area.name,
+        region: area.region,
         lat: area.lat,
         lng: area.lng,
         status: ((record?.status) ?? 'unknown') as 'on' | 'out' | 'unknown',
         confidence: record?.confidence ?? 0,
         reportCount: record?.reportCount ?? 0,
         lastUpdated: record?.lastUpdated?.toISOString() ?? null,
+        isNearby: isNearbyQuery,
       };
     });
 
@@ -87,7 +108,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json(
           {
             error: 'Duplicate report',
-            message: `You already reported Power ${status.toUpperCase()} for ${area} recently. If the situation changed, please wait a little and try again.`,
+            message: `You already reported Power ${status.toUpperCase()} for ${locationValidation.areaName} recently. If the situation changed, please wait a little and try again.`,
           },
           { status: 429 },
         );
@@ -100,7 +121,7 @@ export async function POST(req: NextRequest) {
     await prisma.outageReport.create({
       data: {
         area,
-        city: FREETOWN_CITY,
+        city: SIERRA_LEONE_COUNTRY,
         status,
         expiresAt,
         deviceId,
@@ -149,7 +170,7 @@ export async function POST(req: NextRequest) {
       where: { area },
       create: {
         area,
-        city: FREETOWN_CITY,
+        city: SIERRA_LEONE_COUNTRY,
         status: currentStatus,
         confidence,
         reportCount: leadingCount,
@@ -168,10 +189,10 @@ export async function POST(req: NextRequest) {
     const reportsNeeded = Math.max(0, MIN_REPORTS_TO_CONFIRM - submittedCount);
     const statusLabel = `Power ${status.toUpperCase()}`;
     const message = isConfirmed
-      ? `${area} is now marked as ${statusLabel}.`
+      ? `${locationValidation.areaName} is now marked as ${statusLabel}.`
       : competingCount > submittedCount
-        ? `Your report was saved, but Power ${competingStatus.toUpperCase()} currently has more recent reports in ${area}.`
-        : `Your report was saved. ${reportsNeeded} more ${statusLabel} report${reportsNeeded === 1 ? '' : 's'} needed to update ${area}.`;
+        ? `Your report was saved, but Power ${competingStatus.toUpperCase()} currently has more recent reports in ${locationValidation.areaName}.`
+        : `Your report was saved. ${reportsNeeded} more ${statusLabel} report${reportsNeeded === 1 ? '' : 's'} needed to update ${locationValidation.areaName}.`;
 
     return NextResponse.json({
       success: true,
