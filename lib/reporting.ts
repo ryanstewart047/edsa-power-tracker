@@ -7,9 +7,6 @@ import {
 } from './areas';
 import type { AreaStatus } from './areas';
 import {
-  GEOLOCATION_MAXIMUM_AGE_MS,
-  GEOLOCATION_TIMEOUT_MS,
-  GPS_WARNING_ACCURACY_METERS,
   HAZARD_TYPES,
   MAX_REPORTING_ACCURACY_METERS,
 } from './locationConfig';
