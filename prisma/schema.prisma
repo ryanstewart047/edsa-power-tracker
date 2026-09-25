@@ -75,6 +75,48 @@ model AdminUser {
   @@index([email])
 }
 
+model FeedbackSubmission {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String?
+  category  String   @default("General")
+  rating    Int      @default(5)
+  area      String?
+  message   String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  message   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  createdBy String
+  expiresAt DateTime?
+
+  @@index([active, createdAt])
+}
+
+model AdminAuditLog {
+  id        String   @id @default(cuid())
+  action    String
+  detail    String?
+  adminEmail String
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}
+
 model EmailVerificationToken {
   id          String    @id @default(cuid())
   tokenHash   String    @unique

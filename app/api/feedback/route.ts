@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,6 +13,17 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+
+    await prisma.feedbackSubmission.create({
+      data: {
+        name: typeof name === 'string' ? name.trim().slice(0, 120) || null : null,
+        email: typeof email === 'string' ? email.trim().slice(0, 200) || null : null,
+        category: typeof category === 'string' ? category.trim().slice(0, 80) || 'General' : 'General',
+        rating: typeof rating === 'number' && Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : 5,
+        area: typeof area === 'string' ? area.trim().slice(0, 120) || null : null,
+        message: message.trim().slice(0, 2000),
+      },
+    });
 
     console.log('[Feedback Submission Received]:', {
       timestamp: new Date().toISOString(),

@@ -18,6 +18,7 @@ import {
   parseCoordinate,
   validateReporterLocation,
 } from '@/lib/reporting';
+import { isFeatureEnabled } from '@/lib/operations';
 
 export const dynamic = 'force-dynamic';
 
@@ -71,6 +72,9 @@ export async function GET(req: NextRequest) {
 // POST /api/status — submit a power report for an area
 export async function POST(req: NextRequest) {
   try {
+    if (!await isFeatureEnabled('powerReporting')) {
+      return NextResponse.json({ error: 'Reporting temporarily unavailable', message: 'Power reporting is temporarily unavailable. Please try again later.' }, { status: 503 });
+    }
     const body = await req.json() as Record<string, unknown>;
     const status = normalizePowerStatus(body.status);
 

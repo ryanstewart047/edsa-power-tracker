@@ -9,6 +9,7 @@ import {
   parseOptionalText,
   validateReporterLocation,
 } from '@/lib/reporting';
+import { isFeatureEnabled } from '@/lib/operations';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,6 +30,9 @@ export async function GET() {
 // POST /api/hazards — submit a hazard report (falling poles, sparking cables)
 export async function POST(req: NextRequest) {
   try {
+    if (!await isFeatureEnabled('hazardReporting')) {
+      return NextResponse.json({ error: 'Hazard reporting temporarily unavailable', message: 'Hazard reporting is temporarily unavailable. Please call emergency services for immediate danger.' }, { status: 503 });
+    }
     const body = await req.json() as Record<string, unknown>;
     const type = normalizeHazardType(body.type);
     const locationValidation = validateReporterLocation(body.area, body.lat, body.lng, body.accuracy);
