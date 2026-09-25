@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edsa-tracker-v2';
+const CACHE_NAME = 'edsa-tracker-v3';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
@@ -33,6 +33,15 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  const requestUrl = new URL(event.request.url);
+
+  // Operational data, reports, and announcements must always come from the
+  // network. Caching API responses leaves installed devices stuck on stale data.
+  if (requestUrl.origin === self.location.origin && requestUrl.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
 
   // For HTML navigation requests, try network first, then cache, then offline.html
   if (event.request.mode === 'navigate') {
@@ -129,4 +138,3 @@ self.addEventListener('periodicsync', (event) => {
     event.waitUntil(Promise.resolve());
   }
 });
-
