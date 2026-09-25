@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
 import type { AreaWithStatus } from '@/lib/areas';
@@ -19,6 +19,7 @@ import {
 
 const LOCATION_STALE_AFTER_MS = 2 * 60_000;
 const GPS_REFRESH_INTERVAL_MS = 30_000;
+const MOVEMENT_REFRESH_DISTANCE_METERS = 35;
 
 const STATUS_META = {
   on: { label: 'Power ON', icon: Zap, dot: 'bg-green-400', ring: 'ring-green-500/30', card: 'border-green-500/30 bg-green-500/5', text: 'text-green-400' },
@@ -86,7 +87,7 @@ function shouldUseLocationFix(next: LocationSnapshot, current: LocationSnapshot 
 
   const movedMeters = calculateDistanceKm(next.lat, next.lng, current.lat, current.lng) * 1000;
   return (
-    movedMeters > 35 &&
+    movedMeters > MOVEMENT_REFRESH_DISTANCE_METERS &&
     nextAccuracy <= Math.max(MAX_REPORTING_ACCURACY_METERS, currentAccuracy * 1.5)
   );
 }
@@ -132,6 +133,10 @@ export default function Home() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showCommunities, setShowCommunities] = useState(true);
   const [primaryArea, setPrimaryArea] = useState<string | null>(null);
+  const locationRef = useRef<LocationSnapshot | null>(null);
+  const lastAutoRefreshLocationRef = useRef<LocationSnapshot | null>(null);
+  const hasNearbyAreaRef = useRef(false);
+  const isSearchingRef = useRef(false);
 
   useEffect(() => {
     // Load primary area from local storage
@@ -142,6 +147,21 @@ export default function Home() {
       localStorage.removeItem('edsa_primary_area');
     }
   }, []);
+
+  useEffect(() => {
+    locationRef.current = location;
+    if (!lastAutoRefreshLocationRef.current && location) {
+      lastAutoRefreshLocationRef.current = location;
+    }
+  }, [location]);
+
+  useEffect(() => {
+    hasNearbyAreaRef.current = areas.some((area) => area.isNearby);
+  }, [areas]);
+
+  useEffect(() => {
+    isSearchingRef.current = Boolean(search.trim());
+  }, [search]);
 
   // Hazard Report State
   const [hazardType, setHazardType] = useState<HazardType>(HAZARD_TYPES[0]);
@@ -249,13 +269,33 @@ export default function Home() {
     );
   }, [handleLocationError, handleLocationSuccess]);
 
+  const refreshLocationWhenNeeded = useCallback(() => {
+    const currentLocation = locationRef.current;
+    const lastRefreshLocation = lastAutoRefreshLocationRef.current;
+    const movedMeters = currentLocation && lastRefreshLocation
+      ? calculateDistanceKm(
+        currentLocation.lat,
+        currentLocation.lng,
+        lastRefreshLocation.lat,
+        lastRefreshLocation.lng,
+      ) * 1000
+      : 0;
+    const areaNotFound = !isSearchingRef.current && !hasNearbyAreaRef.current;
+    const deviceIsMoving = movedMeters > MOVEMENT_REFRESH_DISTANCE_METERS;
+
+    if (areaNotFound || deviceIsMoving) {
+      lastAutoRefreshLocationRef.current = currentLocation;
+      requestLocation();
+    }
+  }, [requestLocation]);
+
   useEffect(() => {
     requestLocation();
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       return undefined;
     }
 
-    const refreshInterval = window.setInterval(requestLocation, GPS_REFRESH_INTERVAL_MS);
+    const refreshInterval = window.setInterval(refreshLocationWhenNeeded, GPS_REFRESH_INTERVAL_MS);
     const watchId = navigator.geolocation.watchPosition(
       handleLocationSuccess,
       handleLocationError,
@@ -270,7 +310,7 @@ export default function Home() {
       window.clearInterval(refreshInterval);
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [handleLocationError, handleLocationSuccess, requestLocation]);
+  }, [handleLocationError, handleLocationSuccess, refreshLocationWhenNeeded, requestLocation]);
 
   const closeReportModal = useCallback(() => {
     setReportModal(null);
