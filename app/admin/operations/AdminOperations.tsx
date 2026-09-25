@@ -37,8 +37,11 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Operation failed.');
       if (body.action === 'create-announcement') { setTitle(''); setMessage(''); }
-      await load();
+      if (body.action === 'set-flag' && result.flags) {
+        setData((current) => current ? { ...current, flags: result.flags } : current);
+      }
       setSuccess(body.action === 'create-announcement' ? 'Announcement is now live in the app.' : 'Operations control updated.');
+      void load().catch(() => undefined);
     } catch (err) { setError(err instanceof Error ? err.message : 'Operation failed.'); }
     finally { setBusy(null); }
   };
