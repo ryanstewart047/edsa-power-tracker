@@ -72,6 +72,7 @@ function TopUpContent() {
   const [newMeterName, setNewMeterName] = useState('');
   const [newMeterNumber, setNewMeterNumber] = useState('');
   const [showAddMeterModal, setShowAddMeterModal] = useState(false);
+  const [directTopUpNotice, setDirectTopUpNotice] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scannerError, setScannerError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -701,14 +702,19 @@ function TopUpContent() {
                 </div>
                 <button
                   type="button"
-                  disabled
-                  title="Awaiting EDSA verification and vending API credentials"
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-yellow-400/40 px-5 py-3 text-sm font-black text-slate-700 cursor-not-allowed"
+                  onClick={() => setDirectTopUpNotice(true)}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-yellow-400 px-5 py-3 text-sm font-black text-slate-950 transition-colors hover:bg-yellow-300"
                 >
                   <Zap className="h-4 w-4" />
                   Buy Now
                 </button>
               </div>
+              {directTopUpNotice && (
+                <div role="status" aria-live="polite" className="mt-4 flex items-start gap-2 rounded-xl border border-yellow-400/30 bg-slate-950/70 p-3 text-xs text-yellow-100">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-yellow-300" />
+                  <span>Direct EDSA top-up is coming soon. BridgeTech is preparing the verified vending connection, so please check back later.</span>
+                </div>
+              )}
             </section>
 
             {/* Provider Switcher with Brand Logos */}
