@@ -17,25 +17,28 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
 
   const load = useCallback(async () => {
-    const response = await fetch('/api/admin/operations', { cache: 'no-store' });
-    if (!response.ok) throw new Error('Could not load operations data.');
-    setData(await response.json());
+    const response = await fetch('/api/admin/operations', { cache: 'no-store', credentials: 'same-origin' });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Could not load operations data.');
+    setData(result);
   }, []);
 
   useEffect(() => { void load().catch((err) => setError(err.message)); }, [load]);
 
   const perform = async (body: Record<string, unknown>, key: string) => {
-    setBusy(key); setError(null);
+    setBusy(key); setError(null); setSuccess(null);
     try {
-      const response = await fetch('/api/admin/operations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const response = await fetch('/api/admin/operations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Operation failed.');
       if (body.action === 'create-announcement') { setTitle(''); setMessage(''); }
       await load();
+      setSuccess(body.action === 'create-announcement' ? 'Announcement is now live in the app.' : 'Operations control updated.');
     } catch (err) { setError(err instanceof Error ? err.message : 'Operation failed.'); }
     finally { setBusy(null); }
   };
@@ -50,6 +53,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
           <div className="flex gap-2"><Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"><ArrowLeft className="h-4 w-4" /> Dashboard</Link><button onClick={() => void load()} className="rounded-lg border border-white/10 p-2 hover:bg-white/5" aria-label="Refresh"><RefreshCw className="h-4 w-4" /></button></div>
         </header>
         {error && <p className="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
+        {success && <p className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</p>}
         <section className="grid gap-4 md:grid-cols-3">
           {Object.entries(data.definitions).map(([key, definition]) => <button key={key} onClick={() => void perform({ action: 'set-flag', key, enabled: !data.flags[key] }, key)} disabled={busy === key} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left hover:bg-white/[0.06] disabled:opacity-60"><span><Settings2 className="mb-3 h-5 w-5 text-yellow-400" /><span className="block font-bold">{definition.label}</span><span className="text-xs text-gray-400">{data.flags[key] ? 'Enabled in the app' : 'Temporarily disabled'}</span></span>{data.flags[key] ? <ToggleRight className="h-8 w-8 text-emerald-400" /> : <ToggleLeft className="h-8 w-8 text-gray-500" />}</button>)}
         </section>

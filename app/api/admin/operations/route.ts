@@ -10,22 +10,28 @@ async function requireAdmin() {
 }
 
 export async function GET() {
-  const admin = await requireAdmin();
-  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const admin = await requireAdmin();
+    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const [flags, feedback, announcements, logs, feedbackCount] = await Promise.all([
-    getFeatureFlags(),
-    prisma.feedbackSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
-    prisma.announcement.findMany({ orderBy: { createdAt: 'desc' }, take: 20 }),
-    prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }),
-    prisma.feedbackSubmission.count(),
-  ]);
-  return NextResponse.json({ flags, definitions: FEATURE_FLAGS, feedback, announcements, logs, feedbackCount });
+    const [flags, feedback, announcements, logs, feedbackCount] = await Promise.all([
+      getFeatureFlags(),
+      prisma.feedbackSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
+      prisma.announcement.findMany({ orderBy: { createdAt: 'desc' }, take: 20 }),
+      prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }),
+      prisma.feedbackSubmission.count(),
+    ]);
+    return NextResponse.json({ flags, definitions: FEATURE_FLAGS, feedback, announcements, logs, feedbackCount });
+  } catch (error) {
+    console.error('Admin operations GET error:', error);
+    return NextResponse.json({ error: 'Operations data is unavailable. Confirm the latest database schema has been deployed.' }, { status: 500 });
+  }
 }
 
 export async function POST(req: NextRequest) {
-  const admin = await requireAdmin();
-  if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  try {
+    const admin = await requireAdmin();
+    if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const body = await req.json() as Record<string, unknown>;
   if (body.action === 'set-flag') {
@@ -58,5 +64,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  return NextResponse.json({ error: 'Unsupported operation' }, { status: 400 });
+    return NextResponse.json({ error: 'Unsupported operation' }, { status: 400 });
+  } catch (error) {
+    console.error('Admin operations POST error:', error);
+    return NextResponse.json({ error: 'Could not save this operations change. Confirm the latest database schema has been deployed.' }, { status: 500 });
+  }
 }
