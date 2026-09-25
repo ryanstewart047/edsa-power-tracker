@@ -82,6 +82,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  if (body.action === 'clear-audit-log') {
+    await prisma.adminAuditLog.deleteMany();
+    return NextResponse.json({ success: true });
+  }
+
     return NextResponse.json({ error: 'Unsupported operation' }, { status: 400 });
   } catch (error) {
     console.error('Admin operations POST error:', error);

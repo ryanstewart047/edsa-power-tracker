@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Bell, MessageSquare, Pencil, RefreshCw, Settings2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronDown, ChevronUp, MessageSquare, Pencil, RefreshCw, Settings2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 
 type Data = {
   flags: Record<string, boolean>;
@@ -23,6 +23,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
   const [editingAnnouncementId, setEditingAnnouncementId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const [editingMessage, setEditingMessage] = useState('');
+  const [auditLogOpen, setAuditLogOpen] = useState(false);
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/operations', { cache: 'no-store', credentials: 'same-origin' });
@@ -62,6 +63,12 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
     }
   };
 
+  const clearAuditLog = () => {
+    if (window.confirm('Clear every admin activity entry? This cannot be undone.')) {
+      void perform({ action: 'clear-audit-log' }, 'clear-audit-log');
+    }
+  };
+
   if (!data) return <main className="min-h-screen bg-slate-950 p-8 text-white"><p>{error || 'Loading operations console...'}</p></main>;
 
   return (
@@ -98,7 +105,16 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
           </div>
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6"><div className="flex items-center gap-2"><MessageSquare className="h-5 w-5 text-yellow-400" /><h2 className="font-bold">Feedback inbox ({data.feedbackCount})</h2></div><div className="mt-5 max-h-[430px] space-y-3 overflow-y-auto">{data.feedback.length ? data.feedback.map((item) => <article key={item.id} className="rounded-lg bg-black/20 p-4"><p className="text-sm text-gray-200">{item.message}</p><p className="mt-2 text-xs text-gray-500">{item.name || 'Anonymous'} · {item.category} · {item.rating}/5 · {item.area || 'No area'} · {new Date(item.createdAt).toLocaleString()}</p></article>) : <p className="text-sm text-gray-500">No feedback received yet.</p>}</div></div>
         </section>
-        <section className="rounded-lg border border-white/10 bg-white/[0.03] p-6"><h2 className="font-bold">Admin activity log</h2><div className="mt-4 space-y-2">{data.logs.map((log) => <p key={log.id} className="text-sm text-gray-400"><span className="text-white">{log.action.replaceAll('_', ' ')}</span>{log.detail ? ` (${log.detail})` : ''} <span className="text-gray-600">by {log.adminEmail} · {new Date(log.createdAt).toLocaleString()}</span></p>)}</div></section>
+        <section className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div><h2 className="font-bold">Admin activity log</h2><p className="mt-1 text-xs text-gray-500">{data.logs.length} recent recorded actions</p></div>
+            <div className="flex items-center gap-2">
+              {auditLogOpen && data.logs.length > 0 && <button onClick={clearAuditLog} disabled={busy === 'clear-audit-log'} className="rounded-lg border border-red-400/30 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50">{busy === 'clear-audit-log' ? 'Clearing...' : 'Clear log'}</button>}
+              <button onClick={() => setAuditLogOpen((open) => !open)} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-200 hover:bg-white/5">{auditLogOpen ? <><ChevronUp className="h-4 w-4" /> Close</> : <><ChevronDown className="h-4 w-4" /> Expand</>}</button>
+            </div>
+          </div>
+          {auditLogOpen && <div className="mt-4 max-h-80 space-y-2 overflow-y-auto">{data.logs.length ? data.logs.map((log) => <p key={log.id} className="text-sm text-gray-400"><span className="text-white">{log.action.replaceAll('_', ' ')}</span>{log.detail ? ` (${log.detail})` : ''} <span className="text-gray-600">by {log.adminEmail} · {new Date(log.createdAt).toLocaleString()}</span></p>) : <p className="text-sm text-gray-500">No admin activity has been recorded.</p>}</div>}
+        </section>
       </div>
     </main>
   );
