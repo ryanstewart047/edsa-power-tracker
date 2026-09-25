@@ -24,6 +24,12 @@ import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/rep
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
+function isDesktopEnvironment() {
+  if (typeof window === 'undefined') return false;
+  const mobileUserAgent = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+  return !mobileUserAgent || window.matchMedia('(min-width: 768px) and (pointer: fine)').matches;
+}
+
 interface OnboardingStep {
   badge: string;
   title: string;
@@ -187,7 +193,10 @@ export default function AppOnboarding() {
 
   useEffect(() => {
     setIsAndroid(/android/i.test(navigator.userAgent));
-    setIsDesktop(!/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent));
+    const updateDeviceType = () => setIsDesktop(isDesktopEnvironment());
+    updateDeviceType();
+    window.addEventListener('resize', updateDeviceType);
+    return () => window.removeEventListener('resize', updateDeviceType);
   }, []);
 
   const requestLocation = () => {

@@ -17,6 +17,12 @@ import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/loc
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
+function isDesktopEnvironment() {
+  if (typeof window === 'undefined') return false;
+  const mobileUserAgent = /android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+  return !mobileUserAgent || window.matchMedia('(min-width: 768px) and (pointer: fine)').matches;
+}
+
 export type LocationState = 
   | 'INITIALIZING'
   | 'PERMISSION_PROMPT'
@@ -59,7 +65,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       const ua = navigator.userAgent.toLowerCase();
       setIsAndroid(/android/i.test(ua));
       setDesktopLocationSkipped(
-        !/android|iphone|ipad|ipod|mobile/i.test(ua) &&
+        isDesktopEnvironment() &&
         localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
       );
     }
@@ -71,7 +77,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       const completed = localStorage.getItem('edsa_welcome_onboarding_v1') === 'true';
       setOnboardingActive(!completed);
       setDesktopLocationSkipped(
-        !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) &&
+        isDesktopEnvironment() &&
         localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
       );
     };
