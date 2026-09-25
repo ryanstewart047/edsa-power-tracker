@@ -117,6 +117,24 @@ model AdminAuditLog {
   @@index([createdAt])
 }
 
+model DirectVendingTransaction {
+  id               String   @id @default(cuid())
+  idempotencyKey   String   @unique
+  meterNumber      String
+  amountMinor      Int
+  currency         String   @default("SLE")
+  status           String   @default("pending")
+  commissionBps    Int?
+  gatewayReference String?
+  tokenReference   String?
+  failureReason    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([meterNumber, createdAt])
+  @@index([status, createdAt])
+}
+
 model EmailVerificationToken {
   id          String    @id @default(cuid())
   tokenHash   String    @unique

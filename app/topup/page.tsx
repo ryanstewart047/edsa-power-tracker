@@ -693,6 +693,24 @@ function TopUpContent() {
         {/* TAB 1: USSD QUICK-PAY */}
         {activeTab === 'buy' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+            <section className="border border-yellow-400/20 bg-yellow-400/[0.05] p-5 rounded-2xl">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm font-black text-white">Buy direct EDSA meter top-up</p>
+                  <p className="mt-1 text-xs leading-relaxed text-gray-400">Coming after BridgeTech verification and secure EDSA vending API credentials are approved.</p>
+                </div>
+                <button
+                  type="button"
+                  disabled
+                  title="Awaiting EDSA verification and vending API credentials"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-yellow-400/40 px-5 py-3 text-sm font-black text-slate-700 cursor-not-allowed"
+                >
+                  <Zap className="h-4 w-4" />
+                  Buy Now
+                </button>
+              </div>
+            </section>
+
             {/* Provider Switcher with Brand Logos */}
             <div className="grid grid-cols-2 gap-3">
               <button

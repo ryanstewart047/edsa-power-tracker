@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { FEATURE_FLAGS, auditAdminAction, getFeatureFlags } from '@/lib/operations';
+import { getDirectVendingReadiness } from '@/lib/directVending';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,7 +22,7 @@ export async function GET() {
       prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }),
       prisma.feedbackSubmission.count(),
     ]);
-    return NextResponse.json({ flags, definitions: FEATURE_FLAGS, feedback, announcements, logs, feedbackCount });
+    return NextResponse.json({ flags, definitions: FEATURE_FLAGS, feedback, announcements, logs, feedbackCount, directVending: getDirectVendingReadiness() });
   } catch (error) {
     console.error('Admin operations GET error:', error);
     return NextResponse.json({ error: 'Operations data is unavailable. Confirm the latest database schema has been deployed.' }, { status: 500 });

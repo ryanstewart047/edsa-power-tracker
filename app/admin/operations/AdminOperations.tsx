@@ -11,6 +11,7 @@ type Data = {
   feedback: Array<{ id: string; name: string | null; email: string | null; category: string; rating: number; area: string | null; message: string; createdAt: string }>;
   announcements: Array<{ id: string; title: string; message: string; active: boolean; createdAt: string }>;
   logs: Array<{ id: string; action: string; detail: string | null; adminEmail: string; createdAt: string }>;
+  directVending: { enabled: boolean; approved: boolean; credentialsConfigured: boolean; message: string };
 };
 
 export default function AdminOperations({ adminEmail }: { adminEmail: string }) {
@@ -82,6 +83,12 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
         {success && <p className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</p>}
         <section className="grid gap-4 md:grid-cols-3">
           {Object.entries(data.definitions).map(([key, definition]) => <button key={key} onClick={() => void perform({ action: 'set-flag', key, enabled: !data.flags[key] }, key)} disabled={busy === key} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left hover:bg-white/[0.06] disabled:opacity-60"><span><Settings2 className="mb-3 h-5 w-5 text-yellow-400" /><span className="block font-bold">{definition.label}</span><span className="text-xs text-gray-400">{data.flags[key] ? 'Enabled in the app' : 'Temporarily disabled'}</span></span>{data.flags[key] ? <ToggleRight className="h-8 w-8 text-emerald-400" /> : <ToggleLeft className="h-8 w-8 text-gray-500" />}</button>)}
+        </section>
+        <section className="rounded-lg border border-yellow-400/20 bg-yellow-400/[0.04] p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div><p className="text-sm font-bold text-white">Direct EDSA vending readiness</p><p className="mt-1 text-xs text-gray-400">{data.directVending.message}</p></div>
+            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${data.directVending.enabled ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300' : 'border-yellow-400/30 bg-yellow-400/10 text-yellow-200'}`}>{data.directVending.enabled ? 'Ready' : 'Not live'}</span>
+          </div>
         </section>
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
