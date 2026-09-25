@@ -97,12 +97,52 @@ export default function AppOnboarding() {
       setLocationError('Permission was denied. Allow location access in browser or app settings to continue.');
     } else if (err.code === err.POSITION_UNAVAILABLE) {
       setLocationIssue('unavailable');
-      setLocationError('Location services are unavailable. Turn on device Location, then try again.');
+      const isDesktop = !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+      setLocationError(
+        isDesktop
+          ? 'Your browser could not get a location from this computer. Allow Location Services for your browser in system settings, then try again.'
+          : 'Location services are unavailable. Turn on device Location, then try again.',
+      );
     } else {
       setLocationIssue('accuracy');
       setLocationError('Unable to get an accurate GPS fix. Move to an open area, then try again.');
     }
   }, []);
+
+  const requestLocationWithFallback = useCallback((showLoading = false) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      setLocationError('Geolocation is not supported on this browser or device.');
+      return;
+    }
+
+    if (showLoading) setLocationLoading(true);
+    const succeed = (position: GeolocationPosition) => {
+      setLocationLoading(false);
+      handleLocationSuccess(position);
+    };
+    const fail = (error: GeolocationPositionError) => {
+      if (error.code !== error.POSITION_UNAVAILABLE && error.code !== error.TIMEOUT) {
+        handleLocationFailure(error);
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        succeed,
+        handleLocationFailure,
+        {
+          enableHighAccuracy: false,
+          timeout: GEOLOCATION_TIMEOUT_MS * 2,
+          maximumAge: GEOLOCATION_TIMEOUT_MS,
+        },
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      succeed,
+      fail,
+      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
+    );
+  }, [handleLocationFailure, handleLocationSuccess]);
 
   const checkExistingLocation = useCallback(() => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -112,11 +152,7 @@ export default function AppOnboarding() {
     if (navigator.permissions?.query) {
       navigator.permissions.query({ name: 'geolocation' }).then((permission) => {
         if (permission.state === 'granted') {
-          navigator.geolocation.getCurrentPosition(
-            handleLocationSuccess,
-            handleLocationFailure,
-            { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
-          );
+          requestLocationWithFallback();
         } else if (permission.state === 'denied') {
           setLocationGranted(false);
           setLocationIssue('denied');
@@ -127,13 +163,9 @@ export default function AppOnboarding() {
     }
 
     if (hasRequestedLocationRef.current) {
-      navigator.geolocation.getCurrentPosition(
-        handleLocationSuccess,
-        handleLocationFailure,
-        { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
-      );
+      requestLocationWithFallback();
     }
-  }, [handleLocationFailure, handleLocationSuccess]);
+  }, [requestLocationWithFallback]);
 
   // Re-check an existing grant when the app returns from system or browser settings.
   useEffect(() => {
@@ -156,22 +188,10 @@ export default function AppOnboarding() {
   }, []);
 
   const requestLocation = () => {
-    if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      setLocationError('Geolocation is not supported on this browser or device.');
-      return;
-    }
     hasRequestedLocationRef.current = true;
-    setLocationLoading(true);
     setLocationError(null);
     setLocationIssue(null);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLocationLoading(false);
-        handleLocationSuccess(pos);
-      },
-      handleLocationFailure,
-      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 }
-    );
+    requestLocationWithFallback(true);
   };
 
   const openLocationSettings = () => {
