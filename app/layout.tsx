@@ -62,6 +62,7 @@ import AppOnboarding from "@/components/AppOnboarding";
 import LocationGuard from "@/components/LocationGuard";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ChatBot from "@/components/ChatBot";
+import SiteFooter from "@/components/SiteFooter";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppOnboarding />
         <LocationGuard />
         {children}
+        <SiteFooter />
         <PWAInstallBanner />
         <FloatingPrompts />
         <MobileBottomNav />

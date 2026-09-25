@@ -25,7 +25,8 @@ import {
   ClipboardPaste,
   MessageSquare,
   AlertCircle,
-  ScanLine
+  ScanLine,
+  Loader2
 } from 'lucide-react';
 import { parseTokenSms, ParsedSmsToken } from '@/lib/tokenParser';
 
@@ -96,6 +97,8 @@ function TopUpContent() {
   const [parsedPreview, setParsedPreview] = useState<ParsedSmsToken | null>(null);
   const [detectedClipboardToken, setDetectedClipboardToken] = useState<ParsedSmsToken | null>(null);
   const [clipboardStatusMessage, setClipboardStatusMessage] = useState<string | null>(null);
+  const [checkingClipboard, setCheckingClipboard] = useState(false);
+  const clipboardStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load meters and tokens from localStorage
   useEffect(() => {
@@ -153,6 +156,16 @@ function TopUpContent() {
     }
   };
 
+  const showClipboardStatus = useCallback((message: string, durationMs = 3500) => {
+    if (clipboardStatusTimerRef.current) clearTimeout(clipboardStatusTimerRef.current);
+    setClipboardStatusMessage(message);
+    clipboardStatusTimerRef.current = setTimeout(() => setClipboardStatusMessage(null), durationMs);
+  }, []);
+
+  useEffect(() => () => {
+    if (clipboardStatusTimerRef.current) clearTimeout(clipboardStatusTimerRef.current);
+  }, []);
+
   // Apply parsed token to form inputs
   const applyParsedToken = useCallback((parsed: ParsedSmsToken) => {
     if (parsed.token) {
@@ -187,16 +200,20 @@ function TopUpContent() {
 
   // Option B: Check clipboard for 20-digit tokens
   const checkClipboardForToken = useCallback(async (manual = false) => {
+    if (manual) {
+      setCheckingClipboard(true);
+      showClipboardStatus('Checking your clipboard for a 20-digit token...', 10_000);
+    }
+
     try {
       if (typeof navigator === 'undefined' || !navigator.clipboard || !navigator.clipboard.readText) {
-        if (manual) setClipboardStatusMessage('Clipboard access not supported on this browser.');
+        if (manual) showClipboardStatus('Clipboard access is not supported on this browser. Paste the SMS text into the form instead.', 4500);
         return;
       }
       const clipText = await navigator.clipboard.readText();
       if (!clipText || clipText.trim().length === 0) {
         if (manual) {
-          setClipboardStatusMessage('Clipboard is empty.');
-          setTimeout(() => setClipboardStatusMessage(null), 3000);
+          showClipboardStatus('Clipboard is empty. Copy your token SMS, then scan again.');
         }
         return;
       }
@@ -207,23 +224,25 @@ function TopUpContent() {
         const alreadySaved = tokens.some(t => t.token === parsed.token);
         if (alreadySaved) {
           if (manual) {
-            setClipboardStatusMessage('Token in clipboard is already saved in your vault.');
-            setTimeout(() => setClipboardStatusMessage(null), 3500);
+            showClipboardStatus('A token was found, but it is already saved in your vault.');
           }
         } else {
           setDetectedClipboardToken(parsed);
+          if (manual) {
+            showClipboardStatus('New 20-digit token detected. Review the token banner to save it.', 5000);
+          }
         }
       } else if (manual) {
-        setClipboardStatusMessage('No 20-digit token found in your copied clipboard text.');
-        setTimeout(() => setClipboardStatusMessage(null), 3500);
+        showClipboardStatus('No 20-digit token was found. Copy the complete token SMS, then scan again.');
       }
     } catch {
       if (manual) {
-        setClipboardStatusMessage('Permission needed to read clipboard. You can paste into the box below.');
-        setTimeout(() => setClipboardStatusMessage(null), 4000);
+        showClipboardStatus('Clipboard permission is needed. Allow it in your browser, or paste the SMS text into the form below.', 4500);
       }
+    } finally {
+      if (manual) setCheckingClipboard(false);
     }
-  }, [tokens]);
+  }, [showClipboardStatus, tokens]);
 
   // Listen to focus and visibilitychange to detect new copied tokens when returning from SMS app
   useEffect(() => {
@@ -573,7 +592,7 @@ function TopUpContent() {
 
         {/* Temporary clipboard toast message */}
         {clipboardStatusMessage && (
-          <div className="p-3 rounded-xl bg-blue-500/20 border border-blue-400/30 text-blue-200 text-xs flex items-center gap-2">
+          <div role="status" aria-live="polite" className="fixed left-4 right-4 top-20 z-50 mx-auto flex max-w-md items-center gap-2 rounded-xl border border-blue-400/30 bg-slate-900/95 p-3 text-xs text-blue-200 shadow-xl backdrop-blur-md">
             <Info className="w-4 h-4 shrink-0" />
             <span>{clipboardStatusMessage}</span>
           </div>
@@ -897,11 +916,12 @@ function TopUpContent() {
                 <button
                   type="button"
                   onClick={() => checkClipboardForToken(true)}
-                  className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+                  disabled={checkingClipboard}
+                  className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:cursor-wait disabled:opacity-60"
                   title="Check clipboard for copied token"
                 >
-                  <ClipboardPaste className="w-4 h-4 text-yellow-400" />
-                  <span>Scan Clipboard</span>
+                  {checkingClipboard ? <Loader2 className="w-4 h-4 animate-spin text-yellow-400" /> : <ClipboardPaste className="w-4 h-4 text-yellow-400" />}
+                  <span>{checkingClipboard ? 'Checking...' : 'Scan Clipboard'}</span>
                 </button>
 
                 <button
@@ -936,10 +956,11 @@ function TopUpContent() {
                   <button
                     type="button"
                     onClick={() => checkClipboardForToken(true)}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-yellow-400 transition-colors flex items-center gap-1.5"
+                    disabled={checkingClipboard}
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-yellow-400 transition-colors flex items-center gap-1.5 disabled:cursor-wait disabled:opacity-60"
                   >
-                    <ClipboardPaste className="w-4 h-4" />
-                    <span>Scan Clipboard</span>
+                    {checkingClipboard ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardPaste className="w-4 h-4" />}
+                    <span>{checkingClipboard ? 'Checking...' : 'Scan Clipboard'}</span>
                   </button>
                   <button
                     type="button"

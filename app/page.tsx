@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Map, Smartphone, KeyRound } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Smartphone, KeyRound } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 import WorkSlider from '@/components/WorkSlider';
 import AdUnit from '@/components/AdUnit';
@@ -216,45 +216,6 @@ export default function WelcomePage() {
         <AdUnit />
       </section>
 
-
-
-      <footer className="relative z-10 border-t border-white/5 py-12 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="flex items-center gap-4 text-gray-500">
-            <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center">
-              <Map className="h-4 w-4" />
-            </div>
-            <p className="text-xs font-bold uppercase tracking-widest">Sierra Leone Operations Unit</p>
-          </div>
-          <div className="flex flex-col items-center md:items-end gap-1">
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Developed by</p>
-            <p className="text-xs text-yellow-500/80 font-black">Ryan J Stewart, BCA</p>
-            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-tighter">Amity University India</p>
-          </div>
-        </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between gap-4 text-center">
-          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-gray-400">
-            <Link href="/feedback" className="hover:text-yellow-400 transition-colors">
-              Give Feedback
-            </Link>
-            <span>•</span>
-            <Link href="/privacy" className="hover:text-yellow-400 transition-colors">
-              Privacy Policy
-            </Link>
-            <span>•</span>
-            <Link href="/terms" className="hover:text-yellow-400 transition-colors">
-              Terms & Conditions
-            </Link>
-            <span>•</span>
-            <Link href="/data-deletion" className="hover:text-yellow-400 transition-colors">
-              Data Deletion
-            </Link>
-          </div>
-          <p className="text-[10px] text-gray-600 font-medium tracking-tight uppercase">
-            © {new Date().getFullYear()} EDSA Power Tracker • BridgeTech IT Services
-          </p>
-        </div>
-      </footer>
     </main>
   );
 }
