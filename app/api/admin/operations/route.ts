@@ -64,6 +64,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  if (body.action === 'update-announcement' && typeof body.id === 'string') {
+    const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
+    const message = typeof body.message === 'string' ? body.message.trim().slice(0, 500) : '';
+    if (!title || !message) return NextResponse.json({ error: 'Title and message are required' }, { status: 400 });
+    const announcement = await prisma.announcement.update({
+      where: { id: body.id },
+      data: { title, message },
+    });
+    await auditAdminAction(admin.email, 'announcement_updated', announcement.id);
+    return NextResponse.json({ success: true, announcement });
+  }
+
+  if (body.action === 'delete-announcement' && typeof body.id === 'string') {
+    await prisma.announcement.delete({ where: { id: body.id } });
+    await auditAdminAction(admin.email, 'announcement_deleted', body.id);
+    return NextResponse.json({ success: true });
+  }
+
     return NextResponse.json({ error: 'Unsupported operation' }, { status: 400 });
   } catch (error) {
     console.error('Admin operations POST error:', error);
