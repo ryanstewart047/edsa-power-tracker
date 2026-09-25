@@ -37,6 +37,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
+  const [desktopLocationSkipped, setDesktopLocationSkipped] = useState(false);
   const [onboardingActive, setOnboardingActive] = useState(true);
   const [showManualGuide, setShowManualGuide] = useState(false);
   
@@ -57,6 +58,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     if (typeof window !== 'undefined') {
       const ua = navigator.userAgent.toLowerCase();
       setIsAndroid(/android/i.test(ua));
+      setDesktopLocationSkipped(
+        !/android|iphone|ipad|ipod|mobile/i.test(ua) &&
+        localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
+      );
     }
   }, []);
 
@@ -65,6 +70,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     const checkOnboarding = () => {
       const completed = localStorage.getItem('edsa_welcome_onboarding_v1') === 'true';
       setOnboardingActive(!completed);
+      setDesktopLocationSkipped(
+        !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent) &&
+        localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
+      );
     };
 
     checkOnboarding();
@@ -284,7 +293,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   };
 
   // If route is exempt or onboarding still active or location ready, don't block
-  if (isExemptRoute || onboardingActive || state === 'READY') {
+  if (isExemptRoute || onboardingActive || desktopLocationSkipped || state === 'READY') {
     return null;
   }
 

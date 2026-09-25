@@ -46,6 +46,8 @@ export default function AppOnboarding() {
   const [locationIssue, setLocationIssue] = useState<'denied' | 'unavailable' | 'accuracy' | null>(null);
   const [showLocationHelp, setShowLocationHelp] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+  const [locationSkippedOnDesktop, setLocationSkippedOnDesktop] = useState(false);
   const hasRequestedLocationRef = useRef(false);
 
   useEffect(() => {
@@ -185,6 +187,7 @@ export default function AppOnboarding() {
 
   useEffect(() => {
     setIsAndroid(/android/i.test(navigator.userAgent));
+    setIsDesktop(!/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent));
   }, []);
 
   const requestLocation = () => {
@@ -211,6 +214,14 @@ export default function AppOnboarding() {
     localStorage.setItem('edsa_terms_accepted_v1', 'true');
     window.dispatchEvent(new Event(LOCATION_ONBOARDING_COMPLETE_EVENT));
     setIsVisible(false);
+  };
+
+  const skipLocationOnDesktop = () => {
+    localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+    setLocationSkippedOnDesktop(true);
+    setLocationError(null);
+    setLocationIssue(null);
+    setCurrentStep(2);
   };
 
   const steps: OnboardingStep[] = [
@@ -360,6 +371,15 @@ export default function AppOnboarding() {
                   </>
                 )}
               </button>
+              {isDesktop && !locationGranted && (
+                <button
+                  type="button"
+                  onClick={skipLocationOnDesktop}
+                  className="w-full text-center text-xs font-bold text-gray-400 underline underline-offset-4 transition-colors hover:text-white"
+                >
+                  Continue without location on this computer
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -476,7 +496,8 @@ export default function AppOnboarding() {
   const isLastStep = currentStep === steps.length - 1;
   const isTermsStep = currentStep === 0;
   const isLocationStep = currentStep === 1;
-  const isNextDisabled = (isTermsStep && !termsAccepted) || (isLocationStep && !locationGranted);
+  const canSkipLocation = isDesktop && locationSkippedOnDesktop;
+  const isNextDisabled = (isTermsStep && !termsAccepted) || (isLocationStep && !locationGranted && !canSkipLocation);
 
   const nextStep = () => {
     if (isNextDisabled) return;
@@ -578,15 +599,15 @@ export default function AppOnboarding() {
                   onClick={() => {
                     if (idx === 0) { setCurrentStep(0); return; }
                     if (!termsAccepted) return;
-                    if (idx > 1 && !locationGranted) return;
+                    if (idx > 1 && !locationGranted && !canSkipLocation) return;
                     setCurrentStep(idx);
                   }}
-                  disabled={(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted)}
+                  disabled={(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted && !canSkipLocation)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     idx === currentStep 
                       ? 'w-8 bg-yellow-400' 
                       : 'w-2 bg-white/20 hover:bg-white/40'
-                  } ${(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted) ? 'opacity-30 cursor-not-allowed' : ''}`}
+                  } ${(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted && !canSkipLocation) ? 'opacity-30 cursor-not-allowed' : ''}`}
                   aria-label={`Go to step ${idx + 1}`}
                 />
               ))}
@@ -625,8 +646,8 @@ export default function AppOnboarding() {
                   </>
                 ) : isLocationStep ? (
                   <>
-                    <span>{locationGranted ? 'GPS Verified — Continue' : 'Allow GPS to Continue'}</span>
-                    <ChevronRight className={`w-4 h-4 ${locationGranted ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
+                    <span>{locationGranted ? 'GPS Verified — Continue' : canSkipLocation ? 'Continue on Desktop' : 'Allow GPS to Continue'}</span>
+                    <ChevronRight className={`w-4 h-4 ${locationGranted || canSkipLocation ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
                   </>
                 ) : (
                   <>
