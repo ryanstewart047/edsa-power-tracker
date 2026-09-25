@@ -87,43 +87,71 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       setIsRequesting(true);
     }
 
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const accuracy = position.coords.accuracy;
-        if (!Number.isFinite(accuracy) || accuracy > MAX_REPORTING_ACCURACY_METERS) {
-          const roundedAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
-          setState('LOW_ACCURACY');
-          setErrorMessage(
-            roundedAccuracy === null
-              ? 'Your device did not provide a GPS accuracy radius. Turn on Precise Location and try again.'
+    const acceptPosition = (position: GeolocationPosition) => {
+      const accuracy = position.coords.accuracy;
+      if (!Number.isFinite(accuracy) || accuracy > MAX_REPORTING_ACCURACY_METERS) {
+        const roundedAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
+        const isDesktop = !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+        setState('LOW_ACCURACY');
+        setErrorMessage(
+          roundedAccuracy === null
+            ? 'Your browser did not provide a location accuracy radius. Check browser and operating-system Location Services, then try again.'
+            : isDesktop
+              ? `Your browser location is about ${roundedAccuracy}m accurate. Improve your computer's Location Services to reach the required ${MAX_REPORTING_ACCURACY_METERS}m accuracy.`
               : `Your current GPS accuracy is about ${roundedAccuracy}m. Move outdoors or turn on Precise Location to reach the required ${MAX_REPORTING_ACCURACY_METERS}m accuracy.`,
-          );
-          setIsRequesting(false);
+        );
+        setIsRequesting(false);
+        return;
+      }
+      setState('READY');
+      setErrorMessage(null);
+      setIsRequesting(false);
+      if (onLocationReady) {
+        onLocationReady(position);
+      }
+    };
+
+    const reportFailure = (error: GeolocationPositionError) => {
+      setIsRequesting(false);
+      if (error.code === error.PERMISSION_DENIED) {
+        setState('PERMISSION_DENIED');
+        setErrorMessage('Location permission was denied. EDSA Tracker requires access to your GPS to operate.');
+      } else if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
+        setState('GPS_UNAVAILABLE');
+        const isDesktop = !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
+        setErrorMessage(
+          isDesktop
+            ? 'Your browser could not get a location from this computer. Check that Location Services are enabled in your operating system and allowed for this browser, then try again.'
+            : 'We could not get a location fix. Check Location Services, move to an open area, and try again.',
+        );
+      } else {
+        setState('GPS_UNAVAILABLE');
+        setErrorMessage('We could not verify your location. Check Location services and try again.');
+      }
+    };
+
+    const tryBrowserLocation = () => {
+      navigator.geolocation.getCurrentPosition(
+        acceptPosition,
+        reportFailure,
+        {
+          // Desktop browsers frequently have no GPS receiver, but can resolve a
+          // location through the operating system, Wi-Fi, or network provider.
+          enableHighAccuracy: false,
+          timeout: GEOLOCATION_TIMEOUT_MS * 2,
+          maximumAge: GEOLOCATION_TIMEOUT_MS,
+        },
+      );
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      acceptPosition,
+      (error) => {
+        if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
+          tryBrowserLocation();
           return;
         }
-        setState('READY');
-        setErrorMessage(null);
-        setIsRequesting(false);
-        if (onLocationReady) {
-          onLocationReady(position);
-        }
-      },
-      (error) => {
-        setIsRequesting(false);
-        if (error.code === error.PERMISSION_DENIED) {
-          setState('PERMISSION_DENIED');
-          setErrorMessage('Location permission was denied. EDSA Tracker requires access to your GPS to operate.');
-        } else if (error.code === error.POSITION_UNAVAILABLE) {
-          // This is the closest reliable browser signal for location services being unavailable.
-          setState('GPS_OFF');
-          setErrorMessage('Your device location (GPS) is turned OFF. Please enable location services in your device settings.');
-        } else if (error.code === error.TIMEOUT) {
-          setState('GPS_UNAVAILABLE');
-          setErrorMessage('We could not get an accurate GPS fix. Move to an open area, turn on Precise Location, then try again.');
-        } else {
-          setState('GPS_UNAVAILABLE');
-          setErrorMessage('We could not verify your location. Check Location services and try again.');
-        }
+        reportFailure(error);
       },
       {
         enableHighAccuracy: true,
