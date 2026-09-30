@@ -22,8 +22,8 @@
   "edge_side_panel": {
     "preferred_width": 480
   },
-  "background_color": "#020617",
-  "theme_color": "#eab308",
+  "background_color": "#2607d5",
+  "theme_color": "#2607d5",
   "orientation": "portrait-primary",
   "lang": "en",
   "dir": "ltr",
