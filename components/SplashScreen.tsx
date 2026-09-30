@@ -39,7 +39,7 @@ export default function SplashScreen() {
               className="relative w-64 sm:w-72"
             >
               <Image
-                src="/assets/edsa-playstore-icon-candidate.png"
+                src="/assets/edsa-splash-logo.png"
                 alt="EDSA - Electricity Distribution and Supply Authority"
                 width={512}
                 height={512}
