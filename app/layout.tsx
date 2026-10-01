@@ -7,7 +7,7 @@ import FloatingPrompts from "@/components/FloatingPrompts";
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
-  themeColor: "#eab308",
+  themeColor: "#2607d5",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   keywords: ["EDSA", "power", "electricity", "Freetown", "Sierra Leone", "outage", "hazard", "operations"],
   icons: {
-    icon: "/assets/icon-192.png",
-    apple: "/assets/icon-192.png",
+    icon: "/assets/edsa-icon-v2-192.png",
+    apple: "/assets/edsa-icon-v2-192.png",
   },
   appleWebApp: {
     capable: true,

@@ -31,25 +31,25 @@
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "/assets/icon-192.png",
+      "src": "/assets/edsa-icon-v2-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icon-maskable-192.png",
+      "src": "/assets/edsa-icon-v2-maskable-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/assets/icon-512.png",
+      "src": "/assets/edsa-icon-v2-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/assets/icon-maskable-512.png",
+      "src": "/assets/edsa-icon-v2-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
@@ -77,21 +77,21 @@
       "short_name": "Tracker",
       "description": "View live electricity status across Freetown",
       "url": "/?shortcut=tracker",
-      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/assets/edsa-icon-v2-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Report Hazard",
       "short_name": "Report",
       "description": "Quickly report power line hazards and broken transformers",
       "url": "/?shortcut=report",
-      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/assets/edsa-icon-v2-192.png", "sizes": "192x192", "type": "image/png" }]
     },
     {
       "name": "Meter Top-Up & Vault",
       "short_name": "Top-Up",
       "description": "Prepaid meter token vault and USSD top-up",
       "url": "/topup",
-      "icons": [{ "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+      "icons": [{ "src": "/assets/edsa-icon-v2-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

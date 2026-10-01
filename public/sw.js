@@ -1,12 +1,12 @@
-const CACHE_NAME = 'edsa-tracker-v4';
+const CACHE_NAME = 'edsa-tracker-v5';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
   '/',
   '/offline.html',
   '/manifest.json',
-  '/assets/icon-192.png',
-  '/assets/icon-512.png'
+  '/assets/edsa-icon-v2-192.png',
+  '/assets/edsa-icon-v2-512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -98,8 +98,8 @@ self.addEventListener('push', (event) => {
   const title = data.title || 'EDSA Power Tracker';
   const options = {
     body: data.body || 'Power status or emergency update for your area.',
-    icon: '/assets/icon-192.png',
-    badge: '/assets/icon-192.png',
+    icon: '/assets/edsa-icon-v2-192.png',
+    badge: '/assets/edsa-icon-v2-192.png',
     data: data.url || '/'
   };
 
