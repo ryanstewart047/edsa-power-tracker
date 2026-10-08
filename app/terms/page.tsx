@@ -131,20 +131,21 @@ export default function TermsAndConditionsPage() {
           </div>
         </section>
 
-        {/* Footer Navigation */}
-        <div className="pt-6 border-t border-white/10 flex flex-wrap gap-4 text-xs text-gray-400">
-          <Link href="/" className="hover:text-yellow-400 transition-colors">
-            ← Return to Home
-          </Link>
-          <span>•</span>
-          <Link href="/privacy" className="hover:text-yellow-400 transition-colors">
-            Privacy Policy
-          </Link>
-          <span>•</span>
-          <Link href="/data-deletion" className="hover:text-yellow-400 transition-colors">
-            Data Deletion
-          </Link>
-        </div>
+        {/* Legal & Support Links */}
+        <section className="border-t border-white/10 pt-8 space-y-3">
+          <p className="text-xs font-black uppercase tracking-widest text-gray-400">Related Legal & Support</p>
+          <div className="flex flex-wrap gap-2.5">
+            <a href="https://edsa-power-tracker.vercel.app/feedback" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+              Give Feedback
+            </a>
+            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+              Privacy Policy
+            </a>
+            <a href="https://edsa-power-tracker.vercel.app/data-deletion" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+              Data Deletion
+            </a>
+          </div>
+        </section>
 
       </div>
     </main>

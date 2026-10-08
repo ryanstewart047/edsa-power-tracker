@@ -110,6 +110,22 @@ export default function DataDeletionPage() {
           </div>
         </section>
 
+        {/* Legal & Support Links */}
+        <section className="border-t border-white/10 pt-8 space-y-3">
+          <p className="text-xs font-black uppercase tracking-widest text-gray-400">Related Legal & Support</p>
+          <div className="flex flex-wrap gap-2.5">
+            <a href="https://edsa-power-tracker.vercel.app/feedback" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+              Give Feedback
+            </a>
+            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+              Privacy Policy
+            </a>
+            <a href="https://edsa-power-tracker.vercel.app/terms" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+              Terms & Conditions
+            </a>
+          </div>
+        </section>
+
       </div>
     </main>
   );
