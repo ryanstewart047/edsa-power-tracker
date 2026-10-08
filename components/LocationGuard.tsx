@@ -43,6 +43,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isRequesting, setIsRequesting] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
   const [desktopLocationSkipped, setDesktopLocationSkipped] = useState(false);
   const [onboardingActive, setOnboardingActive] = useState(true);
   const [showManualGuide, setShowManualGuide] = useState(false);
@@ -59,13 +60,15 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     pathname.startsWith('/feedback') ||
     pathname.startsWith('/topup');
 
-  // Detect Android device
+  // Detect Android device and Desktop environment
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const ua = navigator.userAgent.toLowerCase();
       setIsAndroid(/android/i.test(ua));
+      const desktop = isDesktopEnvironment();
+      setIsDesktop(desktop);
       setDesktopLocationSkipped(
-        isDesktopEnvironment() &&
+        desktop &&
         localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
       );
     }
@@ -76,8 +79,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     const checkOnboarding = () => {
       const completed = localStorage.getItem('edsa_welcome_onboarding_v1') === 'true';
       setOnboardingActive(!completed);
+      const desktop = isDesktopEnvironment();
+      setIsDesktop(desktop);
       setDesktopLocationSkipped(
-        isDesktopEnvironment() &&
+        desktop &&
         localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
       );
     };
@@ -89,6 +94,14 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       window.removeEventListener(LOCATION_ONBOARDING_COMPLETE_EVENT, checkOnboarding);
       window.removeEventListener('storage', checkOnboarding);
     };
+  }, []);
+
+  const handleSkipOnDesktop = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+      setDesktopLocationSkipped(true);
+      setState('READY');
+    }
   }, []);
 
   // Core function to test GPS availability and acquire coordinates
@@ -243,8 +256,18 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     };
   }, [checkStatus]);
 
-  // Auto-polling when blocked to catch quick settings toggle
+  // Auto-polling when blocked to catch quick settings toggle (mobile only)
   useEffect(() => {
+    // Avoid repeated background polling on desktop, where computers lack GPS hardware
+    // and repeated queries cause CoreLocation / kCLErrorLocationUnknown log spam.
+    if (isDesktop && (state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY')) {
+      if (pollTimerRef.current) {
+        clearInterval(pollTimerRef.current);
+        pollTimerRef.current = null;
+      }
+      return;
+    }
+
     if (state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY') {
       pollTimerRef.current = setInterval(() => {
         if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
@@ -484,6 +507,17 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                   <span>I Allowed Permission — Re-Check</span>
                 </button>
               </>
+            )}
+
+            {isDesktop && (
+              <button
+                type="button"
+                onClick={handleSkipOnDesktop}
+                className="w-full py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
+              >
+                <span>Continue without location on this computer</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
             )}
 
             {!showManualGuide && (state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY' || state === 'PERMISSION_DENIED') && (

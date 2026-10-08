@@ -93,13 +93,20 @@ function shouldUseLocationFix(next: LocationSnapshot, current: LocationSnapshot 
 }
 
 function getGeolocationErrorMessage(error: GeolocationPositionError): string {
+  const isDesktop = typeof window !== 'undefined' && !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
   switch (error.code) {
     case error.PERMISSION_DENIED:
-      return 'Location permission was denied. Enable GPS access in your browser settings to submit reports.';
+      return isDesktop
+        ? 'Location permission was denied. You can search and select your community from the list below.'
+        : 'Location permission was denied. Enable GPS access in your browser settings to submit reports.';
     case error.POSITION_UNAVAILABLE:
-      return 'Your location could not be determined right now. Try moving to a clearer spot.';
+      return isDesktop
+        ? 'Your computer does not have a GPS receiver or location is unavailable. You can search and select your community below.'
+        : 'Your location could not be determined right now. Try moving to a clearer spot.';
     case error.TIMEOUT:
-      return 'Location lookup timed out. Refresh GPS and try again.';
+      return isDesktop
+        ? 'Location lookup timed out. You can search and select your community from the list below.'
+        : 'Location lookup timed out. Refresh GPS and try again.';
     default:
       return 'Unable to verify your location right now.';
   }
