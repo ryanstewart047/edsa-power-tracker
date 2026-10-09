@@ -25,6 +25,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
   const [editingTitle, setEditingTitle] = useState('');
   const [editingMessage, setEditingMessage] = useState('');
   const [auditLogOpen, setAuditLogOpen] = useState(false);
+  const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'excited' | 'happy' | 'sad'>('all');
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/operations', { cache: 'no-store', credentials: 'same-origin' });
@@ -70,7 +71,31 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
     }
   };
 
+  const deleteFeedback = (id: string) => {
+    if (window.confirm('Delete this feedback item? This cannot be undone.')) {
+      void perform({ action: 'delete-feedback', id }, `delete-fb-${id}`);
+    }
+  };
+
   if (!data) return <main className="min-h-screen bg-slate-950 p-8 text-white"><p>{error || 'Loading operations console...'}</p></main>;
+
+  const getFeedbackSentiment = (item: Data['feedback'][number]) => {
+    const cat = (item.category || '').toLowerCase();
+    const msg = (item.message || '').toLowerCase();
+    if (item.rating === 5 || cat.includes('excited') || msg.includes('🤩') || msg.includes('excited')) return 'excited';
+    if (item.rating === 4 || cat.includes('happy') || msg.includes('😊') || msg.includes('happy')) return 'happy';
+    if (item.rating <= 2 || cat.includes('sad') || msg.includes('😞') || msg.includes('sad')) return 'sad';
+    return 'happy';
+  };
+
+  const totalFeedbackCount = data.feedback.length;
+  const excitedCount = data.feedback.filter((i) => getFeedbackSentiment(i) === 'excited').length;
+  const happyCount = data.feedback.filter((i) => getFeedbackSentiment(i) === 'happy').length;
+  const sadCount = data.feedback.filter((i) => getFeedbackSentiment(i) === 'sad').length;
+
+  const filteredFeedback = feedbackFilter === 'all'
+    ? data.feedback
+    : data.feedback.filter((i) => getFeedbackSentiment(i) === feedbackFilter);
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
@@ -110,7 +135,155 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
               {data.announcements.length === 0 && <p className="text-sm text-gray-500">No announcements have been created.</p>}
             </div>
           </div>
-          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6"><div className="flex items-center gap-2"><MessageSquare className="h-5 w-5 text-yellow-400" /><h2 className="font-bold">Feedback inbox ({data.feedbackCount})</h2></div><div className="mt-5 max-h-[430px] space-y-3 overflow-y-auto">{data.feedback.length ? data.feedback.map((item) => <article key={item.id} className="rounded-lg bg-black/20 p-4"><p className="text-sm text-gray-200">{item.message}</p><p className="mt-2 text-xs text-gray-500">{item.name || 'Anonymous'} · {item.category} · {item.rating}/5 · {item.area || 'No area'} · {new Date(item.createdAt).toLocaleString()}</p></article>) : <p className="text-sm text-gray-500">No feedback received yet.</p>}</div></div>
+          <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6 space-y-5">
+            {/* Header */}
+            <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-5 w-5 text-yellow-400" />
+                <h2 className="font-bold text-lg">Citizen Feedback Inbox ({data.feedbackCount})</h2>
+              </div>
+            </div>
+
+            {/* Emoji Sentiment Overview Cards */}
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-3 text-center">
+                <span className="text-2xl">🤩</span>
+                <p className="mt-1 text-xs font-bold text-yellow-300">Excited</p>
+                <p className="text-lg font-black text-white">{excitedCount}</p>
+                <p className="text-[10px] text-gray-400">
+                  {totalFeedbackCount ? Math.round((excitedCount / totalFeedbackCount) * 100) : 0}%
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-center">
+                <span className="text-2xl">😊</span>
+                <p className="mt-1 text-xs font-bold text-emerald-300">Happy</p>
+                <p className="text-lg font-black text-white">{happyCount}</p>
+                <p className="text-[10px] text-gray-400">
+                  {totalFeedbackCount ? Math.round((happyCount / totalFeedbackCount) * 100) : 0}%
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-3 text-center">
+                <span className="text-2xl">😞</span>
+                <p className="mt-1 text-xs font-bold text-rose-300">Sad</p>
+                <p className="text-lg font-black text-white">{sadCount}</p>
+                <p className="text-[10px] text-gray-400">
+                  {totalFeedbackCount ? Math.round((sadCount / totalFeedbackCount) * 100) : 0}%
+                </p>
+              </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              <button
+                type="button"
+                onClick={() => setFeedbackFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  feedbackFilter === 'all'
+                    ? 'bg-yellow-400 text-slate-950 shadow-sm'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                All ({totalFeedbackCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFeedbackFilter('excited')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  feedbackFilter === 'excited'
+                    ? 'bg-yellow-400/30 border border-yellow-400 text-yellow-300'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                🤩 Excited ({excitedCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFeedbackFilter('happy')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  feedbackFilter === 'happy'
+                    ? 'bg-emerald-500/30 border border-emerald-400 text-emerald-300'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                😊 Happy ({happyCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFeedbackFilter('sad')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                  feedbackFilter === 'sad'
+                    ? 'bg-rose-500/30 border border-rose-400 text-rose-300'
+                    : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                😞 Sad ({sadCount})
+              </button>
+            </div>
+
+            {/* Feedback List */}
+            <div className="max-h-[460px] space-y-3 overflow-y-auto pr-1">
+              {filteredFeedback.length ? (
+                filteredFeedback.map((item) => {
+                  const sentiment = getFeedbackSentiment(item);
+                  const sentimentEmoji = sentiment === 'excited' ? '🤩' : sentiment === 'happy' ? '😊' : '😞';
+                  const sentimentColor =
+                    sentiment === 'excited'
+                      ? 'border-yellow-400/30 bg-yellow-400/10 text-yellow-300'
+                      : sentiment === 'happy'
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
+                      : 'border-rose-500/30 bg-rose-500/10 text-rose-300';
+
+                  return (
+                    <article key={item.id} className="rounded-xl border border-white/5 bg-black/30 p-4 space-y-2 hover:border-white/10 transition-colors">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold border ${sentimentColor}`}>
+                            <span>{sentimentEmoji}</span>
+                            <span className="capitalize">{sentiment}</span>
+                          </span>
+                          <span className="text-xs font-mono text-gray-400 bg-white/5 px-2 py-0.5 rounded">
+                            {item.rating}/5 ★
+                          </span>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => deleteFeedback(item.id)}
+                          disabled={busy === `delete-fb-${item.id}`}
+                          className="rounded-md p-1.5 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                          title="Delete feedback"
+                          aria-label="Delete feedback"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+
+                      <p className="text-sm text-gray-200 leading-relaxed font-medium">
+                        {item.message}
+                      </p>
+
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-[11px] text-gray-400">
+                        <span>
+                          <strong className="text-white">{item.name || 'Anonymous Citizen'}</strong>
+                          {item.area ? ` • 📍 ${item.area}` : ''}
+                          {item.category ? ` • ${item.category}` : ''}
+                        </span>
+                        <span className="text-gray-500">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    </article>
+                  );
+                })
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-8">
+                  No {feedbackFilter !== 'all' ? feedbackFilter : ''} feedback received yet.
+                </p>
+              )}
+            </div>
+          </div>
         </section>
         <section className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">

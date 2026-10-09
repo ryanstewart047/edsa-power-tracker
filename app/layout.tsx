@@ -64,6 +64,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import ChatBot from "@/components/ChatBot";
 import SiteFooter from "@/components/SiteFooter";
 import OperationsNotice from "@/components/OperationsNotice";
+import EmojiFeedbackModal from "@/components/EmojiFeedbackModal";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <OperationsNotice />
         {children}
         <SiteFooter />
+        <EmojiFeedbackModal />
         <PWAInstallBanner />
         <FloatingPrompts />
         <MobileBottomNav />

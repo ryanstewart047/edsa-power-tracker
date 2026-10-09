@@ -83,6 +83,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
+  if (body.action === 'delete-feedback' && typeof body.id === 'string') {
+    await prisma.feedbackSubmission.delete({ where: { id: body.id } });
+    await auditAdminAction(admin.email, 'feedback_deleted', body.id);
+    return NextResponse.json({ success: true });
+  }
+
   if (body.action === 'clear-audit-log') {
     await prisma.adminAuditLog.deleteMany();
     return NextResponse.json({ success: true });

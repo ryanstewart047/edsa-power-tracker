@@ -111,6 +111,52 @@ export default function FeedbackPage() {
           </p>
         </div>
 
+        {!submitted && (
+          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center space-y-3">
+            <p className="text-xs font-bold text-gray-300">
+              ⚡ Short on time? Tap an emoji for a quick 1-tap reaction:
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('open-emoji-feedback'));
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold transition-all active:scale-95"
+              >
+                <span className="text-xl">😞</span>
+                <span>Sad / Issues</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('open-emoji-feedback'));
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-bold transition-all active:scale-95"
+              >
+                <span className="text-xl">😊</span>
+                <span>Happy / Good</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('open-emoji-feedback'));
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-yellow-400/30 bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-300 text-xs font-bold transition-all active:scale-95"
+              >
+                <span className="text-xl">🤩</span>
+                <span>Excited / Loving it</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {submitted ? (
           /* Submission Success State */
           <div className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-green-500/30 rounded-3xl p-8 md:p-12 text-center space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
