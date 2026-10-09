@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Sparkles, CheckCircle2, MessageSquare, Loader2, MapPin } from 'lucide-react';
+import { X, Send, Sparkles, CheckCircle2, Loader2, MapPin } from 'lucide-react';
 
 export type EmojiType = 'sad' | 'happy' | 'excited';
 

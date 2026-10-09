@@ -286,7 +286,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
         clearInterval(pollTimerRef.current);
       }
     };
-  }, [state, probeLocation]);
+  }, [state, probeLocation, isDesktop]);
 
   // User Actions
   const handleRequestPermission = () => {
