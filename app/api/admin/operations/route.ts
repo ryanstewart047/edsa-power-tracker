@@ -17,7 +17,7 @@ export async function GET() {
 
     const [flags, feedback, announcements, logs, feedbackCount] = await Promise.all([
       getFeatureFlags(),
-      prisma.feedbackSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
+      prisma.feedbackSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
       prisma.announcement.findMany({ orderBy: { createdAt: 'desc' }, take: 20 }),
       prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }),
       prisma.feedbackSubmission.count(),

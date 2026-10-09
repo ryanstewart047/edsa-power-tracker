@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Bell, ChevronDown, ChevronUp, MessageSquare, Pencil, RefreshCw, Settings2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
+import { ArrowLeft, Bell, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, MessageSquare, Pencil, RefreshCw, Settings2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 
 type Data = {
   flags: Record<string, boolean>;
@@ -26,6 +26,8 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
   const [editingMessage, setEditingMessage] = useState('');
   const [auditLogOpen, setAuditLogOpen] = useState(false);
   const [feedbackFilter, setFeedbackFilter] = useState<'all' | 'excited' | 'happy' | 'sad'>('all');
+  const [feedbackPage, setFeedbackPage] = useState(1);
+  const [feedbackPageSize, setFeedbackPageSize] = useState(6);
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/operations', { cache: 'no-store', credentials: 'same-origin' });
@@ -96,6 +98,18 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
   const filteredFeedback = feedbackFilter === 'all'
     ? data.feedback
     : data.feedback.filter((i) => getFeedbackSentiment(i) === feedbackFilter);
+
+  const totalFilteredCount = filteredFeedback.length;
+  const totalPages = Math.max(1, Math.ceil(totalFilteredCount / feedbackPageSize));
+  const safePage = Math.min(Math.max(1, feedbackPage), totalPages);
+  const startIndex = (safePage - 1) * feedbackPageSize;
+  const endIndex = Math.min(startIndex + feedbackPageSize, totalFilteredCount);
+  const paginatedFeedback = filteredFeedback.slice(startIndex, endIndex);
+
+  const handleFilterChange = (filter: 'all' | 'excited' | 'happy' | 'sad') => {
+    setFeedbackFilter(filter);
+    setFeedbackPage(1);
+  };
 
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
@@ -178,7 +192,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
             <div className="flex flex-wrap gap-1.5 pt-1">
               <button
                 type="button"
-                onClick={() => setFeedbackFilter('all')}
+                onClick={() => handleFilterChange('all')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   feedbackFilter === 'all'
                     ? 'bg-yellow-400 text-slate-950 shadow-sm'
@@ -189,7 +203,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
               </button>
               <button
                 type="button"
-                onClick={() => setFeedbackFilter('excited')}
+                onClick={() => handleFilterChange('excited')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   feedbackFilter === 'excited'
                     ? 'bg-yellow-400/30 border border-yellow-400 text-yellow-300'
@@ -200,7 +214,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
               </button>
               <button
                 type="button"
-                onClick={() => setFeedbackFilter('happy')}
+                onClick={() => handleFilterChange('happy')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   feedbackFilter === 'happy'
                     ? 'bg-emerald-500/30 border border-emerald-400 text-emerald-300'
@@ -211,7 +225,7 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
               </button>
               <button
                 type="button"
-                onClick={() => setFeedbackFilter('sad')}
+                onClick={() => handleFilterChange('sad')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   feedbackFilter === 'sad'
                     ? 'bg-rose-500/30 border border-rose-400 text-rose-300'
@@ -223,9 +237,9 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
             </div>
 
             {/* Feedback List */}
-            <div className="max-h-[460px] space-y-3 overflow-y-auto pr-1">
-              {filteredFeedback.length ? (
-                filteredFeedback.map((item) => {
+            <div className="space-y-3 pr-1">
+              {paginatedFeedback.length ? (
+                paginatedFeedback.map((item) => {
                   const sentiment = getFeedbackSentiment(item);
                   const sentimentEmoji = sentiment === 'excited' ? '🤩' : sentiment === 'happy' ? '😊' : '😞';
                   const sentimentColor =
@@ -283,6 +297,103 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
                 </p>
               )}
             </div>
+
+            {/* Pagination Controls */}
+            {totalFilteredCount > 0 && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-white/10 text-xs">
+                <div className="flex items-center gap-3 text-gray-400">
+                  <span>
+                    Showing <strong className="text-white">{startIndex + 1}</strong>–<strong className="text-white">{endIndex}</strong> of <strong className="text-white">{totalFilteredCount}</strong>
+                  </span>
+                  <div className="flex items-center gap-1.5 border-l border-white/10 pl-3">
+                    <span className="text-gray-500">Per page:</span>
+                    {[6, 12, 24].map((size) => (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => {
+                          setFeedbackPageSize(size);
+                          setFeedbackPage(1);
+                        }}
+                        className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
+                          feedbackPageSize === size
+                            ? 'bg-yellow-400 text-slate-950 font-bold'
+                            : 'bg-white/5 hover:bg-white/10 text-gray-300'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {totalPages > 1 && (
+                  <div className="flex items-center gap-1 self-end sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackPage((p) => Math.max(1, p - 1))}
+                      disabled={safePage <= 1}
+                      className="p-1 rounded-lg border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Previous page"
+                      aria-label="Previous page"
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+
+                    <div className="flex items-center gap-1 px-1">
+                      {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter((p) => {
+                          if (totalPages <= 5) return true;
+                          if (p === 1 || p === totalPages) return true;
+                          if (Math.abs(p - safePage) <= 1) return true;
+                          return false;
+                        })
+                        .reduce<(number | string)[]>((acc, p, idx, arr) => {
+                          if (idx > 0 && p - (arr[idx - 1] as number) > 1) {
+                            acc.push(`dots-${p}`);
+                          }
+                          acc.push(p);
+                          return acc;
+                        }, [])
+                        .map((pageItem) => {
+                          if (typeof pageItem === 'string') {
+                            return (
+                              <span key={pageItem} className="px-1 text-gray-500">
+                                …
+                              </span>
+                            );
+                          }
+                          return (
+                            <button
+                              key={pageItem}
+                              type="button"
+                              onClick={() => setFeedbackPage(pageItem)}
+                              className={`h-7 w-7 rounded-lg text-xs font-bold transition-colors ${
+                                safePage === pageItem
+                                  ? 'bg-yellow-400 text-slate-950 font-black'
+                                  : 'border border-white/5 bg-white/5 hover:bg-white/10 text-gray-300'
+                              }`}
+                            >
+                              {pageItem}
+                            </button>
+                          );
+                        })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setFeedbackPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={safePage >= totalPages}
+                      className="p-1 rounded-lg border border-white/10 bg-white/5 text-gray-300 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                      title="Next page"
+                      aria-label="Next page"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </section>
         <section className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
