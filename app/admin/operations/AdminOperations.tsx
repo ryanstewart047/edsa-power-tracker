@@ -14,7 +14,7 @@ type Data = {
   directVending: { enabled: boolean; approved: boolean; credentialsConfigured: boolean; message: string };
 };
 
-export default function AdminOperations({ adminEmail }: { adminEmail: string }) {
+export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEmail: string; isSuperAdmin: boolean }) {
   const [data, setData] = useState<Data | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -132,7 +132,17 @@ export default function AdminOperations({ adminEmail }: { adminEmail: string }) 
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
             <div className="flex items-center gap-2"><Bell className="h-5 w-5 text-yellow-400" /><h2 className="font-bold">Send in-app announcement</h2></div>
-            <div className="mt-5 space-y-3"><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} placeholder="Announcement title" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} placeholder="Message for all app users" className="min-h-28 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><button disabled={!title.trim() || !message.trim() || busy === 'announcement'} onClick={() => void perform({ action: 'create-announcement', title, message }, 'announcement')} className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50">{busy === 'announcement' ? 'Sending...' : 'Publish announcement'}</button></div>
+            {isSuperAdmin ? (
+              <div className="mt-5 space-y-3"><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} placeholder="Announcement title" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} placeholder="Message for all app users" className="min-h-28 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><button disabled={!title.trim() || !message.trim() || busy === 'announcement'} onClick={() => void perform({ action: 'create-announcement', title, message }, 'announcement')} className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50">{busy === 'announcement' ? 'Sending...' : 'Publish announcement'}</button></div>
+            ) : (
+              <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.03] p-4 flex items-start gap-3">
+                <span className="text-xl shrink-0">🔒</span>
+                <div>
+                  <p className="text-sm font-semibold text-gray-300">Super admin access required</p>
+                  <p className="mt-1 text-xs text-gray-500">Publishing announcements is restricted to super administrators. You can view and manage existing announcements below.</p>
+                </div>
+              </div>
+            )}
             <div className="mt-6 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Announcement history</h3>
               {data.announcements.map((item) => editingAnnouncementId === item.id ? (

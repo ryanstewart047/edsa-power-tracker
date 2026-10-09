@@ -22,7 +22,16 @@ export async function GET() {
       prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }),
       prisma.feedbackSubmission.count(),
     ]);
-    return NextResponse.json({ flags, definitions: FEATURE_FLAGS, feedback, announcements, logs, feedbackCount, directVending: getDirectVendingReadiness() });
+    return NextResponse.json({
+      flags,
+      definitions: FEATURE_FLAGS,
+      feedback,
+      announcements,
+      logs,
+      feedbackCount,
+      directVending: getDirectVendingReadiness(),
+      isSuperAdmin: admin.isSuperAdmin,
+    });
   } catch (error) {
     console.error('Admin operations GET error:', error);
     return NextResponse.json({ error: 'Operations data is unavailable. Confirm the latest database schema has been deployed.' }, { status: 500 });
@@ -51,6 +60,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (body.action === 'create-announcement') {
+    if (!admin.isSuperAdmin) {
+      return NextResponse.json({ error: 'Only super administrators can publish announcements' }, { status: 403 });
+    }
     const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
     const message = typeof body.message === 'string' ? body.message.trim().slice(0, 500) : '';
     if (!title || !message) return NextResponse.json({ error: 'Title and message are required' }, { status: 400 });

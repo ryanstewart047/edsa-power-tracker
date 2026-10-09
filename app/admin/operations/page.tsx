@@ -5,5 +5,5 @@ export const dynamic = 'force-dynamic';
 
 export default async function AdminOperationsPage() {
   const admin = await requireAdminSession();
-  return <AdminOperations adminEmail={admin.email} />;
+  return <AdminOperations adminEmail={admin.email} isSuperAdmin={admin.isSuperAdmin} />;
 }
