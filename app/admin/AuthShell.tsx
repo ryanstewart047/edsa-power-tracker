@@ -23,8 +23,8 @@ export default function AuthShell({ title, description, children, footer }: Auth
           </Link>
 
           <div className="space-y-4">
-            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-yellow-500/15 ring-1 ring-yellow-400/25">
-              <ShieldCheck className="h-8 w-8 text-yellow-300" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-3xl bg-[#2607d5]/20 ring-1 ring-[#2607d5]/25">
+              <ShieldCheck className="h-8 w-8 text-blue-300" />
             </div>
             <h1 className="text-4xl font-bold leading-tight">{title}</h1>
             <p className="text-lg leading-8 text-gray-300">{description}</p>

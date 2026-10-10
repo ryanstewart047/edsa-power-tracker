@@ -41,7 +41,7 @@ export default function ForgotPasswordForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-yellow-300/80">Password recovery</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-blue-300/80">Password recovery</p>
         <h2 className="text-2xl font-bold">Forgot your admin password?</h2>
         <p className="text-sm leading-6 text-gray-400">
           Enter your admin email and we&apos;ll create a secure reset link for your account.
@@ -56,7 +56,7 @@ export default function ForgotPasswordForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="example@mail.com"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-yellow-400/50"
+            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#2607d5]/50"
             required
           />
         </div>
@@ -72,8 +72,8 @@ export default function ForgotPasswordForm() {
             <p>{success}</p>
             {previewResetUrl ? (
               <div className="rounded-2xl border border-white/10 bg-black/20 p-3 text-xs text-gray-200">
-                <p className="mb-2 font-semibold uppercase tracking-[0.2em] text-yellow-300/80">Preview reset link</p>
-                <Link href={previewResetUrl} className="break-all font-semibold text-yellow-300 hover:text-yellow-200">
+                <p className="mb-2 font-semibold uppercase tracking-[0.2em] text-blue-300/80">Preview reset link</p>
+                <Link href={previewResetUrl} className="break-all font-semibold text-blue-300 hover:text-blue-200">
                   {previewResetUrl}
                 </Link>
               </div>
@@ -84,7 +84,7 @@ export default function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-gray-950 transition hover:bg-yellow-300 disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-[#2607d5] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d05aa] disabled:opacity-60"
         >
           {loading ? 'Creating reset request...' : 'Send reset link'}
         </button>

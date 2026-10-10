@@ -19,7 +19,7 @@ export default function TermsAndConditionsPage() {
 
         {/* Header */}
         <div className="space-y-2 border-b border-white/10 pb-8">
-          <p className="text-xs font-black uppercase tracking-widest text-yellow-500">Legal Agreement</p>
+          <p className="text-xs font-black uppercase tracking-widest text-blue-400">Legal Agreement</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight">Terms and Conditions</h1>
           <p className="text-sm text-gray-400">
             <span className="font-semibold text-white">{appName}</span> — Operated by {companyName}
@@ -29,10 +29,10 @@ export default function TermsAndConditionsPage() {
 
         {/* 1. Acceptance */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">1. Acceptance of Terms</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">1. Acceptance of Terms</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
             By downloading, installing, accessing, or using the <strong>{appName}</strong> mobile application or web platform (&ldquo;the App&rdquo;), you agree to be bound by these Terms and Conditions (&ldquo;Terms&rdquo;) and our{' '}
-            <Link href="/privacy" className="text-yellow-400 underline hover:text-yellow-300">
+            <Link href="/privacy" className="text-blue-400 underline hover:text-blue-300">
               Privacy Policy
             </Link>. If you do not agree to these Terms, do not install or use the App.
           </p>
@@ -40,7 +40,7 @@ export default function TermsAndConditionsPage() {
 
         {/* 2. Nature of the App */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">2. Service Description & Community Purpose</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">2. Service Description & Community Purpose</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
             {appName} is a community-driven electricity tracking and civic reporting platform developed by {companyName} for residents, businesses, and public service personnel in Freetown, Sierra Leone. The App provides crowdsourced power grid visibility, AI-assisted consumer guidance, and emergency electrical hazard escalation.
           </p>
@@ -48,7 +48,7 @@ export default function TermsAndConditionsPage() {
 
         {/* 3. User Conduct & Reporting Integrity */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">3. User Conduct & Reporting Rules</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">3. User Conduct & Reporting Rules</h2>
           <div className="space-y-4 text-sm text-gray-300 leading-relaxed">
             <p>To maintain safety and grid data integrity for all citizens, you agree to:</p>
             <ul className="list-disc pl-5 space-y-2 text-gray-300">
@@ -70,10 +70,10 @@ export default function TermsAndConditionsPage() {
 
         {/* 4. Location & Device Permissions */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">4. Location & Device Permissions</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">4. Location & Device Permissions</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
             To anchor power reports and hazard dispatches to the correct geographic feeder zone, the App may request one-time access to your device&rsquo;s GPS location when reporting. Location data is processed strictly in accordance with our{' '}
-            <Link href="/privacy" className="text-yellow-400 underline hover:text-yellow-300">
+            <Link href="/privacy" className="text-blue-400 underline hover:text-blue-300">
               Privacy Policy
             </Link>
             . We do not track your background location.
@@ -82,7 +82,7 @@ export default function TermsAndConditionsPage() {
 
         {/* 5. AI Assistant & Guidance Disclaimer */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">5. AI Assistant & Advisory Disclaimer</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">5. AI Assistant & Advisory Disclaimer</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
             The integrated AI chatbot provides general electricity advice, tariff information, and electrical safety suggestions. Responses are generated through automated artificial intelligence and are provided for informational purposes only. In the event of severe electrical hazards or fire, always contact emergency services and national utility hotlines immediately.
           </p>
@@ -90,7 +90,7 @@ export default function TermsAndConditionsPage() {
 
         {/* 6. Disclaimers & Limitation of Liability */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">6. Disclaimers & Limitation of Liability</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">6. Disclaimers & Limitation of Liability</h2>
           <div className="space-y-3 text-sm text-gray-300 leading-relaxed">
             <p>
               The App is provided on an &ldquo;AS IS&rdquo; and &ldquo;AS AVAILABLE&rdquo; basis. While {companyName} takes diligent measures to verify crowdsourced data and maintain platform uptime, we do not warrant that grid status reports are 100% error-free, uninterrupted, or real-time up to the second.
@@ -103,7 +103,7 @@ export default function TermsAndConditionsPage() {
 
         {/* 7. Changes to Terms */}
         <section className="space-y-3">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">7. Changes to Terms</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">7. Changes to Terms</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
             We reserve the right to revise or replace these Terms at any time. When changes are made, the &ldquo;Last updated&rdquo; date at the top of this document will be updated. Continued use of the App following any changes constitutes acceptance of the new Terms.
           </p>
@@ -111,19 +111,19 @@ export default function TermsAndConditionsPage() {
 
         {/* 8. Contact Information */}
         <section className="space-y-3 border-t border-white/10 pt-8">
-          <h2 className="text-lg font-black uppercase tracking-tight text-yellow-400">8. Contact Us</h2>
+          <h2 className="text-lg font-black uppercase tracking-tight text-blue-400">8. Contact Us</h2>
           <p className="text-sm text-gray-300 leading-relaxed">
             If you have any questions or feedback regarding these Terms and Conditions, please contact us:
           </p>
           <div className="space-y-1.5 text-sm text-gray-300">
             <p><strong className="text-white">Organization:</strong> {companyName}</p>
             <p><strong className="text-white">Email:</strong>{' '}
-              <a href={`mailto:${contactEmail}`} className="text-yellow-400 underline hover:text-yellow-300">
+              <a href={`mailto:${contactEmail}`} className="text-blue-400 underline hover:text-blue-300">
                 {contactEmail}
               </a>
             </p>
             <p><strong className="text-white">Phone:</strong>{' '}
-              <a href={`tel:${contactPhone}`} className="text-yellow-400 underline hover:text-yellow-300">
+              <a href={`tel:${contactPhone}`} className="text-blue-400 underline hover:text-blue-300">
                 {contactPhone}
               </a>
             </p>
@@ -135,13 +135,13 @@ export default function TermsAndConditionsPage() {
         <section className="border-t border-white/10 pt-8 space-y-3">
           <p className="text-xs font-black uppercase tracking-widest text-gray-400">Related Legal & Support</p>
           <div className="flex flex-wrap gap-2.5">
-            <a href="https://edsa-power-tracker.vercel.app/feedback" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+            <a href="https://edsa-power-tracker.vercel.app/feedback" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
               Give Feedback
             </a>
-            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
               Privacy Policy
             </a>
-            <a href="https://edsa-power-tracker.vercel.app/data-deletion" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+            <a href="https://edsa-power-tracker.vercel.app/data-deletion" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
               Data Deletion
             </a>
           </div>

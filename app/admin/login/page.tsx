@@ -18,7 +18,7 @@ export default async function AdminLoginPage() {
       description="Use your secure credentials to enter the EDSA admin workspace."
       footer={
         <>
-          Public users can continue to the <Link href="/tracker" className="font-semibold text-yellow-300 hover:text-yellow-200">live tracker</Link>.
+          Public users can continue to the <Link href="/tracker" className="font-semibold text-blue-300 hover:text-blue-200">live tracker</Link>.
         </>
       }
     >

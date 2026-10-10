@@ -13,7 +13,7 @@ export default async function AdminManagementPage() {
   }
 
   return (
-    <div className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden bg-[#020617]">
+    <div className="min-h-screen relative text-white selection:bg-[#2607d5]/40 overflow-x-hidden bg-[#020617]">
       {/* Background Image Layer */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"

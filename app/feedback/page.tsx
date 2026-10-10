@@ -83,7 +83,7 @@ export default function FeedbackPage() {
   return (
     <main className="min-h-screen bg-[#020617] text-white px-4 py-12 md:py-20 relative overflow-x-hidden">
       {/* Background Glow */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-yellow-500/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-[#2607d5]/15 blur-[120px] rounded-full pointer-events-none" />
       <div className="fixed top-1/2 -right-40 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-3xl mx-auto space-y-10 relative z-10">
@@ -92,7 +92,7 @@ export default function FeedbackPage() {
         <div>
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-yellow-400 transition-colors p-2 rounded-xl bg-white/5 hover:bg-white/10"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-blue-400 transition-colors p-2 rounded-xl bg-white/5 hover:bg-white/10"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Tracker
           </Link>
@@ -100,11 +100,11 @@ export default function FeedbackPage() {
 
         {/* Header */}
         <div className="space-y-3 border-b border-white/10 pb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/20 text-yellow-300 text-xs font-bold uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2607d5]/15 border border-[#2607d5]/20 text-blue-300 text-xs font-bold uppercase tracking-widest">
             <MessageSquareHeart className="w-3.5 h-3.5" /> Tester & User Feedback
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
-            Share Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-500">Feedback</span>
+            Share Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">Feedback</span>
           </h1>
           <p className="text-sm md:text-base text-gray-300 leading-relaxed max-w-2xl">
             Help us improve EDSA Power Tracker. Whether you are testing internal releases on Google Play or tracking daily power in your neighborhood, we appreciate your thoughts.
@@ -148,7 +148,7 @@ export default function FeedbackPage() {
                     window.dispatchEvent(new Event('open-emoji-feedback'));
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-yellow-400/30 bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-300 text-xs font-bold transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#2607d5]/30 bg-[#2607d5]/15 hover:bg-[#2607d5]/20 text-blue-300 text-xs font-bold transition-all active:scale-95"
               >
                 <span className="text-xl">🤩</span>
                 <span>Excited / Loving it</span>
@@ -170,7 +170,7 @@ export default function FeedbackPage() {
                 Your feedback has been received and logged directly with our engineering team at BridgeTech IT Services.
               </p>
               {refId && (
-                <p className="text-xs text-yellow-400 font-mono pt-2">
+                <p className="text-xs text-blue-400 font-mono pt-2">
                   Reference ID: <span className="font-bold">{refId}</span>
                 </p>
               )}
@@ -188,7 +188,7 @@ export default function FeedbackPage() {
               </button>
               <Link
                 href="/tracker"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-yellow-400/20"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#2607d5]/20"
               >
                 Return to Live Tracker
               </Link>
@@ -219,14 +219,14 @@ export default function FeedbackPage() {
                     onClick={() => setRating(star)}
                     className={`p-2 rounded-xl border transition-all ${
                       rating >= star
-                        ? 'border-yellow-400/50 bg-yellow-400/10 text-yellow-400 scale-105'
+                        ? 'border-[#2607d5]/50 bg-[#2607d5]/15 text-blue-400 scale-105'
                         : 'border-white/5 bg-white/5 text-gray-600 hover:text-gray-400'
                     }`}
                   >
-                    <Star className={`w-6 h-6 ${rating >= star ? 'fill-yellow-400' : ''}`} />
+                    <Star className={`w-6 h-6 ${rating >= star ? 'fill-blue-400' : ''}`} />
                   </button>
                 ))}
-                <span className="ml-3 text-xs font-bold text-yellow-400">
+                <span className="ml-3 text-xs font-bold text-blue-400">
                   {rating === 5 && 'Outstanding ⭐⭐⭐⭐⭐'}
                   {rating === 4 && 'Good Experience ⭐⭐⭐⭐'}
                   {rating === 3 && 'Average / Fair ⭐⭐⭐'}
@@ -249,7 +249,7 @@ export default function FeedbackPage() {
                     onClick={() => setCategory(cat.id)}
                     className={`p-3 rounded-xl border text-left text-xs font-bold transition-all flex items-center gap-2 ${
                       category === cat.id
-                        ? 'border-yellow-400 bg-yellow-400/15 text-white shadow-md shadow-yellow-400/10'
+                        ? 'border-[#2607d5] bg-[#2607d5]/15 text-white shadow-md shadow-[#2607d5]/10'
                         : 'border-white/5 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -270,14 +270,14 @@ export default function FeedbackPage() {
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="e.g. Lumley, Wellington, Aberdeen, Wilberforce, Central"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors"
               />
             </div>
 
             {/* Message */}
             <div className="space-y-2">
               <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
-                Your Feedback or Suggestions <span className="text-yellow-400">*</span>
+                Your Feedback or Suggestions <span className="text-blue-400">*</span>
               </label>
               <textarea
                 value={message}
@@ -285,7 +285,7 @@ export default function FeedbackPage() {
                 placeholder="Tell us what you like, what is not working, or what features you want to see next..."
                 rows={5}
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 transition-colors resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors resize-none"
               />
             </div>
 
@@ -300,7 +300,7 @@ export default function FeedbackPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Samuel Kargbo"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors"
                 />
               </div>
 
@@ -313,7 +313,7 @@ export default function FeedbackPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. samuel@example.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-yellow-400 transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function FeedbackPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:flex-1 py-4 rounded-xl bg-yellow-400 hover:bg-yellow-300 disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/20"
+                className="w-full sm:flex-1 py-4 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#2607d5]/20"
               >
                 {submitting ? (
                   <>
@@ -350,15 +350,15 @@ export default function FeedbackPage() {
 
         {/* Developer Contact Box */}
         <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-4">
-          <h2 className="text-base font-black uppercase tracking-tight text-yellow-400">
+          <h2 className="text-base font-black uppercase tracking-tight text-blue-400">
             Direct Developer & Support Contact
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-300">
             <div className="flex items-center gap-3 bg-white/5 p-3.5 rounded-2xl border border-white/5">
-              <Mail className="w-5 h-5 text-yellow-400 shrink-0" />
+              <Mail className="w-5 h-5 text-blue-400 shrink-0" />
               <div>
                 <p className="text-[10px] text-gray-500 uppercase font-bold">Email Support</p>
-                <a href={`mailto:${contactEmail}`} className="text-xs text-white hover:text-yellow-400 underline break-all">
+                <a href={`mailto:${contactEmail}`} className="text-xs text-white hover:text-blue-400 underline break-all">
                   {contactEmail}
                 </a>
               </div>
@@ -368,7 +368,7 @@ export default function FeedbackPage() {
               <Phone className="w-5 h-5 text-green-400 shrink-0" />
               <div>
                 <p className="text-[10px] text-gray-500 uppercase font-bold">Phone / WhatsApp</p>
-                <a href={`tel:${contactPhone}`} className="text-xs text-white hover:text-yellow-400">
+                <a href={`tel:${contactPhone}`} className="text-xs text-white hover:text-blue-400">
                   {contactPhone}
                 </a>
               </div>
@@ -388,13 +388,13 @@ export default function FeedbackPage() {
         <section className="border-t border-white/10 pt-8 space-y-3">
           <p className="text-xs font-black uppercase tracking-widest text-gray-400">Related Legal & Support</p>
           <div className="flex flex-wrap gap-2.5">
-            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
               Privacy Policy
             </a>
-            <a href="https://edsa-power-tracker.vercel.app/terms" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+            <a href="https://edsa-power-tracker.vercel.app/terms" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
               Terms & Conditions
             </a>
-            <a href="https://edsa-power-tracker.vercel.app/data-deletion" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-yellow-400 font-semibold transition-colors">
+            <a href="https://edsa-power-tracker.vercel.app/data-deletion" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
               Data Deletion
             </a>
           </div>

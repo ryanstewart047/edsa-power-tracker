@@ -8,12 +8,23 @@ export default function SplashScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if we've already shown the splash screen in this session to avoid annoyance
-    // But per user request "at any given time the app is loading... it should always show"
-    // I will show it on every full page load.
+    // If running inside standalone app (Android TWA / PWA), Android OS already showed the native EDSA splash screen.
+    // Dismiss immediately to prevent double splash screen.
+    const isStandalone = 
+      typeof window !== 'undefined' && (
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone ||
+        document.referrer.includes('android-app://')
+      );
+
+    if (isStandalone) {
+      setLoading(false);
+      return;
+    }
+
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 2500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, []);
@@ -24,8 +35,8 @@ export default function SplashScreen() {
         <motion.div
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#020617] text-white overflow-hidden"
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#2607d5] text-white overflow-hidden"
         >
           <div className="relative flex flex-col items-center">
             <motion.div
@@ -56,9 +67,9 @@ export default function SplashScreen() {
             transition={{ delay: 1, duration: 0.8 }}
             className="absolute bottom-12 text-center"
           >
-            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mb-2">Developed by</p>
+            <p className="text-[10px] text-blue-200/80 font-bold uppercase tracking-[0.3em] mb-1.5">Developed by</p>
             <p className="text-sm font-black text-white">Ryan J Stewart, BCA</p>
-            <p className="text-[10px] text-gray-600 font-bold uppercase tracking-tighter">Amity University India</p>
+            <p className="text-[10px] text-blue-200/70 font-semibold tracking-wide">Amity University India</p>
           </motion.div>
 
           {/* Progress Bar */}
@@ -67,7 +78,7 @@ export default function SplashScreen() {
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: 2.5, ease: "linear" }}
-              className="h-full bg-yellow-500"
+              className="h-full bg-[#2607d5]"
             />
           </div>
         </motion.div>

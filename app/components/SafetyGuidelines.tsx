@@ -114,9 +114,9 @@ export default function SafetyGuidelines() {
         </div>
       </div>
 
-      <div className="rounded-3xl border border-yellow-500/30 bg-yellow-500/5 p-8 text-center">
+      <div className="rounded-3xl border border-[#2607d5]/30 bg-[#2607d5]/[0.05] p-8 text-center">
         <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-          <span className="font-bold text-yellow-300">If you see a hazard:</span> Use the Live Tracker to report it with photos and location details. Your report helps EDSA respond quickly and keeps your community safe.
+          <span className="font-bold text-blue-300">If you see a hazard:</span> Use the Live Tracker to report it with photos and location details. Your report helps EDSA respond quickly and keeps your community safe.
         </p>
       </div>
     </section>

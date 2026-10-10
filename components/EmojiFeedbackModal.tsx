@@ -41,8 +41,8 @@ const EMOJI_OPTIONS: EmojiOption[] = [
     label: 'Excited',
     rating: 5,
     badge: 'Loved it! / Great',
-    colorClass: 'text-yellow-400 hover:bg-yellow-500/10 hover:border-yellow-500/30',
-    selectedClass: 'bg-yellow-400/20 border-yellow-400 text-yellow-300 shadow-yellow-400/20',
+    colorClass: 'text-blue-400 hover:bg-[#2607d5]/15 hover:border-[#2607d5]/30',
+    selectedClass: 'bg-[#2607d5]/20 border-[#2607d5] text-blue-300 shadow-[#2607d5]/20',
   },
 ];
 
@@ -237,7 +237,7 @@ export default function EmojiFeedbackModal() {
               <div className="space-y-5">
                 {/* Header Badge */}
                 <div className="space-y-1.5">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-[10px] font-black uppercase tracking-wider">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#2607d5]/15 border border-[#2607d5]/30 text-blue-400 text-[10px] font-black uppercase tracking-wider">
                     <Sparkles className="w-3.5 h-3.5" />
                     <span>Citizen Pulse</span>
                   </div>
@@ -303,13 +303,13 @@ export default function EmojiFeedbackModal() {
                             ? 'What worked well for you?'
                             : 'What do you love most about the app?'
                         }
-                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-yellow-400"
+                        className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-[#2607d5]"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <label className="text-[11px] font-bold text-gray-300 flex items-center gap-1">
-                        <MapPin className="w-3 h-3 text-yellow-400" />
+                        <MapPin className="w-3 h-3 text-blue-400" />
                         <span>Your Community / Area</span>
                         <span className="text-gray-500 font-normal">(optional)</span>
                       </label>
@@ -319,7 +319,7 @@ export default function EmojiFeedbackModal() {
                         onChange={(e) => setArea(e.target.value)}
                         maxLength={80}
                         placeholder="e.g. Lumley, Aberdeen, Kissy, Bo..."
-                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-yellow-400"
+                        className="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-[#2607d5]"
                       />
                     </div>
 
@@ -327,7 +327,7 @@ export default function EmojiFeedbackModal() {
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full py-3.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/20 active:scale-95 disabled:opacity-50"
+                      className="w-full py-3.5 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#2607d5]/20 active:scale-95 disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <>
@@ -356,7 +356,7 @@ export default function EmojiFeedbackModal() {
                   <a
                     href="/feedback"
                     onClick={handleClose}
-                    className="hover:text-yellow-300 underline transition-colors"
+                    className="hover:text-blue-300 underline transition-colors"
                   >
                     Open detailed form →
                   </a>

@@ -143,7 +143,7 @@ export default function ChatBot() {
     return (
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 left-4 z-40 bg-yellow-500 hover:bg-yellow-600 text-gray-950 rounded-full p-3.5 md:p-4 shadow-xl transition-all duration-300 hover:scale-110 md:bottom-24 md:left-6"
+        className="fixed bottom-20 left-4 z-40 bg-[#2607d5] hover:bg-[#1d05aa] text-gray-950 rounded-full p-3.5 md:p-4 shadow-xl transition-all duration-300 hover:scale-110 md:bottom-24 md:left-6"
         aria-label="Open chatbot"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -168,14 +168,14 @@ export default function ChatBot() {
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
       {/* Header */}
-      <div className="bg-yellow-500 text-gray-950 p-4 flex justify-between items-center">
+      <div className="bg-[#2607d5] text-white p-4 flex justify-between items-center">
         <div>
           <h3 className="font-semibold">EDSA Assistant</h3>
-          <p className="text-sm text-yellow-700">Always here to help</p>
+          <p className="text-sm text-blue-300">Always here to help</p>
         </div>
         <button
           onClick={() => setIsOpen(false)}
-          className="hover:bg-yellow-600 p-1 rounded transition-colors"
+          className="hover:bg-[#1d05aa] p-1 rounded transition-colors"
           aria-label="Close chatbot"
         >
           <motion.div
@@ -203,7 +203,7 @@ export default function ChatBot() {
             <div
               className={`max-w-xs px-4 py-2 rounded-lg ${
                 message.role === 'user'
-                  ? 'bg-yellow-500 text-gray-950 rounded-br-none'
+                  ? 'bg-[#2607d5] text-white rounded-br-none'
                   : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
             >
@@ -214,7 +214,7 @@ export default function ChatBot() {
               </p>
               <span
                 className={`text-xs mt-1 block ${
-                  message.role === 'user' ? 'text-yellow-700' : 'text-gray-500'
+                  message.role === 'user' ? 'text-blue-300' : 'text-gray-500'
                 }`}
               >
                 {message.timestamp.toLocaleTimeString([], {
@@ -254,13 +254,13 @@ export default function ChatBot() {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type your message..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-sm text-gray-900 placeholder-gray-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#2607d5] text-sm text-gray-900 placeholder-gray-500"
             disabled={isLoading}
           />
           <button
             onClick={handleSendMessage}
             disabled={isLoading || !input.trim()}
-            className="bg-yellow-500 hover:bg-yellow-600 disabled:bg-gray-400 text-gray-950 p-2 rounded-lg transition-colors font-semibold"
+            className="bg-[#2607d5] hover:bg-[#1d05aa] disabled:bg-gray-400 text-gray-950 p-2 rounded-lg transition-colors font-semibold"
             aria-label="Send message"
           >
             <Send size={18} />

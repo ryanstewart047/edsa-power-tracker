@@ -79,7 +79,7 @@ export default function WorkSlider() {
           <div
             key={i}
             className={`h-1.5 transition-all duration-300 rounded-full ${
-              i === currentIndex ? 'w-8 bg-yellow-400' : 'w-2 bg-white/30'
+              i === currentIndex ? 'w-8 bg-[#2607d5]' : 'w-2 bg-white/30'
             }`}
           />
         ))}

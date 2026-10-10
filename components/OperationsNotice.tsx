@@ -29,8 +29,8 @@ export default function OperationsNotice() {
   if (!announcement || dismissed === announcement.id) return null;
 
   return (
-    <aside className="fixed inset-x-4 top-4 z-[10010] mx-auto flex max-w-xl gap-3 rounded-xl border border-yellow-400/30 bg-slate-950/95 p-4 text-white shadow-2xl backdrop-blur-md" aria-live="polite">
-      <Bell className="mt-0.5 h-5 w-5 shrink-0 text-yellow-300" />
+    <aside className="fixed inset-x-4 top-4 z-[10010] mx-auto flex max-w-xl gap-3 rounded-xl border border-[#2607d5]/30 bg-slate-950/95 p-4 text-white shadow-2xl backdrop-blur-md" aria-live="polite">
+      <Bell className="mt-0.5 h-5 w-5 shrink-0 text-blue-300" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold">{announcement.title}</p>
         <p className="mt-1 text-xs leading-relaxed text-gray-300">{announcement.message}</p>

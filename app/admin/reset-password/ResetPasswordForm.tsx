@@ -66,7 +66,7 @@ export default function ResetPasswordForm() {
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           This reset link is incomplete or invalid.
         </div>
-        <Link href="/admin/forgot-password" className="inline-flex rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-gray-950 hover:bg-yellow-300">
+        <Link href="/admin/forgot-password" className="inline-flex rounded-2xl bg-[#2607d5] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d05aa]">
           Request a new reset link
         </Link>
       </div>
@@ -76,7 +76,7 @@ export default function ResetPasswordForm() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-yellow-300/80">Reset password</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.32em] text-blue-300/80">Reset password</p>
         <h2 className="text-2xl font-bold">Choose a new administrator password</h2>
         <p className="text-sm leading-6 text-gray-400">
           Set a strong new password to restore access to the admin workspace.
@@ -91,7 +91,7 @@ export default function ResetPasswordForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="At least 8 characters"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-yellow-400/50"
+            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#2607d5]/50"
             required
           />
         </div>
@@ -103,7 +103,7 @@ export default function ResetPasswordForm() {
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             placeholder="Repeat your new password"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-yellow-400/50"
+            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#2607d5]/50"
             required
           />
         </div>
@@ -123,7 +123,7 @@ export default function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-yellow-400 px-5 py-3 text-sm font-bold text-gray-950 transition hover:bg-yellow-300 disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-[#2607d5] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d05aa] disabled:opacity-60"
         >
           {loading ? 'Resetting password...' : 'Reset password'}
         </button>

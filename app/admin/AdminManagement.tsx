@@ -120,7 +120,7 @@ export default function AdminManagementPanel() {
   if (loading) {
     return (
       <div className="flex justify-center items-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-500"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2607d5]"></div>
       </div>
     );
   }
@@ -146,7 +146,7 @@ export default function AdminManagementPanel() {
           <h2 className="text-xl font-bold text-white tracking-tight">Access Control</h2>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-2 px-5 py-2.5 bg-yellow-500 text-black rounded-xl hover:bg-yellow-400 transition-all font-bold text-sm shadow-xl shadow-yellow-500/20"
+            className="flex items-center gap-2 px-5 py-2.5 bg-[#2607d5] text-white rounded-xl hover:bg-[#1d05aa] transition-all font-bold text-sm shadow-xl shadow-[#2607d5]/20"
           >
             <Plus size={18} />
             Add New Admin
@@ -166,7 +166,7 @@ export default function AdminManagementPanel() {
                   value={newAdminEmail}
                   onChange={(e) => setNewAdminEmail(e.target.value)}
                   placeholder="example@mail.com"
-                  className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 text-white placeholder-gray-600 transition-all"
+                  className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-[#2607d5]/50 text-white placeholder-gray-600 transition-all"
                   disabled={isSubmitting}
                 />
               </div>
@@ -179,7 +179,7 @@ export default function AdminManagementPanel() {
                     value={newAdminPassword}
                     onChange={(e) => setNewAdminPassword(e.target.value)}
                     placeholder="Min 8 characters"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-yellow-500/50 text-white placeholder-gray-600 transition-all"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/10 rounded-xl focus:outline-none focus:border-[#2607d5]/50 text-white placeholder-gray-600 transition-all"
                     disabled={isSubmitting}
                   />
                   <button
@@ -199,7 +199,7 @@ export default function AdminManagementPanel() {
                   checked={isSuperAdmin}
                   onChange={(e) => setIsSuperAdmin(e.target.checked)}
                   disabled={isSubmitting}
-                  className="w-5 h-5 rounded border-white/10 bg-black/20 checked:bg-yellow-500 focus:ring-0 transition-all cursor-pointer"
+                  className="w-5 h-5 rounded border-white/10 bg-black/20 checked:bg-[#2607d5] focus:ring-0 transition-all cursor-pointer"
                 />
                 <label htmlFor="isSuperAdmin" className="text-sm font-bold text-gray-300 cursor-pointer">
                   Grant Super Admin Privileges
@@ -210,7 +210,7 @@ export default function AdminManagementPanel() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="px-6 py-3 bg-yellow-500 text-black rounded-xl hover:bg-yellow-400 disabled:opacity-50 transition-all font-black text-sm uppercase tracking-wider shadow-lg shadow-yellow-500/10"
+                  className="px-6 py-3 bg-[#2607d5] text-white rounded-xl hover:bg-[#1d05aa] disabled:opacity-50 transition-all font-black text-sm uppercase tracking-wider shadow-lg shadow-[#2607d5]/10"
                 >
                   {isSubmitting ? 'Provisioning...' : 'Provision Account'}
                 </button>
@@ -251,7 +251,7 @@ export default function AdminManagementPanel() {
                   <td className="px-6 py-5 text-sm font-bold text-white">{admin.email}</td>
                   <td className="px-6 py-5">
                     {admin.isSuperAdmin ? (
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-yellow-500/10 text-yellow-500 border border-yellow-500/20 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#2607d5]/15 text-blue-400 border border-[#2607d5]/20 rounded-full text-[10px] font-black uppercase tracking-tighter">
                         <Crown size={12} />
                         Super Admin
                       </span>

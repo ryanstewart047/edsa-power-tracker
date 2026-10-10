@@ -12,8 +12,8 @@ const highlights = [
     icon: Zap,
     title: 'Live Community Signals',
     description: 'Track power and hazards across Sierra Leone in real time with location-aware reporting.',
-    color: 'text-yellow-400',
-    bg: 'bg-yellow-400/10',
+    color: 'text-blue-400',
+    bg: 'bg-blue-500/10',
   },
   {
     icon: AlertTriangle,
@@ -41,7 +41,7 @@ const featurePills = [
 
 export default function WelcomePage() {
   return (
-    <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden bg-[#020305]">
+    <main className="min-h-screen relative text-white selection:bg-[#2607d5]/40 overflow-x-hidden bg-[#020305]">
       {/* Background Image Layer */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -61,16 +61,16 @@ export default function WelcomePage() {
             transition={{ duration: 0.8 }}
             className="space-y-8"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/20 backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2607d5]/15 border border-[#2607d5]/30 backdrop-blur-md">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-yellow-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2607d5]"></span>
               </span>
-              <p className="text-[10px] font-black uppercase tracking-widest text-yellow-300">EDSA Native Platform</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-blue-300">EDSA Native Platform</p>
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-black leading-[1.1] tracking-tight">
-              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-yellow-600">Operations.</span>
+              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-400 to-[#2607d5]">Operations.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-xl">
@@ -80,10 +80,10 @@ export default function WelcomePage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/tracker"
-                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-yellow-400 px-8 py-4 text-sm font-black text-gray-950 transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-yellow-400/20"
+                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-[#2607d5] hover:bg-[#1d05aa] px-8 py-4 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#2607d5]/30"
               >
                 Launch Live Tracker
-                <div className="bg-gray-950/10 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
+                <div className="bg-white/10 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
                   <ArrowRight className="h-4 w-4" />
                 </div>
               </Link>
@@ -112,7 +112,7 @@ export default function WelcomePage() {
               <WorkSlider />
             </div>
             {/* Ambient Glow */}
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-yellow-500/20 blur-[100px] rounded-full" />
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#2607d5]/25 blur-[100px] rounded-full" />
           </motion.div>
         </div>
 
@@ -120,21 +120,21 @@ export default function WelcomePage() {
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
             whileHover={{ y: -5 }}
-            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-yellow-400/30 transition-all flex flex-col justify-between"
+            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/40 transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-yellow-500/20 flex items-center justify-center">
-                  <Activity className="h-7 w-7 text-yellow-400" />
+                <div className="h-14 w-14 rounded-2xl bg-[#2607d5]/20 flex items-center justify-center">
+                  <Activity className="h-7 w-7 text-blue-400" />
                 </div>
-                <Zap className="h-5 w-5 text-yellow-300/30" />
+                <Zap className="h-5 w-5 text-blue-300/30" />
               </div>
               <h3 className="text-2xl font-bold mb-4">Live Tracker</h3>
               <p className="text-gray-400 leading-relaxed mb-8">
                 Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
               </p>
             </div>
-            <Link href="/tracker" className="inline-flex items-center gap-2 text-yellow-400 font-bold group-hover:gap-3 transition-all">
+            <Link href="/tracker" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
               Access Tracker <ChevronRight className="h-4 w-4" />
             </Link>
           </motion.div>

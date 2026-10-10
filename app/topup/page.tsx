@@ -485,9 +485,9 @@ function TopUpContent() {
   }, [estimatedKwh]);
 
   return (
-    <main className="min-h-screen relative text-white bg-[#020305] pb-32 selection:bg-yellow-500/30 overflow-x-hidden">
+    <main className="min-h-screen relative text-white bg-[#020305] pb-32 selection:bg-[#2607d5]/40 overflow-x-hidden">
       {/* Background glow */}
-      <div className="fixed inset-0 z-0 bg-gradient-to-b from-yellow-500/5 via-transparent to-[#020305] pointer-events-none" />
+      <div className="fixed inset-0 z-0 bg-gradient-to-b from-[#2607d5]/10 via-transparent to-[#020305] pointer-events-none" />
 
       {/* Top Header */}
       <header className="sticky top-0 z-40 bg-[#020305]/90 backdrop-blur-xl border-b border-white/10 px-4 py-3.5">
@@ -502,13 +502,13 @@ function TopUpContent() {
             </Link>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-black uppercase tracking-wider text-yellow-400">EDSA Native</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-blue-400">EDSA Native</span>
                 <span className="text-[10px] text-gray-500">•</span>
                 <span className="text-[10px] text-gray-400 font-semibold">Prepaid Services</span>
               </div>
               <h1 className="text-lg font-black tracking-tight flex items-center gap-2">
                 <span>Meter Top-Up & Vault</span>
-                <Zap className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                <Zap className="w-4 h-4 fill-blue-400 text-blue-400" />
               </h1>
             </div>
           </div>
@@ -534,15 +534,15 @@ function TopUpContent() {
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className="bg-gradient-to-r from-yellow-500/20 via-emerald-500/20 to-yellow-500/20 border-2 border-yellow-400/50 rounded-2xl p-4 shadow-2xl backdrop-blur-xl space-y-3"
+              className="bg-gradient-to-r from-[#2607d5]/20 via-emerald-500/20 to-[#2607d5]/20 border-2 border-[#2607d5]/50 rounded-2xl p-4 shadow-2xl backdrop-blur-xl space-y-3"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="p-2 rounded-xl bg-yellow-400 text-slate-950 font-black shrink-0">
+                  <span className="p-2 rounded-xl bg-[#2607d5] text-white font-black shrink-0">
                     <Sparkles className="w-4 h-4" />
                   </span>
                   <div>
-                    <div className="text-xs font-black uppercase text-yellow-400 tracking-wider">
+                    <div className="text-xs font-black uppercase text-blue-400 tracking-wider">
                       20-Digit Token Detected from Clipboard!
                     </div>
                     <div className="text-[11px] text-gray-300">
@@ -561,7 +561,7 @@ function TopUpContent() {
                 </button>
               </div>
 
-              <div className="font-mono text-base font-black text-white bg-slate-950/80 p-3 rounded-xl border border-yellow-400/40 text-center tracking-widest selection:bg-yellow-400 selection:text-slate-950">
+              <div className="font-mono text-base font-black text-white bg-slate-950/80 p-3 rounded-xl border border-[#2607d5]/40 text-center tracking-widest selection:bg-[#2607d5] selection:text-slate-950">
                 {detectedClipboardToken.formattedToken}
               </div>
 
@@ -574,7 +574,7 @@ function TopUpContent() {
                     setActiveTab('vault');
                     setShowAddTokenModal(true);
                   }}
-                  className="flex-1 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-yellow-400/20 active:scale-95"
+                  className="flex-1 py-2.5 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#2607d5]/20 active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Save This Token to Vault</span>
@@ -605,7 +605,7 @@ function TopUpContent() {
             onClick={() => setActiveTab('buy')}
             className={`py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
               activeTab === 'buy'
-                ? 'bg-yellow-400 text-slate-950 shadow-md shadow-yellow-400/20'
+                ? 'bg-[#2607d5] text-white shadow-md shadow-[#2607d5]/20'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -617,7 +617,7 @@ function TopUpContent() {
             onClick={() => setActiveTab('vault')}
             className={`py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
               activeTab === 'vault'
-                ? 'bg-yellow-400 text-slate-950 shadow-md shadow-yellow-400/20'
+                ? 'bg-[#2607d5] text-white shadow-md shadow-[#2607d5]/20'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -625,7 +625,7 @@ function TopUpContent() {
             <span>Token Vault</span>
             {tokens.length > 0 && (
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
-                activeTab === 'vault' ? 'bg-slate-950 text-yellow-400' : 'bg-white/10 text-gray-300'
+                activeTab === 'vault' ? 'bg-slate-950 text-blue-400' : 'bg-white/10 text-gray-300'
               }`}>
                 {tokens.length}
               </span>
@@ -636,7 +636,7 @@ function TopUpContent() {
             onClick={() => setActiveTab('calc')}
             className={`py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
               activeTab === 'calc'
-                ? 'bg-yellow-400 text-slate-950 shadow-md shadow-yellow-400/20'
+                ? 'bg-[#2607d5] text-white shadow-md shadow-[#2607d5]/20'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -648,7 +648,7 @@ function TopUpContent() {
             onClick={() => setActiveTab('meters')}
             className={`py-2.5 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex flex-col sm:flex-row items-center justify-center gap-1.5 ${
               activeTab === 'meters'
-                ? 'bg-yellow-400 text-slate-950 shadow-md shadow-yellow-400/20'
+                ? 'bg-[#2607d5] text-white shadow-md shadow-[#2607d5]/20'
                 : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -662,7 +662,7 @@ function TopUpContent() {
           <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 flex items-center justify-between shadow-lg">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-yellow-400">Current Target Meter</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-blue-400">Current Target Meter</span>
                 <span className="text-[10px] text-gray-500">•</span>
                 <span className="text-xs font-bold text-white">{selectedMeter.name}</span>
               </div>
@@ -694,7 +694,7 @@ function TopUpContent() {
         {/* TAB 1: USSD QUICK-PAY */}
         {activeTab === 'buy' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-            <section className="border border-yellow-400/20 bg-yellow-400/[0.05] p-5 rounded-2xl">
+            <section className="border border-[#2607d5]/20 bg-[#2607d5]/[0.07] p-5 rounded-2xl">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm font-black text-white">Buy direct EDSA meter top-up</p>
@@ -703,15 +703,15 @@ function TopUpContent() {
                 <button
                   type="button"
                   onClick={() => setDirectTopUpNotice(true)}
-                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-yellow-400 px-5 py-3 text-sm font-black text-slate-950 transition-colors hover:bg-yellow-300"
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#2607d5] px-5 py-3 text-sm font-black text-white transition-colors hover:bg-[#1d05aa]"
                 >
                   <Zap className="h-4 w-4" />
                   Buy Now
                 </button>
               </div>
               {directTopUpNotice && (
-                <div role="status" aria-live="polite" className="mt-4 flex items-start gap-2 rounded-xl border border-yellow-400/30 bg-slate-950/70 p-3 text-xs text-yellow-100">
-                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-yellow-300" />
+                <div role="status" aria-live="polite" className="mt-4 flex items-start gap-2 rounded-xl border border-[#2607d5]/30 bg-slate-950/70 p-3 text-xs text-blue-100">
+                  <Info className="mt-0.5 h-4 w-4 shrink-0 text-blue-300" />
                   <span>Direct EDSA top-up is coming soon. BridgeTech is preparing the verified vending connection, so please check back later.</span>
                 </div>
               )}
@@ -790,7 +790,7 @@ function TopUpContent() {
                     />
                   </div>
                   <div className="space-y-0.5">
-                    <div className="text-[10px] font-black uppercase tracking-wider text-yellow-400">
+                    <div className="text-[10px] font-black uppercase tracking-wider text-blue-400">
                       Straight USSD Launcher
                     </div>
                     <h3 className="text-lg sm:text-xl font-black text-white">
@@ -833,10 +833,10 @@ function TopUpContent() {
                       <span className="font-semibold text-gray-300">2. Enter your <strong>Top-Up Amount</strong> (in NLe) & press Send</span>
                       <span className="font-mono text-gray-400 font-bold">Amount</span>
                     </div>
-                    <div className="p-3 rounded-xl bg-white/5 border border-yellow-400/20 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-white/5 border border-[#2607d5]/20 flex items-center justify-between">
                       <div>
                         <div className="font-semibold text-white">3. Enter Meter Number:</div>
-                        <div className="font-mono text-sm font-bold text-yellow-400 mt-0.5">
+                        <div className="font-mono text-sm font-bold text-blue-400 mt-0.5">
                           {selectedMeter?.meterNumber || 'Select a meter above'}
                         </div>
                       </div>
@@ -844,7 +844,7 @@ function TopUpContent() {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(selectedMeter.meterNumber, 'step-meter-orange')}
-                          className="px-3 py-1.5 rounded-lg bg-yellow-400 text-slate-950 font-bold text-[11px] flex items-center gap-1 active:scale-95"
+                          className="px-3 py-1.5 rounded-lg bg-[#2607d5] text-white font-bold text-[11px] flex items-center gap-1 active:scale-95"
                         >
                           {copiedKey === 'step-meter-orange' ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
                           <span>{copiedKey === 'step-meter-orange' ? 'Copied' : 'Copy'}</span>
@@ -901,8 +901,8 @@ function TopUpContent() {
               </div>
 
               {/* Once SMS Arrives Callout */}
-              <div className="p-4 rounded-2xl bg-yellow-400/10 border border-yellow-400/20 flex items-start gap-3 text-xs text-yellow-200">
-                <Sparkles className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+              <div className="p-4 rounded-2xl bg-[#2607d5]/15 border border-[#2607d5]/20 flex items-start gap-3 text-xs text-blue-200">
+                <Sparkles className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <div className="font-bold text-white">Received your 20-digit token SMS?</div>
                   <p className="text-gray-300">
@@ -914,7 +914,7 @@ function TopUpContent() {
                       setActiveTab('vault');
                       setShowAddTokenModal(true);
                     }}
-                    className="inline-flex items-center gap-1 font-bold text-yellow-400 hover:text-yellow-300 pt-1"
+                    className="inline-flex items-center gap-1 font-bold text-blue-400 hover:text-blue-300 pt-1"
                   >
                     <span>Save token into vault now</span>
                     <ExternalLink className="w-3 h-3" />
@@ -944,7 +944,7 @@ function TopUpContent() {
                   className="px-3.5 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95 disabled:cursor-wait disabled:opacity-60"
                   title="Check clipboard for copied token"
                 >
-                  {checkingClipboard ? <Loader2 className="w-4 h-4 animate-spin text-yellow-400" /> : <ClipboardPaste className="w-4 h-4 text-yellow-400" />}
+                  {checkingClipboard ? <Loader2 className="w-4 h-4 animate-spin text-blue-400" /> : <ClipboardPaste className="w-4 h-4 text-blue-400" />}
                   <span>{checkingClipboard ? 'Checking...' : 'Scan Clipboard'}</span>
                 </button>
 
@@ -958,7 +958,7 @@ function TopUpContent() {
                     setParsedPreview(null);
                     setShowAddTokenModal(true);
                   }}
-                  className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-yellow-400/20 active:scale-95"
+                  className="px-4 py-2.5 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-[#2607d5]/20 active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Save Token</span>
@@ -981,7 +981,7 @@ function TopUpContent() {
                     type="button"
                     onClick={() => checkClipboardForToken(true)}
                     disabled={checkingClipboard}
-                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-yellow-400 transition-colors flex items-center gap-1.5 disabled:cursor-wait disabled:opacity-60"
+                    className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-xs font-bold text-blue-400 transition-colors flex items-center gap-1.5 disabled:cursor-wait disabled:opacity-60"
                   >
                     {checkingClipboard ? <Loader2 className="w-4 h-4 animate-spin" /> : <ClipboardPaste className="w-4 h-4" />}
                     <span>{checkingClipboard ? 'Checking...' : 'Scan Clipboard'}</span>
@@ -989,7 +989,7 @@ function TopUpContent() {
                   <button
                     type="button"
                     onClick={() => setShowAddTokenModal(true)}
-                    className="px-4 py-2 rounded-xl bg-yellow-400 text-slate-950 text-xs font-bold transition-colors"
+                    className="px-4 py-2 rounded-xl bg-[#2607d5] text-white text-xs font-bold transition-colors"
                   >
                     Enter Manually
                   </button>
@@ -1023,7 +1023,7 @@ function TopUpContent() {
                         </div>
 
                         {/* Formatted Token */}
-                        <div className="font-mono text-base sm:text-lg font-black tracking-widest text-white selection:bg-yellow-400 selection:text-slate-950">
+                        <div className="font-mono text-base sm:text-lg font-black tracking-widest text-white selection:bg-[#2607d5] selection:text-slate-950">
                           {formatTokenDisplay(token.token)}
                         </div>
 
@@ -1040,7 +1040,7 @@ function TopUpContent() {
                         <button
                           type="button"
                           onClick={() => setKeypadModalToken(token)}
-                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-yellow-400 transition-colors"
+                          className="p-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-blue-400 transition-colors"
                           title="View in large keypad mode"
                           aria-label="View large keypad mode"
                         >
@@ -1100,7 +1100,7 @@ function TopUpContent() {
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
             <div className="bg-slate-900 border border-white/10 rounded-[2rem] p-6 shadow-xl space-y-6">
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-yellow-400">Official EDSA Standard</span>
+                <span className="text-[10px] font-black uppercase tracking-wider text-blue-400">Official EDSA Standard</span>
                 <h2 className="text-xl font-black text-white">Tariff & Units Estimator</h2>
                 <p className="text-xs text-gray-400 mt-0.5">
                   Calculate estimated electricity units (kWh) for your top-up budget.
@@ -1121,7 +1121,7 @@ function TopUpContent() {
                     step="10"
                     value={calcAmount}
                     onChange={(e) => setCalcAmount(Number(e.target.value) || 0)}
-                    className="w-full pl-14 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-yellow-400"
+                    className="w-full pl-14 pr-4 py-3.5 rounded-2xl bg-white/5 border border-white/10 text-white font-bold text-lg focus:outline-none focus:border-[#2607d5]"
                     placeholder="100"
                   />
                 </div>
@@ -1135,7 +1135,7 @@ function TopUpContent() {
                       onClick={() => setCalcAmount(preset)}
                       className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all ${
                         calcAmount === preset
-                          ? 'bg-yellow-400 border-yellow-400 text-slate-950 font-black'
+                          ? 'bg-[#2607d5] border-[#2607d5] text-slate-950 font-black'
                           : 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
                       }`}
                     >
@@ -1154,7 +1154,7 @@ function TopUpContent() {
                     onClick={() => setCalcTariffType('residential')}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       calcTariffType === 'residential'
-                        ? 'bg-yellow-400/15 border-yellow-400 text-yellow-300'
+                        ? 'bg-[#2607d5]/15 border-[#2607d5] text-blue-300'
                         : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                     }`}
                   >
@@ -1167,7 +1167,7 @@ function TopUpContent() {
                     onClick={() => setCalcTariffType('commercial')}
                     className={`p-3 rounded-xl border text-left transition-all ${
                       calcTariffType === 'commercial'
-                        ? 'bg-yellow-400/15 border-yellow-400 text-yellow-300'
+                        ? 'bg-[#2607d5]/15 border-[#2607d5] text-blue-300'
                         : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'
                     }`}
                   >
@@ -1227,7 +1227,7 @@ function TopUpContent() {
               <button
                 type="button"
                 onClick={() => setShowAddMeterModal(true)}
-                className="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-yellow-400/20"
+                className="px-4 py-2.5 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-md shadow-[#2607d5]/20"
               >
                 <Plus className="w-4 h-4" />
                 <span>Add Meter</span>
@@ -1242,7 +1242,7 @@ function TopUpContent() {
                     key={meter.id}
                     className={`p-4 rounded-2xl border transition-all ${
                       isSelected
-                        ? 'bg-yellow-400/10 border-yellow-400 shadow-lg shadow-yellow-400/10'
+                        ? 'bg-[#2607d5]/15 border-[#2607d5] shadow-lg shadow-[#2607d5]/10'
                         : 'bg-slate-900 border-white/10 hover:border-white/20'
                     }`}
                   >
@@ -1251,7 +1251,7 @@ function TopUpContent() {
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-sm text-white">{meter.name}</span>
                           {isSelected && (
-                            <span className="text-[9px] bg-yellow-400 text-slate-950 font-black px-2 py-0.5 rounded-full uppercase">
+                            <span className="text-[9px] bg-[#2607d5] text-white font-black px-2 py-0.5 rounded-full uppercase">
                               Active Target
                             </span>
                           )}
@@ -1340,7 +1340,7 @@ function TopUpContent() {
                     placeholder="e.g. Home, Shop, Aberdeen Flat"
                     value={newMeterName}
                     onChange={(e) => setNewMeterName(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-yellow-400"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#2607d5]"
                   />
                 </div>
 
@@ -1360,12 +1360,12 @@ function TopUpContent() {
                     placeholder="e.g. 01423859201"
                     value={newMeterNumber}
                     onChange={(e) => setNewMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-yellow-400 tracking-wider"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-sm focus:outline-none focus:border-[#2607d5] tracking-wider"
                   />
                   <button
                     type="button"
                     onClick={openMeterScanner}
-                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-yellow-400/30 bg-yellow-400/10 px-4 py-3 text-xs font-bold uppercase tracking-wider text-yellow-300 transition-colors hover:bg-yellow-400/20"
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-[#2607d5]/30 bg-[#2607d5]/15 px-4 py-3 text-xs font-bold uppercase tracking-wider text-blue-300 transition-colors hover:bg-[#2607d5]/20"
                   >
                     <ScanLine className="h-4 w-4" />
                     Scan barcode
@@ -1387,7 +1387,7 @@ function TopUpContent() {
                   <button
                     type="submit"
                     disabled={newMeterNumber.replace(/\D/g, '').length !== 11}
-                    className="flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-yellow-400/20 disabled:opacity-50"
+                    className="flex-1 py-3 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-[#2607d5]/20 disabled:opacity-50"
                   >
                     Save Meter
                   </button>
@@ -1432,11 +1432,11 @@ function TopUpContent() {
                   />
                 )}
                 {!scannerError && (
-                  <div className="pointer-events-none absolute inset-8 rounded-lg border-2 border-yellow-400 shadow-[0_0_0_9999px_rgba(0,0,0,0.32)]" />
+                  <div className="pointer-events-none absolute inset-8 rounded-lg border-2 border-[#2607d5] shadow-[0_0_0_9999px_rgba(0,0,0,0.32)]" />
                 )}
                 {scannerError && (
                   <div className="max-w-sm px-8 text-center">
-                    <ScanLine className="mx-auto mb-4 h-10 w-10 text-yellow-400" />
+                    <ScanLine className="mx-auto mb-4 h-10 w-10 text-blue-400" />
                     <p className="text-sm leading-relaxed text-gray-200">{scannerError}</p>
                   </div>
                 )}
@@ -1475,16 +1475,16 @@ function TopUpContent() {
               </div>
 
               {/* SMART SMS PARSER BOX (OPTION C) */}
-              <div className="p-4 rounded-2xl bg-white/5 border border-yellow-400/20 space-y-2.5">
+              <div className="p-4 rounded-2xl bg-white/5 border border-[#2607d5]/20 space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-yellow-400 uppercase tracking-wider">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-blue-400 uppercase tracking-wider">
                     <MessageSquare className="w-3.5 h-3.5" />
                     <span>Smart SMS Parser</span>
                   </div>
                   <button
                     type="button"
                     onClick={pasteFromClipboardToSmsBox}
-                    className="px-2.5 py-1 rounded-lg bg-yellow-400 text-slate-950 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-all"
+                    className="px-2.5 py-1 rounded-lg bg-[#2607d5] text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-all"
                   >
                     <ClipboardPaste className="w-3 h-3" />
                     <span>Paste Clipboard</span>
@@ -1496,7 +1496,7 @@ function TopUpContent() {
                   placeholder="Paste your whole SMS from Orange Money or Afrimoney here..."
                   value={rawSmsInput}
                   onChange={(e) => handleRawSmsChange(e.target.value)}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-yellow-400"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-950/80 border border-white/10 text-white text-xs placeholder:text-gray-500 focus:outline-none focus:border-[#2607d5]"
                 />
 
                 {/* Live Parser Feedback */}
@@ -1527,7 +1527,7 @@ function TopUpContent() {
                       )}
 
                       {parsedPreview.meterNumber && (
-                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-yellow-300 border border-white/10 font-mono">
+                        <span className="px-2 py-0.5 rounded-md bg-white/10 text-blue-300 border border-white/10 font-mono">
                           Meter: {parsedPreview.meterNumber}
                         </span>
                       )}
@@ -1551,7 +1551,7 @@ function TopUpContent() {
                     placeholder="Enter or paste 20 digits"
                     value={tokenInput}
                     onChange={(e) => setTokenInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-base focus:outline-none focus:border-yellow-400 tracking-wider"
+                    className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-mono text-base focus:outline-none focus:border-[#2607d5] tracking-wider"
                   />
                   {tokenInput.replace(/\D/g, '').length === 20 && (
                     <div className="font-mono text-xs text-emerald-400 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20 text-center tracking-widest">
@@ -1568,7 +1568,7 @@ function TopUpContent() {
                       placeholder="e.g. 50"
                       value={tokenAmountInput}
                       onChange={(e) => setTokenAmountInput(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-yellow-400"
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#2607d5]"
                     />
                   </div>
 
@@ -1580,7 +1580,7 @@ function TopUpContent() {
                       placeholder="e.g. 10.3"
                       value={tokenUnitsInput}
                       onChange={(e) => setTokenUnitsInput(e.target.value)}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-yellow-400"
+                      className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:border-[#2607d5]"
                     />
                   </div>
                 </div>
@@ -1591,7 +1591,7 @@ function TopUpContent() {
                   <select
                     value={selectedMeterId}
                     onChange={(e) => setSelectedMeterId(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-yellow-400"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-white/10 text-white text-xs focus:outline-none focus:border-[#2607d5]"
                   >
                     {meters.map((m) => (
                       <option key={m.id} value={m.id}>
@@ -1612,7 +1612,7 @@ function TopUpContent() {
                   <button
                     type="submit"
                     disabled={tokenInput.replace(/\D/g, '').length !== 20}
-                    className="flex-1 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-yellow-400/20 disabled:opacity-50"
+                    className="flex-1 py-3 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-[#2607d5]/20 disabled:opacity-50"
                   >
                     Save Token
                   </button>
@@ -1631,10 +1631,10 @@ function TopUpContent() {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-slate-900 border border-yellow-400/30 rounded-[2.5rem] p-6 sm:p-8 w-full max-w-lg shadow-2xl space-y-6 text-center"
+              className="bg-slate-900 border border-[#2607d5]/30 rounded-[2.5rem] p-6 sm:p-8 w-full max-w-lg shadow-2xl space-y-6 text-center"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-yellow-400/10 text-yellow-400 border border-yellow-400/20">
+                <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full bg-[#2607d5]/15 text-blue-400 border border-[#2607d5]/20">
                   METER KEYPAD ASSISTANT
                 </span>
                 <button
@@ -1658,10 +1658,10 @@ function TopUpContent() {
                   return (
                     <div
                       key={chunkIdx}
-                      className="p-3.5 rounded-2xl bg-slate-950 border border-yellow-400/40 shadow-inner flex flex-col items-center justify-center"
+                      className="p-3.5 rounded-2xl bg-slate-950 border border-[#2607d5]/40 shadow-inner flex flex-col items-center justify-center"
                     >
                       <span className="text-[9px] font-black text-gray-500 mb-1">PART {chunkIdx + 1}</span>
-                      <span className="font-mono text-2xl sm:text-3xl font-black text-yellow-400 tracking-wider">
+                      <span className="font-mono text-2xl sm:text-3xl font-black text-blue-400 tracking-wider">
                         {chunk}
                       </span>
                     </div>
@@ -1677,7 +1677,7 @@ function TopUpContent() {
                 <button
                   type="button"
                   onClick={() => copyToClipboard(keypadModalToken.token, 'keypad-modal')}
-                  className="px-4 py-2 rounded-xl bg-yellow-400 text-slate-950 font-bold flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-[#2607d5] text-white font-bold flex items-center gap-1.5"
                 >
                   {copiedKey === 'keypad-modal' ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                   <span>{copiedKey === 'keypad-modal' ? 'Copied' : 'Copy All'}</span>
@@ -1709,7 +1709,7 @@ export default function TopUpPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen bg-[#020305] text-white flex items-center justify-center p-4">
-        <div className="flex items-center gap-2 text-sm font-bold text-yellow-400">
+        <div className="flex items-center gap-2 text-sm font-bold text-blue-400">
           <Zap className="w-5 h-5 animate-pulse" />
           <span>Loading EDSA Top-Up & Vault...</span>
         </div>

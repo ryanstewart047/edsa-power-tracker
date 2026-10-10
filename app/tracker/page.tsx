@@ -587,7 +587,7 @@ export default function Home() {
   const locationChipTone = !location
     ? 'bg-white/5 border-white/10 text-gray-500'
     : !locationAccurateEnough || (location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS)
-      ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-300'
+      ? 'bg-[#2607d5]/15 border-[#2607d5]/20 text-blue-300'
       : 'bg-green-500/5 border-green-500/20 text-green-400';
 
   const locationChipLabel = !location
@@ -606,7 +606,7 @@ export default function Home() {
         : 'Enable GPS';
 
   return (
-    <main className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
+    <main className="min-h-screen relative text-white selection:bg-[#2607d5]/40 overflow-x-hidden">
       <LocationOnboarding onComplete={(area) => setPrimaryArea(area)} />
       {/* Background Image Layer */}
       <div
@@ -666,7 +666,7 @@ export default function Home() {
 
           {locationHelpMessage && (
             <div className={`rounded-2xl border px-4 py-3 text-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${location && !locationAccurateEnough
-                ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-100'
+                ? 'border-[#2607d5]/20 bg-[#2607d5]/15 text-blue-100'
                 : 'border-white/10 bg-white/5 text-gray-200'
               }`}>
               <span>{locationHelpMessage}</span>
@@ -682,9 +682,9 @@ export default function Home() {
 
           {/* Your Reporting Area - Shows Nearby Areas */}
           {nearbyAreas.length > 0 ? (
-            <div className="bg-gradient-to-br from-yellow-500/10 via-yellow-500/[0.03] to-transparent border border-yellow-500/30 rounded-[2.5rem] p-6 sm:p-8 space-y-6 shadow-2xl shadow-yellow-500/5 backdrop-blur-sm">
+            <div className="bg-gradient-to-br from-blue-600/15 via-blue-600/[0.04] to-transparent border border-blue-500/30 rounded-[2.5rem] p-6 sm:p-8 space-y-6 shadow-2xl shadow-[#2607d5]/10 backdrop-blur-sm">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-yellow-400">Your Current & Nearby Areas</h2>
+                <h2 className="text-lg font-bold text-blue-300">Your Current & Nearby Areas</h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={requestLocation}
@@ -693,8 +693,8 @@ export default function Home() {
                     {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                     {locationActionLabel}
                   </button>
-                  <div className="flex items-center gap-1.5 text-[10px] text-yellow-600 bg-yellow-500/20 px-2.5 py-1 rounded-full font-bold">
-                    <MapPin className="w-3 h-3" />
+                  <div className="flex items-center gap-1.5 text-[10px] text-blue-200 bg-[#2607d5]/30 px-2.5 py-1 rounded-full font-bold">
+                    <MapPin className="w-3 h-3 text-blue-300" />
                     LIVE TRACKING
                   </div>
                 </div>
@@ -707,11 +707,11 @@ export default function Home() {
                     area.distance <= MAX_REPORTING_DISTANCE_KM;
 
                   return (
-                    <div key={area.id} className={`relative p-5 rounded-2xl border transition-all duration-500 group/card ${area.isSavedArea ? 'border-yellow-400/30 bg-yellow-400/[0.04]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
+                    <div key={area.id} className={`relative p-5 rounded-2xl border transition-all duration-500 group/card ${area.isSavedArea ? 'border-blue-500/30 bg-blue-500/[0.06]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
                       <h3 className="text-xl font-bold text-white mb-1 flex flex-wrap items-center gap-1.5">
                         {area.name}
                         {area.isSavedArea && (
-                          <span className="text-[10px] bg-yellow-400 text-slate-950 px-1.5 py-0.5 rounded-md uppercase font-black tracking-tight">Your Area</span>
+                          <span className="text-[10px] bg-[#2607d5] text-white px-2 py-0.5 rounded-md uppercase font-black tracking-tight">Your Area</span>
                         )}
                         {area.isClosest && !area.isSavedArea && (
                           <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md uppercase font-black tracking-tighter">GPS Closest</span>
@@ -729,7 +729,7 @@ export default function Home() {
                         </span>
                         {location && (area.isClosest || area.isSavedArea) && (
                           <span className={`rounded px-1.5 py-0.5 ${location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
-                              ? 'bg-yellow-500/15 text-yellow-200'
+                              ? 'bg-[#2607d5]/20 text-blue-200'
                               : 'bg-green-500/10 text-green-200'
                             }`}>
                             GPS ±{formatAccuracy(location.accuracy)}
@@ -795,7 +795,7 @@ export default function Home() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search Sierra Leone locations..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/30"
+              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:outline-none focus:border-[#2607d5]/50 focus:ring-1 focus:ring-[#2607d5]/30"
             />
             <div className="flex gap-2">
               {(['all', 'out', 'on', 'unknown'] as const).map(f => (
@@ -976,22 +976,22 @@ export default function Home() {
                   {hazardType === 'Stolen Meter' && (
                     <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-yellow-400">Meter Number (11 digits) <span className="text-red-400">*</span></label>
+                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-blue-400">Meter Number (11 digits) <span className="text-red-400">*</span></label>
                         <input
                           value={meterNumber}
                           maxLength={11}
                           onChange={e => setMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
                           placeholder="11 digits (e.g. 01423859201)"
-                          className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500 font-mono"
+                          className="w-full bg-white/5 border border-[#2607d5]/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#2607d5] font-mono"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-yellow-400">Contact Phone <span className="text-red-400">*</span></label>
+                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-blue-400">Contact Phone <span className="text-red-400">*</span></label>
                         <input
                           value={contactPhone}
                           onChange={e => setContactPhone(e.target.value)}
                           placeholder="e.g. 076..."
-                          className="w-full bg-white/5 border border-yellow-500/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                          className="w-full bg-white/5 border border-[#2607d5]/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#2607d5]"
                         />
                       </div>
                     </div>

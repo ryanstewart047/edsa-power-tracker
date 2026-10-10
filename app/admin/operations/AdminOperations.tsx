@@ -115,25 +115,25 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
     <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
-          <div><p className="text-xs font-bold uppercase tracking-wider text-yellow-400">Separate Operations Console</p><h1 className="mt-1 text-2xl font-black">App controls & intelligence</h1><p className="mt-1 text-sm text-gray-400">Signed in as {adminEmail}</p></div>
+          <div><p className="text-xs font-bold uppercase tracking-wider text-blue-400">Separate Operations Console</p><h1 className="mt-1 text-2xl font-black">App controls & intelligence</h1><p className="mt-1 text-sm text-gray-400">Signed in as {adminEmail}</p></div>
           <div className="flex gap-2"><Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"><ArrowLeft className="h-4 w-4" /> Dashboard</Link><button onClick={() => void load()} className="rounded-lg border border-white/10 p-2 hover:bg-white/5" aria-label="Refresh"><RefreshCw className="h-4 w-4" /></button></div>
         </header>
         {error && <p className="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
         {success && <p className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</p>}
         <section className="grid gap-4 md:grid-cols-3">
-          {Object.entries(data.definitions).map(([key, definition]) => <button key={key} onClick={() => void perform({ action: 'set-flag', key, enabled: !data.flags[key] }, key)} disabled={busy === key} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left hover:bg-white/[0.06] disabled:opacity-60"><span><Settings2 className="mb-3 h-5 w-5 text-yellow-400" /><span className="block font-bold">{definition.label}</span><span className="text-xs text-gray-400">{data.flags[key] ? 'Enabled in the app' : 'Temporarily disabled'}</span></span>{data.flags[key] ? <ToggleRight className="h-8 w-8 text-emerald-400" /> : <ToggleLeft className="h-8 w-8 text-gray-500" />}</button>)}
+          {Object.entries(data.definitions).map(([key, definition]) => <button key={key} onClick={() => void perform({ action: 'set-flag', key, enabled: !data.flags[key] }, key)} disabled={busy === key} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left hover:bg-white/[0.06] disabled:opacity-60"><span><Settings2 className="mb-3 h-5 w-5 text-blue-400" /><span className="block font-bold">{definition.label}</span><span className="text-xs text-gray-400">{data.flags[key] ? 'Enabled in the app' : 'Temporarily disabled'}</span></span>{data.flags[key] ? <ToggleRight className="h-8 w-8 text-emerald-400" /> : <ToggleLeft className="h-8 w-8 text-gray-500" />}</button>)}
         </section>
-        <section className="rounded-lg border border-yellow-400/20 bg-yellow-400/[0.04] p-5">
+        <section className="rounded-lg border border-[#2607d5]/20 bg-[#2607d5]/[0.06] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div><p className="text-sm font-bold text-white">Direct EDSA vending readiness</p><p className="mt-1 text-xs text-gray-400">{data.directVending.message}</p></div>
-            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${data.directVending.enabled ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300' : 'border-yellow-400/30 bg-yellow-400/10 text-yellow-200'}`}>{data.directVending.enabled ? 'Ready' : 'Not live'}</span>
+            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${data.directVending.enabled ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300' : 'border-[#2607d5]/30 bg-[#2607d5]/15 text-blue-200'}`}>{data.directVending.enabled ? 'Ready' : 'Not live'}</span>
           </div>
         </section>
         <section className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
-            <div className="flex items-center gap-2"><Bell className="h-5 w-5 text-yellow-400" /><h2 className="font-bold">Send in-app announcement</h2></div>
+            <div className="flex items-center gap-2"><Bell className="h-5 w-5 text-blue-400" /><h2 className="font-bold">Send in-app announcement</h2></div>
             {isSuperAdmin ? (
-              <div className="mt-5 space-y-3"><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} placeholder="Announcement title" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} placeholder="Message for all app users" className="min-h-28 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><button disabled={!title.trim() || !message.trim() || busy === 'announcement'} onClick={() => void perform({ action: 'create-announcement', title, message }, 'announcement')} className="rounded-lg bg-yellow-400 px-4 py-2 text-sm font-bold text-slate-950 disabled:opacity-50">{busy === 'announcement' ? 'Sending...' : 'Publish announcement'}</button></div>
+              <div className="mt-5 space-y-3"><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} placeholder="Announcement title" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} placeholder="Message for all app users" className="min-h-28 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><button disabled={!title.trim() || !message.trim() || busy === 'announcement'} onClick={() => void perform({ action: 'create-announcement', title, message }, 'announcement')} className="rounded-lg bg-[#2607d5] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{busy === 'announcement' ? 'Sending...' : 'Publish announcement'}</button></div>
             ) : (
               <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.03] p-4 flex items-start gap-3">
                 <span className="text-xl shrink-0">🔒</span>
@@ -146,14 +146,14 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
             <div className="mt-6 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Announcement history</h3>
               {data.announcements.map((item) => editingAnnouncementId === item.id ? (
-                <div key={item.id} className="space-y-3 rounded-lg border border-yellow-400/30 bg-yellow-400/5 p-3">
+                <div key={item.id} className="space-y-3 rounded-lg border border-[#2607d5]/30 bg-[#2607d5]/[0.06] p-3">
                   <input value={editingTitle} onChange={(event) => setEditingTitle(event.target.value)} maxLength={120} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" />
                   <textarea value={editingMessage} onChange={(event) => setEditingMessage(event.target.value)} maxLength={500} className="min-h-24 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" />
-                  <div className="flex gap-2"><button disabled={!editingTitle.trim() || !editingMessage.trim() || busy === `edit-${item.id}`} onClick={() => void perform({ action: 'update-announcement', id: item.id, title: editingTitle, message: editingMessage }, `edit-${item.id}`)} className="rounded-lg bg-yellow-400 px-3 py-2 text-xs font-bold text-slate-950 disabled:opacity-50">Save changes</button><button onClick={() => setEditingAnnouncementId(null)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-300">Cancel</button></div>
+                  <div className="flex gap-2"><button disabled={!editingTitle.trim() || !editingMessage.trim() || busy === `edit-${item.id}`} onClick={() => void perform({ action: 'update-announcement', id: item.id, title: editingTitle, message: editingMessage }, `edit-${item.id}`)} className="rounded-lg bg-[#2607d5] px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Save changes</button><button onClick={() => setEditingAnnouncementId(null)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-300">Cancel</button></div>
                 </div>
               ) : (
                 <div key={item.id} className="rounded-lg bg-black/20 p-3 text-sm">
-                  <div className="flex items-start justify-between gap-3"><div><p className="font-bold text-white">{item.title}<span className={`ml-2 text-xs ${item.active ? 'text-emerald-400' : 'text-gray-500'}`}>{item.active ? 'Live' : 'Hidden'}</span></p><p className="mt-1 text-xs text-gray-400">{item.message}</p><p className="mt-2 text-[10px] text-gray-600">{new Date(item.createdAt).toLocaleString()}</p></div><div className="flex shrink-0 gap-1"><button onClick={() => beginEditingAnnouncement(item)} className="rounded-md p-1.5 text-gray-400 hover:bg-white/10 hover:text-white" title="Edit announcement" aria-label="Edit announcement"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => deleteAnnouncement(item.id, item.title)} disabled={busy === `delete-${item.id}`} className="rounded-md p-1.5 text-red-300 hover:bg-red-500/10 disabled:opacity-50" title="Delete announcement" aria-label="Delete announcement"><Trash2 className="h-3.5 w-3.5" /></button></div></div><button onClick={() => void perform({ action: 'set-announcement-status', id: item.id, active: !item.active }, item.id)} className="mt-3 text-xs font-bold text-yellow-300">{item.active ? 'Disable' : 'Enable'}</button>
+                  <div className="flex items-start justify-between gap-3"><div><p className="font-bold text-white">{item.title}<span className={`ml-2 text-xs ${item.active ? 'text-emerald-400' : 'text-gray-500'}`}>{item.active ? 'Live' : 'Hidden'}</span></p><p className="mt-1 text-xs text-gray-400">{item.message}</p><p className="mt-2 text-[10px] text-gray-600">{new Date(item.createdAt).toLocaleString()}</p></div><div className="flex shrink-0 gap-1"><button onClick={() => beginEditingAnnouncement(item)} className="rounded-md p-1.5 text-gray-400 hover:bg-white/10 hover:text-white" title="Edit announcement" aria-label="Edit announcement"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => deleteAnnouncement(item.id, item.title)} disabled={busy === `delete-${item.id}`} className="rounded-md p-1.5 text-red-300 hover:bg-red-500/10 disabled:opacity-50" title="Delete announcement" aria-label="Delete announcement"><Trash2 className="h-3.5 w-3.5" /></button></div></div><button onClick={() => void perform({ action: 'set-announcement-status', id: item.id, active: !item.active }, item.id)} className="mt-3 text-xs font-bold text-blue-300">{item.active ? 'Disable' : 'Enable'}</button>
                 </div>
               ))}
               {data.announcements.length === 0 && <p className="text-sm text-gray-500">No announcements have been created.</p>}
@@ -163,16 +163,16 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
             {/* Header */}
             <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-yellow-400" />
+                <MessageSquare className="h-5 w-5 text-blue-400" />
                 <h2 className="font-bold text-lg">Citizen Feedback Inbox ({data.feedbackCount})</h2>
               </div>
             </div>
 
             {/* Emoji Sentiment Overview Cards */}
             <div className="grid grid-cols-3 gap-2.5">
-              <div className="rounded-xl border border-yellow-400/30 bg-yellow-400/10 p-3 text-center">
+              <div className="rounded-xl border border-[#2607d5]/30 bg-[#2607d5]/15 p-3 text-center">
                 <span className="text-2xl">🤩</span>
-                <p className="mt-1 text-xs font-bold text-yellow-300">Excited</p>
+                <p className="mt-1 text-xs font-bold text-blue-300">Excited</p>
                 <p className="text-lg font-black text-white">{excitedCount}</p>
                 <p className="text-[10px] text-gray-400">
                   {totalFeedbackCount ? Math.round((excitedCount / totalFeedbackCount) * 100) : 0}%
@@ -205,7 +205,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                 onClick={() => handleFilterChange('all')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   feedbackFilter === 'all'
-                    ? 'bg-yellow-400 text-slate-950 shadow-sm'
+                    ? 'bg-[#2607d5] text-white shadow-sm'
                     : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
                 }`}
               >
@@ -216,7 +216,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                 onClick={() => handleFilterChange('excited')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                   feedbackFilter === 'excited'
-                    ? 'bg-yellow-400/30 border border-yellow-400 text-yellow-300'
+                    ? 'bg-[#2607d5]/30 border border-[#2607d5] text-blue-300'
                     : 'bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white'
                 }`}
               >
@@ -254,7 +254,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                   const sentimentEmoji = sentiment === 'excited' ? '🤩' : sentiment === 'happy' ? '😊' : '😞';
                   const sentimentColor =
                     sentiment === 'excited'
-                      ? 'border-yellow-400/30 bg-yellow-400/10 text-yellow-300'
+                      ? 'border-[#2607d5]/30 bg-[#2607d5]/15 text-blue-300'
                       : sentiment === 'happy'
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
                       : 'border-rose-500/30 bg-rose-500/10 text-rose-300';
@@ -327,7 +327,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                         }}
                         className={`px-2 py-0.5 rounded text-xs font-semibold transition-colors ${
                           feedbackPageSize === size
-                            ? 'bg-yellow-400 text-slate-950 font-bold'
+                            ? 'bg-[#2607d5] text-white font-bold'
                             : 'bg-white/5 hover:bg-white/10 text-gray-300'
                         }`}
                       >
@@ -380,7 +380,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                               onClick={() => setFeedbackPage(pageItem)}
                               className={`h-7 w-7 rounded-lg text-xs font-bold transition-colors ${
                                 safePage === pageItem
-                                  ? 'bg-yellow-400 text-slate-950 font-black'
+                                  ? 'bg-[#2607d5] text-white font-black'
                                   : 'border border-white/5 bg-white/5 hover:bg-white/10 text-gray-300'
                               }`}
                             >

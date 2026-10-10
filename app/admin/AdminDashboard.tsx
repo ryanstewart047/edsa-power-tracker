@@ -61,7 +61,7 @@ function SidebarItem({ label, icon: Icon, active, onClick, badge }: SidebarItemP
     <button
       onClick={onClick}
       className={`w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all ${
-        active ? 'bg-yellow-500 text-black' : 'text-gray-400 hover:bg-white/5'
+        active ? 'bg-[#2607d5] text-white' : 'text-gray-400 hover:bg-white/5'
       }`}
     >
       <div className="flex items-center gap-3">
@@ -320,7 +320,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <RefreshCw className="w-8 h-8 text-yellow-500 animate-spin" />
+        <RefreshCw className="w-8 h-8 text-blue-400 animate-spin" />
       </div>
     );
   }
@@ -347,7 +347,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
   }
 
   return (
-    <div className="min-h-screen relative text-white selection:bg-yellow-500/30 overflow-x-hidden">
+    <div className="min-h-screen relative text-white selection:bg-[#2607d5]/40 overflow-x-hidden">
       {/* Background Image Layer */}
       <div 
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -421,7 +421,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                 placeholder="Search area..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="bg-gray-900 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-yellow-500/50 transition-all w-full md:w-64"
+                className="bg-gray-900 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:border-[#2607d5]/50 transition-all w-full md:w-64"
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
@@ -525,7 +525,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                             <div className="flex items-center gap-2">
                               <span className="font-bold">{area.reportCount}</span>
                               <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <div className={`h-full rounded-full ${area.reportCount >= 3 ? 'bg-green-500' : 'bg-yellow-500'}`} style={{ width: `${Math.min(100, (area.reportCount / 3) * 100)}%` }} />
+                                <div className={`h-full rounded-full ${area.reportCount >= 3 ? 'bg-green-500' : 'bg-[#2607d5]'}`} style={{ width: `${Math.min(100, (area.reportCount / 3) * 100)}%` }} />
                               </div>
                             </div>
                           </td>
@@ -629,7 +629,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                         <button
                           onClick={() => void handleResolveHazard(hazard)}
                           disabled={resolvingHazardId === hazard.id}
-                          className="inline-flex items-center gap-2 text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-yellow-500 transition-colors disabled:opacity-60"
+                          className="inline-flex items-center gap-2 text-xs bg-white text-black font-bold px-3 py-1.5 rounded-lg hover:bg-[#2607d5] transition-colors disabled:opacity-60"
                         >
                           {resolvingHazardId === hazard.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : null}
                           {resolvingHazardId === hazard.id ? 'Resolving...' : 'Mark Resolved'}
@@ -731,12 +731,12 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                   </div>
                   {selectedHazard.type === 'Stolen Meter' && (
                     <>
-                      <div className="rounded-2xl bg-yellow-500/10 border border-yellow-500/20 p-4 space-y-1">
-                        <p className="text-xs uppercase tracking-widest text-yellow-500/60 font-bold">Meter Number</p>
+                      <div className="rounded-2xl bg-[#2607d5]/15 border border-[#2607d5]/20 p-4 space-y-1">
+                        <p className="text-xs uppercase tracking-widest text-blue-400/60 font-bold">Meter Number</p>
                         <p className="text-sm text-white font-mono">{selectedHazard.meterNumber || 'Unknown'}</p>
                       </div>
-                      <div className="rounded-2xl bg-yellow-500/10 border border-yellow-500/20 p-4 space-y-1">
-                        <p className="text-xs uppercase tracking-widest text-yellow-500/60 font-bold">Contact Phone</p>
+                      <div className="rounded-2xl bg-[#2607d5]/15 border border-[#2607d5]/20 p-4 space-y-1">
+                        <p className="text-xs uppercase tracking-widest text-blue-400/60 font-bold">Contact Phone</p>
                         <p className="text-sm text-white font-bold">{selectedHazard.contactPhone || 'Unknown'}</p>
                       </div>
                     </>
@@ -765,7 +765,7 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
                     <button
                       onClick={() => void handleResolveHazard(selectedHazard)}
                       disabled={resolvingHazardId === selectedHazard.id}
-                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-yellow-500 px-4 py-3 text-sm font-bold text-black hover:bg-yellow-400 disabled:opacity-60"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#2607d5] px-4 py-3 text-sm font-bold text-black hover:bg-[#1d05aa] disabled:opacity-60"
                     >
                       {resolvingHazardId === selectedHazard.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
                       {resolvingHazardId === selectedHazard.id ? 'Resolving...' : 'Mark Resolved'}

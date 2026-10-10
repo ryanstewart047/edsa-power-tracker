@@ -53,7 +53,7 @@ function VerifyEmailContent() {
     <div className="space-y-6">
       {status === 'loading' && (
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2607d5]"></div>
           <p className="text-gray-300">Verifying your email...</p>
         </div>
       )}
@@ -71,7 +71,7 @@ function VerifyEmailContent() {
           <p className="text-red-300">{message}</p>
           <a
             href="/admin/login"
-            className="inline-block mt-4 px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-600 transition font-medium"
+            className="inline-block mt-4 px-4 py-2 bg-[#2607d5] text-white rounded-lg hover:bg-[#1d05aa] transition font-medium"
           >
             Back to Login
           </a>
@@ -89,7 +89,7 @@ export default function VerifyEmailPage() {
     >
       <Suspense fallback={
         <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2607d5]"></div>
           <p className="text-gray-300">Verifying your email...</p>
         </div>
       }>

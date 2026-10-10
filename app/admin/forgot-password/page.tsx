@@ -9,7 +9,7 @@ export default function ForgotPasswordPage() {
     <AuthShell
       title="Recover administrator access"
       description="Generate a secure password reset request for your EDSA admin account."
-      footer={<>Remembered your password? <Link href="/admin/login" className="font-semibold text-yellow-300 hover:text-yellow-200">Go back to sign in</Link>.</>}
+      footer={<>Remembered your password? <Link href="/admin/login" className="font-semibold text-blue-300 hover:text-blue-200">Go back to sign in</Link>.</>}
     >
       <ForgotPasswordForm />
     </AuthShell>

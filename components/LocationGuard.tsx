@@ -414,7 +414,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           {/* Why We Need Location Box */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left space-y-2 text-xs text-gray-300">
             <div className="flex items-center gap-2 font-bold text-white text-[11px] uppercase tracking-wider mb-1">
-              <AlertTriangle className="w-3.5 h-3.5 text-yellow-400" />
+              <AlertTriangle className="w-3.5 h-3.5 text-blue-400" />
               <span>Why GPS is mandatory:</span>
             </div>
             <div className="flex items-start gap-2">
@@ -450,7 +450,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 type="button"
                 onClick={handleRequestPermission}
                 disabled={isRequesting}
-                className="w-full py-4 px-6 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-yellow-400/20 active:scale-95 disabled:opacity-50"
+                className="w-full py-4 px-6 rounded-2xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#2607d5]/20 active:scale-95 disabled:opacity-50"
               >
                 {isRequesting ? (
                   <>

@@ -31,10 +31,10 @@ export default function MobileBottomNav() {
               key={item.name}
               href={item.href}
               className={`flex flex-col items-center justify-center px-4 py-1 space-y-1 transition-all ${
-                isActive ? 'text-yellow-400 font-bold scale-105' : 'text-gray-400 hover:text-gray-200'
+                isActive ? 'text-blue-400 font-bold scale-105' : 'text-gray-400 hover:text-gray-200'
               }`}
             >
-              <item.icon strokeWidth={2.5} className={`h-5 w-5 ${isActive ? 'drop-shadow-[0_0_8px_rgba(250,204,21,0.5)]' : ''}`} />
+              <item.icon strokeWidth={2.5} className={`h-5 w-5 ${isActive ? 'drop-shadow-[0_0_8px_rgba(38,7,213,0.8)] text-blue-400' : ''}`} />
               <span className="text-[10px] md:text-[11px] font-bold tracking-wider uppercase">{item.name}</span>
             </Link>
           );

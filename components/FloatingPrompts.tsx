@@ -18,8 +18,8 @@ const prompts = [
     id: 2,
     question: "Got power right now?",
     icon: Zap,
-    color: "text-yellow-400",
-    bg: "bg-yellow-500/10",
+    color: "text-blue-400",
+    bg: "bg-[#2607d5]/15",
     action: "Update Status"
   },
   {
@@ -74,7 +74,7 @@ export default function FloatingPrompts() {
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 15, ease: "linear" }}
-                className="absolute bottom-0 left-0 h-0.5 bg-yellow-500/30"
+                className="absolute bottom-0 left-0 h-0.5 bg-[#2607d5]/30"
               />
 
               <button 
@@ -96,7 +96,7 @@ export default function FloatingPrompts() {
                   
                   <Link 
                     href="/tracker"
-                    className="mt-3 flex items-center gap-1.5 text-xs font-bold text-yellow-400 hover:text-yellow-300 transition-colors group/btn"
+                    className="mt-3 flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors group/btn"
                   >
                     {active.action}
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />

@@ -9,7 +9,7 @@ export default function ResetPasswordPage() {
     <AuthShell
       title="Reset admin password"
       description="Use your secure reset link to set a new password and return to operations."
-      footer={<>Need a fresh link? <Link href="/admin/forgot-password" className="font-semibold text-yellow-300 hover:text-yellow-200">Request another reset email</Link>.</>}
+      footer={<>Need a fresh link? <Link href="/admin/forgot-password" className="font-semibold text-blue-300 hover:text-blue-200">Request another reset email</Link>.</>}
     >
       <ResetPasswordForm />
     </AuthShell>
