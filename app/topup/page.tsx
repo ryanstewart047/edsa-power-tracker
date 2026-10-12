@@ -26,9 +26,21 @@ import {
   MessageSquare,
   AlertCircle,
   ScanLine,
-  Loader2
+  Loader2,
+  Edit3
 } from 'lucide-react';
 import { parseTokenSms, ParsedSmsToken } from '@/lib/tokenParser';
+import {
+  StoredToken,
+  MeterProfile,
+  persistTokensMultiTier,
+  persistMetersMultiTier,
+  loadTokensMultiTier,
+  loadMetersMultiTier,
+  getInitialTokensFromLocalStorage,
+  getInitialMetersFromLocalStorage,
+  requestPersistentStorage,
+} from '@/lib/vaultStorage';
 
 type BarcodeDetection = { rawValue: string };
 
@@ -42,24 +54,6 @@ declare global {
   interface Window {
     BarcodeDetector?: BarcodeDetectorConstructor;
   }
-}
-
-interface MeterProfile {
-  id: string;
-  name: string;
-  meterNumber: string;
-  isDefault?: boolean;
-}
-
-interface StoredToken {
-  id: string;
-  token: string;
-  meterNumber: string;
-  meterName?: string;
-  amountNle: number;
-  kwhUnits?: number;
-  date: string;
-  loaded: boolean;
 }
 
 function TopUpContent() {
@@ -101,48 +95,58 @@ function TopUpContent() {
   const [checkingClipboard, setCheckingClipboard] = useState(false);
   const clipboardStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load meters and tokens from localStorage
+  // Load meters and tokens multi-tier & request persistent storage
   useEffect(() => {
-    try {
-      const savedMeters = localStorage.getItem('edsa_saved_meters_v1');
-      if (savedMeters) {
-        const parsed = JSON.parse(savedMeters);
-        setMeters(parsed);
-        if (parsed.length > 0) {
-          setSelectedMeterId(parsed[0].id);
-        }
-      } else {
-        // Sample default meter
-        const defaultMeter: MeterProfile = {
-          id: 'meter-1',
-          name: 'Home Meter',
-          meterNumber: '01423859201',
-          isDefault: true,
-        };
-        setMeters([defaultMeter]);
-        setSelectedMeterId(defaultMeter.id);
-        localStorage.setItem('edsa_saved_meters_v1', JSON.stringify([defaultMeter]));
-      }
+    // 1. Request OS-level persistent storage permission on Android / Chrome
+    requestPersistentStorage();
 
-      const savedTokens = localStorage.getItem('edsa_saved_tokens_v1');
-      if (savedTokens) {
-        setTokens(JSON.parse(savedTokens));
-      }
-    } catch {
-      // LocalStorage access fallback
+    // 2. Fast synchronous load from localStorage
+    const initialTokens = getInitialTokensFromLocalStorage();
+    if (initialTokens.length > 0) {
+      setTokens(initialTokens);
     }
+
+    const initialMeters = getInitialMetersFromLocalStorage();
+    if (initialMeters.length > 0) {
+      setMeters(initialMeters);
+      setSelectedMeterId(initialMeters[0].id);
+    } else {
+      const defaultMeter: MeterProfile = {
+        id: 'meter-1',
+        name: 'Home Meter',
+        meterNumber: '01423859201',
+        isDefault: true,
+      };
+      setMeters([defaultMeter]);
+      setSelectedMeterId(defaultMeter.id);
+      persistMetersMultiTier([defaultMeter]);
+    }
+
+    // 3. Asynchronous multi-tier reconciliation (IndexedDB + localStorage backup)
+    loadTokensMultiTier().then((reconciledTokens) => {
+      if (reconciledTokens && reconciledTokens.length > 0) {
+        setTokens(reconciledTokens);
+      }
+    });
+
+    loadMetersMultiTier().then((reconciledMeters) => {
+      if (reconciledMeters && reconciledMeters.length > 0) {
+        setMeters(reconciledMeters);
+        setSelectedMeterId((prev) => prev || reconciledMeters[0].id);
+      }
+    });
   }, []);
 
-  // Save meters
+  // Save meters permanently across all storage tiers
   const saveMeters = (updated: MeterProfile[]) => {
     setMeters(updated);
-    localStorage.setItem('edsa_saved_meters_v1', JSON.stringify(updated));
+    persistMetersMultiTier(updated);
   };
 
-  // Save tokens
+  // Save tokens permanently across all storage tiers (localStorage, backup, IndexedDB)
   const saveTokens = (updated: StoredToken[]) => {
     setTokens(updated);
-    localStorage.setItem('edsa_saved_tokens_v1', JSON.stringify(updated));
+    persistTokensMultiTier(updated);
   };
 
   const selectedMeter = useMemo(() => {
@@ -423,6 +427,45 @@ function TopUpContent() {
     return parts.join(' - ');
   };
 
+  // Direct permanent save for parsed tokens (e.g. from clipboard or quick share)
+  const handleDirectSaveParsedToken = (parsed: ParsedSmsToken) => {
+    if (!parsed || !parsed.token) return;
+    const cleanDigits = parsed.token.replace(/\D/g, '');
+    if (cleanDigits.length < 20) return;
+
+    // Check if token is already in vault
+    const alreadySaved = tokens.some((t) => t.token === cleanDigits);
+    if (alreadySaved) {
+      showClipboardStatus('This token is already saved in your vault.', 4000);
+      setDetectedClipboardToken(null);
+      setActiveTab('vault');
+      return;
+    }
+
+    let targetMeter = selectedMeter;
+    if (parsed.meterNumber) {
+      const matched = meters.find((m) => m.meterNumber === parsed.meterNumber);
+      if (matched) targetMeter = matched;
+    }
+
+    const newToken: StoredToken = {
+      id: `token-${Date.now()}`,
+      token: cleanDigits,
+      meterNumber: targetMeter ? targetMeter.meterNumber : (parsed.meterNumber || 'Unknown'),
+      meterName: targetMeter ? targetMeter.name : undefined,
+      amountNle: parsed.amount || 0,
+      kwhUnits: parsed.units || undefined,
+      date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
+      loaded: false,
+    };
+
+    const updated = [newToken, ...tokens];
+    saveTokens(updated);
+    setDetectedClipboardToken(null);
+    setActiveTab('vault');
+    showClipboardStatus('Token permanently saved into your offline vault!', 4500);
+  };
+
   // Add Token to Vault
   const handleAddToken = (e: React.FormEvent) => {
     e.preventDefault();
@@ -448,6 +491,7 @@ function TopUpContent() {
     setRawSmsInput('');
     setParsedPreview(null);
     setShowAddTokenModal(false);
+    showClipboardStatus('Token permanently saved into your offline vault!', 3500);
   };
 
   // Toggle Token Loaded Status
@@ -456,8 +500,11 @@ function TopUpContent() {
     saveTokens(updated);
   };
 
-  // Delete Token
+  // Delete Token (Permanent until manual deletion)
   const handleDeleteToken = (id: string) => {
+    if (typeof window !== 'undefined' && !window.confirm('Are you sure you want to delete this token from your permanent vault?')) {
+      return;
+    }
     const updated = tokens.filter((t) => t.id !== id);
     saveTokens(updated);
     if (keypadModalToken?.id === id) {
@@ -565,7 +612,15 @@ function TopUpContent() {
                 {detectedClipboardToken.formattedToken}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleDirectSaveParsedToken(detectedClipboardToken)}
+                  className="flex-1 min-w-[170px] py-2.5 px-3 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#2607d5]/20 active:scale-95"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Save This Token to Vault</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => {
@@ -574,15 +629,15 @@ function TopUpContent() {
                     setActiveTab('vault');
                     setShowAddTokenModal(true);
                   }}
-                  className="flex-1 py-2.5 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#2607d5]/20 active:scale-95"
+                  className="py-2.5 px-3 rounded-xl bg-white/10 hover:bg-white/15 text-gray-200 text-xs font-bold transition-colors flex items-center gap-1 active:scale-95"
                 >
-                  <Plus className="w-4 h-4" />
-                  <span>Save This Token to Vault</span>
+                  <Edit3 className="w-3.5 h-3.5" />
+                  <span>Review / Edit</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setDetectedClipboardToken(null)}
-                  className="px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-gray-300 text-xs font-bold transition-colors"
+                  className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white text-xs font-bold transition-colors"
                 >
                   Dismiss
                 </button>
