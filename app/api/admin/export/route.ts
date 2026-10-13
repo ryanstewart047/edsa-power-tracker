@@ -51,14 +51,20 @@ export async function GET() {
       {
         name: 'Hazards',
         rows: [
-          ['Type', 'Area', 'Community', 'Street Name', 'House Number', 'Description', 'Coordinates', 'Reported At'],
+          ['Reference', 'Type', 'Severity', 'Status', 'Assigned To', 'SLA Due', 'Area', 'Community', 'Street Name', 'House Number', 'Description', 'Resolution Note', 'Coordinates', 'Reported At'],
           ...stats.recentHazards.map((hazard) => [
+            hazard.referenceCode,
             hazard.type,
+            hazard.severity,
+            hazard.incidentStatus,
+            hazard.assignedTo || '—',
+            formatDate(hazard.slaDueAt),
             hazard.area,
             hazard.areaName || '—',
             hazard.streetName || '—',
             hazard.houseNumber || '—',
             hazard.description || '—',
+            hazard.resolutionNote || '—',
             hazard.lat !== null && hazard.lng !== null ? `${hazard.lat.toFixed(5)}, ${hazard.lng.toFixed(5)}` : '—',
             formatDate(hazard.reportedAt),
           ]),

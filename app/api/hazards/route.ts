@@ -10,6 +10,7 @@ import {
   validateReporterLocation,
 } from '@/lib/reporting';
 import { isFeatureEnabled } from '@/lib/operations';
+import { createHazardReference, initialSeverity, initialSlaDueAt } from '@/lib/incidents';
 
 export const dynamic = 'force-dynamic';
 
@@ -133,8 +134,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const severity = initialSeverity(type);
     const hazard = await prisma.hazardReport.create({
       data: {
+        referenceCode: createHazardReference(),
         type,
         description,
         streetName,
@@ -148,13 +151,15 @@ export async function POST(req: NextRequest) {
         deviceId,
         meterNumber,
         contactPhone,
+        severity,
+        slaDueAt: initialSlaDueAt(severity),
       },
     });
 
     return NextResponse.json({
       success: true,
       hazard,
-      message: `Hazard report saved for ${locationValidation.areaName}. Authorities can now review it.`,
+      message: `Hazard report ${hazard.referenceCode} was saved for ${locationValidation.areaName}. Authorities can now review it.`,
     });
   } catch (error) {
     console.error('POST /api/hazards error:', error);

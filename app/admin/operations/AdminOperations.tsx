@@ -116,7 +116,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
           <div><p className="text-xs font-bold uppercase tracking-wider text-blue-400">Separate Operations Console</p><h1 className="mt-1 text-2xl font-black">App controls & intelligence</h1><p className="mt-1 text-sm text-gray-400">Signed in as {adminEmail}</p></div>
-          <div className="flex gap-2"><Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"><ArrowLeft className="h-4 w-4" /> Dashboard</Link><button onClick={() => void load()} className="rounded-lg border border-white/10 p-2 hover:bg-white/5" aria-label="Refresh"><RefreshCw className="h-4 w-4" /></button></div>
+          <div className="flex gap-2"><Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"><ArrowLeft className="h-4 w-4" /> Dashboard</Link><Link href="/admin/incidents" className="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">Incident queue</Link><button onClick={() => void load()} className="rounded-lg border border-white/10 p-2 hover:bg-white/5" aria-label="Refresh"><RefreshCw className="h-4 w-4" /></button></div>
         </header>
         {error && <p className="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
         {success && <p className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</p>}

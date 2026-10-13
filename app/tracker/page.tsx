@@ -8,6 +8,8 @@ import type { AreaWithStatus } from '@/lib/areas';
 import { calculateDistanceKm, MAX_REPORTING_DISTANCE_KM } from '@/lib/locationMath';
 import LocationOnboarding from '@/components/LocationOnboarding';
 import AdUnit from '@/components/AdUnit';
+import AreaAlertsPanel from '@/components/AreaAlertsPanel';
+import EmergencySafetyCard from '@/components/EmergencySafetyCard';
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
@@ -578,6 +580,8 @@ export default function Home() {
     return matchSearch && matchFilter;
   });
 
+  const subscribedAreaName = primaryArea ? areas.find((area) => area.id === primaryArea)?.name ?? null : null;
+
   const counts = {
     on: areas.filter(a => a.status === 'on').length,
     out: areas.filter(a => a.status === 'out').length,
@@ -788,6 +792,9 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          <AreaAlertsPanel area={subscribedAreaName} />
+          <EmergencySafetyCard />
 
           <div className="flex flex-col sm:flex-row gap-3">
             <input
