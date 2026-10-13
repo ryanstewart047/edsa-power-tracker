@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
 }
 
 // GET: Admin list endpoint
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     const signups = await getAllOptIns();
     return NextResponse.json({ total: signups.length, signups });

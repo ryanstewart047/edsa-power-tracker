@@ -11,6 +11,15 @@ export interface OptInRecord {
   createdAt: string;
 }
 
+interface DbOptInRow {
+  id: string;
+  email: string;
+  name: string | null;
+  source: string | null;
+  notified: boolean | number;
+  created_at: Date | string;
+}
+
 const FALLBACK_FILE_PATH = path.join(process.cwd(), 'data', 'closed_testing_optins.json');
 
 // In-memory runtime cache for serverless resiliency
@@ -100,10 +109,10 @@ export async function saveOptIn(
   if (hasDb) {
     try {
       // Check if already exists in dedicated table
-      const existing = (await prisma.$queryRawUnsafe<any[]>(
+      const existing = (await prisma.$queryRawUnsafe<DbOptInRow[]>(
         `SELECT id, email, name, source, notified, created_at FROM closed_testing_optins WHERE email = $1 LIMIT 1`,
         cleanEmail
-      )) as any[];
+      )) as DbOptInRow[];
 
       if (existing && existing.length > 0) {
         isNew = false;
@@ -182,9 +191,9 @@ export async function getAllOptIns(): Promise<OptInRecord[]> {
   // 3. Load from dedicated database table
   if (hasDb) {
     try {
-      const rows = (await prisma.$queryRawUnsafe<any[]>(
+      const rows = (await prisma.$queryRawUnsafe<DbOptInRow[]>(
         `SELECT id, email, name, source, notified, created_at FROM closed_testing_optins ORDER BY created_at DESC`
-      )) as any[];
+      )) as DbOptInRow[];
 
       if (Array.isArray(rows)) {
         rows.forEach((row) => {

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import { Zap, Mail, CheckCircle2, Loader2, ArrowRight, Users, Star } from 'lucide-react';
 
 export default function JoinPage() {
