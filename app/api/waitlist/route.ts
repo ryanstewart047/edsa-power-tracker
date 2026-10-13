@@ -4,11 +4,11 @@ import { saveOptIn, getAllOptIns, markOptInNotified } from '@/lib/optInStorage';
 
 const PLAY_STORE_LINK =
   process.env.PLAY_STORE_URL ||
-  'https://play.google.com/store/apps/details?id=com.edsa.powertracker';
+  'https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker';
 
 const PLAY_TESTING_OPTIN_LINK =
   process.env.PLAY_TESTING_OPTIN_URL ||
-  'https://play.google.com/apps/testing/com.edsa.powertracker';
+  'https://play.google.com/apps/testing/com.bridgetech.edsapowertracker';
 
 const APP_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://edsa-power-tracker.vercel.app';
 const ADMIN_NOTIFICATION_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL || 'itservicesfreetown@gmail.com';
@@ -67,8 +67,8 @@ export async function POST(req: NextRequest) {
       const userMailPromise = transporter.sendMail({
         from: `"EDSA Power Tracker" <${smtpUser}>`,
         to: cleanEmail,
-        subject: '⚡ Your EDSA Power Tracker App Download & Testing Link',
-        text: `Hi ${displayName},\n\nThank you for opting in to test the EDSA Power Tracker app for Sierra Leone!\n\nHere are your access links:\n\n1. Accept Closed Testing Invite:\n${PLAY_TESTING_OPTIN_LINK}\n\n2. Download on Google Play:\n${PLAY_STORE_LINK}\n\nIf you see "Item not available", ensure you are signed into Google Play with ${cleanEmail} and tap the invite link first.\n\nBest regards,\nEDSA Power Tracker Team`,
+        subject: '⚡ EDSA Power Tracker Testing Invite (Please allow 15 min for activation)',
+        text: `Hi ${displayName},\n\nThank you for opting in to test the EDSA Power Tracker app for Sierra Leone!\n\nIMPORTANT: Please wait at least 15 minutes before opening the links below. Our team is currently adding your email (${cleanEmail}) to the Google Play Closed Testing list. Google takes about 15 minutes to activate new tester accounts.\n\nAfter 15 minutes, use these links:\n\n1. Join on Web (Accept Invite):\n${PLAY_TESTING_OPTIN_LINK}\n\n2. Join on Android (Download from Play Store):\n${PLAY_STORE_LINK}\n\nIf you see "Item not available" or "App not found", please wait a few more minutes and ensure you are logged into Google Play with ${cleanEmail}.\n\nBest regards,\nEDSA Power Tracker Team`,
         html: `
 <!DOCTYPE html>
 <html>
@@ -83,45 +83,55 @@ export async function POST(req: NextRequest) {
             <td style="background:linear-gradient(135deg,#2607d5,#16038a);padding:36px 32px;text-align:center;">
               <div style="font-size:38px;margin-bottom:8px;">⚡</div>
               <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px;">EDSA Power Tracker</h1>
-              <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;font-weight:bold;">Sierra Leone Prepaid & Outage Companion</p>
+              <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;font-weight:bold;">Sierra Leone Closed Testing Program</p>
             </td>
           </tr>
           <!-- Body -->
           <tr>
             <td style="padding:36px 32px;">
               <p style="color:#e2e8f0;font-size:16px;margin:0 0 12px;font-weight:bold;">Hi ${displayName},</p>
-              <p style="color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 24px;">
-                Thank you for joining our testing release. You now have direct access to download and test the EDSA Power Tracker app on your Android device.
+              <p style="color:#94a3b8;font-size:14px;line-height:1.7;margin:0 0 20px;">
+                Thank you for opting in to test the EDSA Power Tracker! Your email has been received by our testing team.
               </p>
 
+              <!-- 15-Minute Warning Banner -->
+              <div style="background:#451a03;border:1.5px solid #f97316;border-radius:16px;padding:18px;margin-bottom:24px;">
+                <p style="color:#fb923c;font-size:12px;font-weight:900;text-transform:uppercase;margin:0 0 6px;letter-spacing:0.8px;">
+                  ⏱️ Please wait at least 15 minutes before opening
+                </p>
+                <p style="color:#fdba74;font-size:13px;line-height:1.6;margin:0;">
+                  Our team is manually adding your email (<strong>${cleanEmail}</strong>) to the Google Play Console tester list right now. Google takes about <strong>15 minutes</strong> to sync and activate new testers.
+                </p>
+              </div>
+
               <!-- Step 1 & 2 Instructions -->
-              <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:28px;">
-                <p style="color:#60a5fa;font-size:12px;font-weight:bold;text-transform:uppercase;margin:0 0 10px;letter-spacing:1px;">Step 1: Join Testing Program</p>
+              <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:20px;">
+                <p style="color:#60a5fa;font-size:12px;font-weight:bold;text-transform:uppercase;margin:0 0 8px;letter-spacing:1px;">Step 1: Join on Web (Accept Invite)</p>
                 <p style="color:#cbd5e1;font-size:13px;line-height:1.6;margin:0 0 14px;">
-                  Tap the button below and confirm <strong>&quot;Become a tester&quot;</strong> with your Google Play account (<strong>${cleanEmail}</strong>):
+                  After 15 minutes, click below with your Google account (<strong>${cleanEmail}</strong>) and tap <strong>&quot;Become a tester&quot;</strong>:
                 </p>
                 <div style="text-align:center;">
-                  <a href="${PLAY_TESTING_OPTIN_LINK}" style="display:inline-block;background:#3b82f6;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:12px;">
-                    👉 Accept Testing Invite
+                  <a href="${PLAY_TESTING_OPTIN_LINK}" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:bold;font-size:14px;padding:12px 24px;border-radius:12px;">
+                    👉 Join on Web (Accept Invite)
                   </a>
                 </div>
               </div>
 
-              <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:28px;">
-                <p style="color:#34d399;font-size:12px;font-weight:bold;text-transform:uppercase;margin:0 0 10px;letter-spacing:1px;">Step 2: Download the App</p>
+              <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:20px;margin-bottom:24px;">
+                <p style="color:#34d399;font-size:12px;font-weight:bold;text-transform:uppercase;margin:0 0 8px;letter-spacing:1px;">Step 2: Join on Android (Download App)</p>
                 <p style="color:#cbd5e1;font-size:13px;line-height:1.6;margin:0 0 14px;">
-                  Once opted in, download and install the app directly from the Google Play Store:
+                  Once opted in, tap below to install the app directly from Google Play:
                 </p>
                 <div style="text-align:center;">
                   <a href="${PLAY_STORE_LINK}" style="display:inline-block;background:#2607d5;color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:14px 28px;border-radius:12px;">
-                    📲 Download on Google Play
+                    📲 Join on Android (Google Play)
                   </a>
                 </div>
               </div>
 
-              <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:28px 0;" />
+              <hr style="border:none;border-top:1px solid rgba(255,255,255,0.08);margin:24px 0;" />
               <p style="color:#64748b;font-size:12px;line-height:1.6;margin:0;">
-                If Google Play shows &quot;Item isn&apos;t available in your country&quot;, make sure you completed Step 1 using <strong>${cleanEmail}</strong>.<br><br>
+                If Google Play shows &quot;Item isn&apos;t available in your country&quot; or &quot;App not found&quot;, please wait a few more minutes for Google&apos;s servers to sync, and ensure you are logged into Google Play with <strong>${cleanEmail}</strong>.<br><br>
                 Need help? Simply reply directly to this email!
               </p>
             </td>
@@ -148,22 +158,32 @@ export async function POST(req: NextRequest) {
       const adminMailPromise = transporter.sendMail({
         from: `"EDSA System Alert" <${smtpUser}>`,
         to: ADMIN_NOTIFICATION_EMAIL,
-        subject: `⚡ [Closed Testing Opt-In] New Tester: ${cleanEmail}`,
-        text: `New Closed Tester Opt-In Captured!\n\nEmail: ${cleanEmail}\nName: ${record.name || 'Not provided'}\nSource: ${record.source}\nTime: ${record.createdAt}\n\nThe download and testing links were automatically sent to this tester.\nEnsure this email is included in your Google Play Console Closed Testing track.`,
+        subject: `⚡ [ACTION REQUIRED: Add Tester in Play Console] ${cleanEmail}`,
+        text: `ACTION REQUIRED: Add this tester to your Google Play Console Closed Testing track now!\n\nTester Email: ${cleanEmail}\nTester Name: ${record.name || 'Not provided'}\nSource: ${record.source}\nTime: ${record.createdAt}\n\nNote: The user was told to wait 15 minutes while you add them to the closed tester list in Google Play Console.`,
         html: `
 <div style="font-family:sans-serif;max-width:560px;padding:24px;background:#0f172a;color:#f8fafc;border-radius:16px;border:1px solid #334155;">
-  <h2 style="color:#38bdf8;margin-top:0;">⚡ New Closed Tester Captured!</h2>
-  <p style="color:#94a3b8;font-size:14px;">A user just entered their email on the testing opt-in page.</p>
+  <div style="background:#7c2d12;border:1px solid #ea580c;padding:12px 16px;border-radius:10px;margin-bottom:16px;">
+    <h3 style="color:#fdba74;margin:0;font-size:14px;text-transform:uppercase;letter-spacing:0.5px;">⚠️ ACTION REQUIRED in Google Play Console</h3>
+    <p style="color:#fed7aa;font-size:12px;margin:4px 0 0;">Add this tester's email to your Closed Testing track right now!</p>
+  </div>
+  <h2 style="color:#38bdf8;margin-top:0;">⚡ New Closed Tester Opt-In Captured</h2>
   <div style="background:#1e293b;padding:16px;border-radius:12px;margin:16px 0;">
-    <p style="margin:4px 0;"><strong>Email:</strong> <span style="color:#38bdf8;font-family:monospace;">${cleanEmail}</span></p>
-    <p style="margin:4px 0;"><strong>Name:</strong> ${record.name || 'Not provided'}</p>
-    <p style="margin:4px 0;"><strong>Status:</strong> ${isNew ? 'New Sign-up' : 'Re-sent download link'}</p>
+    <p style="margin:4px 0;"><strong>Tester Email:</strong> <span style="color:#38bdf8;font-family:monospace;font-weight:bold;font-size:15px;">${cleanEmail}</span></p>
+    <p style="margin:4px 0;"><strong>Tester Name:</strong> ${record.name || 'Not provided'}</p>
+    <p style="margin:4px 0;"><strong>Status:</strong> ${isNew ? 'New Sign-up' : 'Re-sent testing links'}</p>
     <p style="margin:4px 0;"><strong>Timestamp:</strong> ${new Date(record.createdAt).toLocaleString()}</p>
   </div>
-  <p style="font-size:12px;color:#94a3b8;">
-    The invite instructions and Google Play link were automatically emailed to the user.<br>
-    View all signups anytime in the <a href="${APP_SITE_URL}/admin/waitlist" style="color:#38bdf8;">Admin Waitlist Console</a>.
+  <p style="font-size:13px;color:#cbd5e1;line-height:1.6;">
+    The user was automatically emailed the testing links and advised to <strong>wait at least 15 minutes</strong> for you to add their email to the Google Play Console list.
   </p>
+  <div style="margin-top:20px;padding-top:16px;border-top:1px solid #334155;">
+    <a href="https://play.google.com/console" style="display:inline-block;background:#2563eb;color:#ffffff;text-decoration:none;font-weight:bold;font-size:13px;padding:10px 20px;border-radius:10px;">
+      Open Google Play Console
+    </a>
+    <a href="${APP_SITE_URL}/admin/waitlist" style="display:inline-block;background:#334155;color:#ffffff;text-decoration:none;font-weight:bold;font-size:13px;padding:10px 20px;border-radius:10px;margin-left:10px;">
+      View All in Admin Waitlist
+    </a>
+  </div>
 </div>
         `,
       });
@@ -180,8 +200,8 @@ export async function POST(req: NextRequest) {
       success: true,
       alreadyRegistered: !isNew,
       message: isNew
-        ? 'Success! Your download link has been sent to your email.'
-        : 'Welcome back! We have resent the download link to your email.',
+        ? 'Success! Your email has been captured. Please allow 15 minutes for your access to be activated in Google Play.'
+        : 'Welcome back! We have resent your testing links. Please allow 15 minutes for access activation.',
     });
   } catch (error) {
     console.error('[Waitlist API Error]:', error);

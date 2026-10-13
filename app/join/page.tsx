@@ -1,7 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Zap, Mail, CheckCircle2, Loader2, ArrowRight, Users, Star } from 'lucide-react';
+import {
+  Zap,
+  Mail,
+  CheckCircle2,
+  Loader2,
+  ArrowRight,
+  Users,
+  Star,
+  Clock,
+  ExternalLink,
+} from 'lucide-react';
+
+const PLAY_STORE_LINK = 'https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker';
+const PLAY_TESTING_OPTIN_LINK = 'https://play.google.com/apps/testing/com.bridgetech.edsapowertracker';
 
 export default function JoinPage() {
   const [email, setEmail] = useState('');
@@ -50,9 +63,8 @@ export default function JoinPage() {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
-
         {/* Logo & Branding */}
-        <div className="text-center mb-10">
+        <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <div className="w-14 h-14 rounded-2xl bg-[#2607d5] flex items-center justify-center shadow-xl shadow-[#2607d5]/30">
               <Zap className="w-7 h-7 text-white fill-white" />
@@ -67,7 +79,7 @@ export default function JoinPage() {
         </div>
 
         {/* Social proof */}
-        <div className="flex items-center justify-center gap-5 mb-8 text-xs text-gray-500">
+        <div className="flex items-center justify-center gap-5 mb-6 text-xs text-gray-500">
           <span className="flex items-center gap-1.5">
             <Users className="w-3.5 h-3.5 text-[#2607d5]" />
             Free for Sierra Leone
@@ -86,25 +98,79 @@ export default function JoinPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900 border border-white/10 rounded-3xl p-8 shadow-2xl">
-
+        <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
           {success ? (
-            /* Success state */
-            <div className="text-center space-y-4 py-4">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+            /* Success state with 15-minute wait time guidance */
+            <div className="space-y-5 text-left">
+              <div className="text-center space-y-2">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+                </div>
+                <h2 className="text-xl font-black text-white">Email Captured!</h2>
+                <p className="text-gray-300 text-xs">
+                  Your email has been sent to our developer team for enrollment.
+                </p>
               </div>
-              <h2 className="text-xl font-black text-white">You&apos;re in!</h2>
-              <p className="text-gray-300 text-sm leading-relaxed">{success}</p>
-              <p className="text-gray-500 text-xs">
-                Check your inbox (and spam folder) for the download link.
-              </p>
-              <button
-                onClick={() => setSuccess(null)}
-                className="text-[#6d8ef0] text-xs underline underline-offset-2 hover:text-blue-300 transition-colors"
-              >
-                Register another email
-              </button>
+
+              {/* 15-minute callout */}
+              <div className="bg-amber-950/60 border border-amber-500/40 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wider">
+                  <Clock className="w-4 h-4 text-amber-400" />
+                  <span>Please wait at least 15 minutes</span>
+                </div>
+                <p className="text-amber-200/90 text-xs leading-relaxed">
+                  We need to manually add your email to the Google Play Console closed tester list. Google Play takes about <strong>15 minutes</strong> to sync and activate access.
+                </p>
+                <p className="text-amber-300/80 text-[11px]">
+                  ⚠️ If you tap the links immediately before 15 minutes, Google may show <em>&quot;Item isn&apos;t available in your country&quot;</em>.
+                </p>
+              </div>
+
+              {/* Action Buttons for after 15 min */}
+              <div className="space-y-3 pt-1">
+                <div className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  After 15 minutes, open these links:
+                </div>
+
+                <a
+                  href={PLAY_TESTING_OPTIN_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-black">1</span>
+                    <span>Join on Web (Accept Invite)</span>
+                  </div>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+
+                <a
+                  href={PLAY_STORE_LINK}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 px-4 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between shadow-md"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-black">2</span>
+                    <span>Join on Android (Play Store)</span>
+                  </div>
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+              </div>
+
+              <div className="text-center pt-2 border-t border-white/10 space-y-2">
+                <p className="text-gray-500 text-[11px]">
+                  We also sent these instructions and direct links to your inbox.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setSuccess(null)}
+                  className="text-blue-400 text-xs font-semibold hover:underline"
+                >
+                  Register another email
+                </button>
+              </div>
             </div>
           ) : (
             /* Form */
@@ -112,17 +178,19 @@ export default function JoinPage() {
               <div className="text-center mb-6">
                 <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#6d8ef0] bg-[#2607d5]/15 border border-[#2607d5]/30 px-3 py-1.5 rounded-full mb-3">
                   <Mail className="w-3 h-3" />
-                  Get the Download Link
+                  Closed Testing Access
                 </div>
-                <h2 className="text-xl font-black text-white">Get early access</h2>
+                <h2 className="text-xl font-black text-white">Join Closed Testing</h2>
                 <p className="text-gray-400 text-xs mt-1">
-                  Enter your email and we&apos;ll send you the Google Play link instantly.
+                  Enter your Google Play email to be added to our official tester list.
                 </p>
               </div>
 
               {/* Name field */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400">Your name <span className="text-gray-600 font-normal">(optional)</span></label>
+                <label className="text-xs font-bold text-gray-400">
+                  Your name <span className="text-gray-600 font-normal">(optional)</span>
+                </label>
                 <input
                   type="text"
                   placeholder="e.g. Mohamed Kamara"
@@ -134,15 +202,20 @@ export default function JoinPage() {
 
               {/* Email field */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400">Email address <span className="text-red-400">*</span></label>
+                <label className="text-xs font-bold text-gray-400">
+                  Google Play Email address <span className="text-red-400">*</span>
+                </label>
                 <input
                   type="email"
                   required
-                  placeholder="you@example.com"
+                  placeholder="you@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 text-sm focus:outline-none focus:border-[#2607d5] focus:bg-white/8 transition-colors"
                 />
+                <p className="text-[11px] text-gray-500">
+                  Use the email logged into your Android Google Play Store.
+                </p>
               </div>
 
               {/* Error */}
@@ -161,18 +234,18 @@ export default function JoinPage() {
                 {loading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Sending link...</span>
+                    <span>Submitting email...</span>
                   </>
                 ) : (
                   <>
-                    <span>Send Me the Download Link</span>
+                    <span>Submit Email for Testing</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </button>
 
               <p className="text-center text-gray-600 text-[11px]">
-                We only use your email to send the download link. No spam, ever.
+                You will be notified as soon as you submit. Please allow 15 min for Google Play activation.
               </p>
             </form>
           )}

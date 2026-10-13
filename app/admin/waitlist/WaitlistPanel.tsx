@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   Mail, Users, CheckCircle2, Clock, Download,
-  RefreshCw, Search, Loader2, Copy, Check,
+  RefreshCw, Search, Loader2, Copy, Check, ExternalLink,
 } from 'lucide-react';
 
 interface Signup {
@@ -120,6 +120,47 @@ export default function WaitlistPanel() {
             <div className="text-xs text-gray-400 mt-0.5">{stat.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* Manual Tester Activation Instructions Banner */}
+      <div className="bg-amber-950/40 border border-amber-500/30 rounded-2xl p-5 space-y-3">
+        <div className="flex items-center gap-2 text-amber-300 font-bold text-sm">
+          <Clock className="w-4 h-4 text-amber-400" />
+          <span>Closed Testing Workflow & 15-Minute Activation</span>
+        </div>
+        <p className="text-xs text-amber-200/90 leading-relaxed">
+          When a user signs up, copy their email below and add it to your <strong>Google Play Console</strong> tester list under <em>Release &gt; Testing &gt; Closed testing &gt; Testers</em>.
+          Testers are automatically told to <strong>wait at least 15 minutes</strong> for Google Play to activate their access before tapping the links.
+        </p>
+        <div className="flex flex-wrap gap-2 pt-1 text-xs">
+          <a
+            href="https://play.google.com/apps/testing/com.bridgetech.edsapowertracker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-blue-300 font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <span>Join on Web Link</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <a
+            href="https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-emerald-300 font-semibold flex items-center gap-1.5 transition-colors"
+          >
+            <span>Join on Android Link</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+          <a
+            href="https://play.google.com/console"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg bg-blue-600/30 hover:bg-blue-600/40 text-white font-semibold flex items-center gap-1.5 transition-colors ml-auto"
+          >
+            <span>Open Play Console</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        </div>
       </div>
 
       {/* Toolbar */}
