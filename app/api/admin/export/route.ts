@@ -5,7 +5,7 @@ import { createWorkbookXlsx } from '@/lib/xlsx';
 
 export const dynamic = 'force-dynamic';
 
-function formatDate(value: Date | null) {
+function formatDate(value: Date | null | undefined) {
   return value ? value.toLocaleString() : '—';
 }
 
