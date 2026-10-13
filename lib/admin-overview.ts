@@ -58,9 +58,9 @@ function getDefaultAreaSummary() {
 }
 
 export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
-  let allReports: any[] = [];
-  let areaStatuses: any[] = [];
-  let hazardReports: any[] = [];
+  let allReports: AdminOverviewStats['recentReports'] = [];
+  let areaStatuses: Array<{ area: string; id?: string; status: string; reportCount?: number; confidence?: number; lastUpdated?: Date | null }> = [];
+  let hazardReports: AdminOverviewStats['recentHazards'] = [];
   let totalReports = 0;
   let totalHazards = 0;
   let totalResolvedHazards = 0;
@@ -81,9 +81,9 @@ export async function getAdminOverviewStats(): Promise<AdminOverviewStats> {
       prisma.hazardReport.count({ where: { resolved: true } }),
     ]);
 
-    if (results[0].status === 'fulfilled') allReports = results[0].value;
+    if (results[0].status === 'fulfilled') allReports = results[0].value as AdminOverviewStats['recentReports'];
     if (results[1].status === 'fulfilled') areaStatuses = results[1].value;
-    if (results[2].status === 'fulfilled') hazardReports = results[2].value as any[];
+    if (results[2].status === 'fulfilled') hazardReports = results[2].value as AdminOverviewStats['recentHazards'];
     if (results[3].status === 'fulfilled') totalReports = results[3].value;
     if (results[4].status === 'fulfilled') totalHazards = results[4].value;
     if (results[5].status === 'fulfilled') totalResolvedHazards = results[5].value;
