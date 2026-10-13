@@ -137,6 +137,14 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
     } catch (e) {
       console.error('Failed to fetch admin stats', e);
       setError(e instanceof Error ? e.message : 'Failed to fetch admin stats.');
+      setStats((prev) => prev || {
+        totalReports: 0,
+        totalHazards: 0,
+        totalResolvedHazards: 0,
+        areaSummary: [],
+        recentReports: [],
+        recentHazards: [],
+      });
     } finally {
       if (isInitial) {
         setLoading(false);
@@ -334,13 +342,22 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
             <h1 className="text-xl font-bold">Admin data unavailable</h1>
             <p className="text-sm text-gray-400">{error || 'The dashboard could not load right now.'}</p>
           </div>
-          <button
-            onClick={() => void fetchStats({ initial: true })}
-            className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
-          >
-            <RefreshCw className="w-4 h-4" />
-            Try again
-          </button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 pt-2">
+            <button
+              onClick={() => void fetchStats({ initial: true })}
+              className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm font-semibold text-white hover:bg-white/20 transition-all w-full sm:w-auto justify-center"
+            >
+              <RefreshCw className="w-4 h-4" />
+              Try again
+            </button>
+            <button
+              onClick={() => router.push('/admin/waitlist')}
+              className="inline-flex items-center gap-2 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] px-4 py-2.5 text-sm font-black text-white transition-all w-full sm:w-auto justify-center shadow-lg"
+            >
+              <MessageCircleMore className="w-4 h-4" />
+              Email Waitlist
+            </button>
+          </div>
         </div>
       </div>
     );
