@@ -196,15 +196,3 @@ model PasswordResetToken {
   @@index([adminId])
   @@index([expiresAt])
 }
-
-model WaitlistSignup {
-  id          String   @id @default(cuid())
-  email       String   @unique
-  name        String?
-  source      String?  // e.g. "join-page", "share-link"
-  notified    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-
-  @@index([createdAt])
-  @@index([notified])
-}

@@ -29,9 +29,7 @@ export default function WaitlistPanel() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/waitlist', {
-        headers: { 'x-admin-secret': process.env.NEXT_PUBLIC_ADMIN_SECRET || '' },
-      });
+      const res = await fetch('/api/waitlist');
       if (!res.ok) throw new Error('Failed to fetch signups');
       const data = await res.json();
       setSignups(data.signups || []);
