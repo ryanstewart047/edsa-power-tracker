@@ -12,6 +12,16 @@ type Incident = {
 type Outage = { id: string; title: string; message: string; area: string | null; startsAt: string; endsAt: string; active: boolean };
 const emptyOutage = { title: '', message: '', area: '', startsAt: '', endsAt: '' };
 
+async function parseResponse(response: Response) {
+  const body = await response.text();
+  if (!body) return {} as Record<string, unknown>;
+  try {
+    return JSON.parse(body) as Record<string, unknown>;
+  } catch {
+    throw new Error('The server returned an invalid response. Please try again.');
+  }
+}
+
 export default function IncidentConsole({ adminEmail }: { adminEmail: string }) {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [outages, setOutages] = useState<Outage[]>([]);
@@ -21,10 +31,10 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/incidents', { cache: 'no-store' });
-    const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Could not load incidents.');
-    setIncidents(data.incidents);
-    setOutages(data.outages);
+    const data = await parseResponse(response);
+    if (!response.ok) throw new Error(typeof data.error === 'string' ? data.error : 'Could not load incidents.');
+    setIncidents(Array.isArray(data.incidents) ? data.incidents as Incident[] : []);
+    setOutages(Array.isArray(data.outages) ? data.outages as Outage[] : []);
   }, []);
 
   useEffect(() => { void load().catch((loadError) => setError(loadError.message)); }, [load]);
@@ -33,8 +43,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     setBusy(incident.id); setError('');
     try {
       const response = await fetch(`/api/hazards/${incident.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Could not update incident.');
+      const result = await parseResponse(response);
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not update incident.');
       await load();
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : 'Could not update incident.');
@@ -55,8 +65,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     setBusy('outage'); setError('');
     try {
       const response = await fetch('/api/admin/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'create-outage', ...outage }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Could not schedule outage.');
+      const result = await parseResponse(response);
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not schedule outage.');
       setOutage(emptyOutage); await load();
     } catch (createError) {
       setError(createError instanceof Error ? createError.message : 'Could not schedule outage.');
@@ -67,8 +77,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     setBusy(item.id);
     try {
       const response = await fetch('/api/admin/incidents', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'set-outage-status', id: item.id, active: !item.active }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(result.error || 'Could not update maintenance notice.');
+      const result = await parseResponse(response);
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not update maintenance notice.');
       await load();
     } catch (toggleError) {
       setError(toggleError instanceof Error ? toggleError.message : 'Could not update maintenance notice.');
