@@ -450,7 +450,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 type="button"
                 onClick={handleRequestPermission}
                 disabled={isRequesting}
-                className="w-full py-4 px-6 rounded-2xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#2607d5]/20 active:scale-95 disabled:opacity-50"
+                className="w-full py-4 px-6 rounded-2xl bg-[#040e40] hover:bg-[#020820] text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#040e40]/20 active:scale-95 disabled:opacity-50"
               >
                 {isRequesting ? (
                   <>

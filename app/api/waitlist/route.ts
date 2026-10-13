@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         <table width="100%" cellpadding="0" cellspacing="0" style="max-width:540px;background:#0f172a;border-radius:24px;overflow:hidden;border:1px solid rgba(255,255,255,0.1);">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#2607d5,#16038a);padding:36px 32px;text-align:center;">
+            <td style="background:linear-gradient(135deg,#040e40,#020820);padding:36px 32px;text-align:center;">
               <div style="font-size:38px;margin-bottom:8px;">⚡</div>
               <h1 style="color:#ffffff;margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px;">EDSA Power Tracker</h1>
               <p style="color:rgba(255,255,255,0.8);margin:6px 0 0;font-size:13px;font-weight:bold;">Sierra Leone Closed Testing Program</p>
@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
                   Once opted in, tap below to install the app directly from Google Play:
                 </p>
                 <div style="text-align:center;">
-                  <a href="${PLAY_STORE_LINK}" style="display:inline-block;background:#2607d5;color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:14px 28px;border-radius:12px;">
+                  <a href="${PLAY_STORE_LINK}" style="display:inline-block;background:#040e40;color:#ffffff;text-decoration:none;font-weight:900;font-size:15px;padding:14px 28px;border-radius:12px;">
                     📲 Join on Android (Google Play)
                   </a>
                 </div>

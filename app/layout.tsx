@@ -7,7 +7,7 @@ import FloatingPrompts from "@/components/FloatingPrompts";
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
-  themeColor: "#2607d5",
+  themeColor: "#040e40",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,

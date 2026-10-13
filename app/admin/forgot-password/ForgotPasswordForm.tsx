@@ -56,7 +56,7 @@ export default function ForgotPasswordForm() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="example@mail.com"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#2607d5]/50"
+            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#040e40]/50"
             required
           />
         </div>
@@ -84,7 +84,7 @@ export default function ForgotPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-[#2607d5] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d05aa] disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-[#040e40] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#020820] disabled:opacity-60"
         >
           {loading ? 'Creating reset request...' : 'Send reset link'}
         </button>

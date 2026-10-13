@@ -19,7 +19,7 @@ const prompts = [
     question: "Got power right now?",
     icon: Zap,
     color: "text-blue-400",
-    bg: "bg-[#2607d5]/15",
+    bg: "bg-[#040e40]/15",
     action: "Update Status"
   },
   {
@@ -74,7 +74,7 @@ export default function FloatingPrompts() {
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 15, ease: "linear" }}
-                className="absolute bottom-0 left-0 h-0.5 bg-[#2607d5]/30"
+                className="absolute bottom-0 left-0 h-0.5 bg-[#040e40]/30"
               />
 
               <button 

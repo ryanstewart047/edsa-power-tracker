@@ -77,7 +77,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
           >
             <div className="p-8 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-[#2607d5]/15 flex items-center justify-center border border-[#2607d5]/20">
+                <div className="h-12 w-12 rounded-2xl bg-[#040e40]/15 flex items-center justify-center border border-[#040e40]/20">
                   <MapPin className="h-6 w-6 text-blue-400" />
                 </div>
                 <div>
@@ -99,7 +99,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
                   placeholder="Search any Sierra Leone location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-4 text-sm focus:outline-none focus:border-[#2607d5]/50 transition-all text-white"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-4 text-sm focus:outline-none focus:border-[#040e40]/50 transition-all text-white"
                 />
               </div>
 
@@ -114,7 +114,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
                     onClick={() => setSelectedArea(area.id)}
                     className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
                       selectedArea === area.id
-                        ? 'bg-[#2607d5] border-[#2607d5] text-black shadow-lg shadow-[#2607d5]/20' 
+                        ? 'bg-[#040e40] border-[#040e40] text-black shadow-lg shadow-[#040e40]/20' 
                         : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10'
                     }`}
                   >
@@ -130,7 +130,7 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
               <button
                 onClick={handleFinish}
                 disabled={!selectedArea}
-                className="w-full py-4 rounded-2xl bg-[#2607d5] text-white font-black text-sm uppercase tracking-widest transition-all hover:bg-[#1d05aa] disabled:opacity-30 flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-[#040e40] text-white font-black text-sm uppercase tracking-widest transition-all hover:bg-[#020820] disabled:opacity-30 flex items-center justify-center gap-2"
               >
                 Set Primary Community
                 <ChevronRight className="h-4 w-4" />

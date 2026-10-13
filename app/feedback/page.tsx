@@ -83,7 +83,7 @@ export default function FeedbackPage() {
   return (
     <main className="min-h-screen bg-[#020617] text-white px-4 py-12 md:py-20 relative overflow-x-hidden">
       {/* Background Glow */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-[#2607d5]/15 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-[#040e40]/15 blur-[120px] rounded-full pointer-events-none" />
       <div className="fixed top-1/2 -right-40 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-3xl mx-auto space-y-10 relative z-10">
@@ -100,7 +100,7 @@ export default function FeedbackPage() {
 
         {/* Header */}
         <div className="space-y-3 border-b border-white/10 pb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2607d5]/15 border border-[#2607d5]/20 text-blue-300 text-xs font-bold uppercase tracking-widest">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#040e40]/15 border border-[#040e40]/20 text-blue-300 text-xs font-bold uppercase tracking-widest">
             <MessageSquareHeart className="w-3.5 h-3.5" /> Tester & User Feedback
           </div>
           <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
@@ -148,7 +148,7 @@ export default function FeedbackPage() {
                     window.dispatchEvent(new Event('open-emoji-feedback'));
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#2607d5]/30 bg-[#2607d5]/15 hover:bg-[#2607d5]/20 text-blue-300 text-xs font-bold transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#040e40]/30 bg-[#040e40]/15 hover:bg-[#040e40]/20 text-blue-300 text-xs font-bold transition-all active:scale-95"
               >
                 <span className="text-xl">🤩</span>
                 <span>Excited / Loving it</span>
@@ -188,7 +188,7 @@ export default function FeedbackPage() {
               </button>
               <Link
                 href="/tracker"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#2607d5]/20"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#040e40] hover:bg-[#020820] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#040e40]/20"
               >
                 Return to Live Tracker
               </Link>
@@ -219,7 +219,7 @@ export default function FeedbackPage() {
                     onClick={() => setRating(star)}
                     className={`p-2 rounded-xl border transition-all ${
                       rating >= star
-                        ? 'border-[#2607d5]/50 bg-[#2607d5]/15 text-blue-400 scale-105'
+                        ? 'border-[#040e40]/50 bg-[#040e40]/15 text-blue-400 scale-105'
                         : 'border-white/5 bg-white/5 text-gray-600 hover:text-gray-400'
                     }`}
                   >
@@ -249,7 +249,7 @@ export default function FeedbackPage() {
                     onClick={() => setCategory(cat.id)}
                     className={`p-3 rounded-xl border text-left text-xs font-bold transition-all flex items-center gap-2 ${
                       category === cat.id
-                        ? 'border-[#2607d5] bg-[#2607d5]/15 text-white shadow-md shadow-[#2607d5]/10'
+                        ? 'border-[#040e40] bg-[#040e40]/15 text-white shadow-md shadow-[#040e40]/10'
                         : 'border-white/5 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                     }`}
                   >
@@ -270,7 +270,7 @@ export default function FeedbackPage() {
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="e.g. Lumley, Wellington, Aberdeen, Wilberforce, Central"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors"
               />
             </div>
 
@@ -285,7 +285,7 @@ export default function FeedbackPage() {
                 placeholder="Tell us what you like, what is not working, or what features you want to see next..."
                 rows={5}
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors resize-none"
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors resize-none"
               />
             </div>
 
@@ -300,7 +300,7 @@ export default function FeedbackPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Samuel Kargbo"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors"
                 />
               </div>
 
@@ -313,7 +313,7 @@ export default function FeedbackPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="e.g. samuel@example.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#2607d5] transition-colors"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function FeedbackPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:flex-1 py-4 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#2607d5]/20"
+                className="w-full sm:flex-1 py-4 rounded-xl bg-[#040e40] hover:bg-[#020820] disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#040e40]/20"
               >
                 {submitting ? (
                   <>

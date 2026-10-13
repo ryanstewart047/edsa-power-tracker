@@ -242,7 +242,7 @@ export default function AppOnboarding() {
         'To keep Sierra Leone electricity tracking safe, trustworthy, and accurate for everyone, please review and accept our usage guidelines.',
       icon: FileText,
       accentColor: 'text-blue-400',
-      bgGlow: 'from-[#2607d5]/20 to-transparent',
+      bgGlow: 'from-[#040e40]/20 to-transparent',
       preview: (
         <div className="bg-slate-900/90 border border-white/10 rounded-2xl p-4 space-y-3 shadow-xl text-left">
           <div className="space-y-2 text-xs text-gray-300">
@@ -286,13 +286,13 @@ export default function AppOnboarding() {
             onClick={() => setTermsAccepted(!termsAccepted)}
             className={`w-full p-3 rounded-xl border flex items-center gap-3 text-left transition-all ${
               termsAccepted
-                ? 'bg-[#2607d5]/15 border-[#2607d5] text-blue-300 shadow-md shadow-[#2607d5]/10'
+                ? 'bg-[#040e40]/15 border-[#040e40] text-blue-300 shadow-md shadow-[#040e40]/10'
                 : 'bg-white/5 border-white/15 text-gray-300 hover:bg-white/10'
             }`}
           >
             <div className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 transition-all ${
               termsAccepted
-                ? 'bg-[#2607d5] border-[#2607d5] text-slate-950'
+                ? 'bg-[#040e40] border-[#040e40] text-slate-950'
                 : 'border-white/30 bg-white/5'
             }`}>
               {termsAccepted && <CheckCircle2 className="w-4 h-4 fill-slate-950 text-blue-400" />}
@@ -402,7 +402,7 @@ export default function AppOnboarding() {
         'Get live crowdsourced power reports across Sierra Leone communities. Easily see which zones currently have active power, planned maintenance, or load shedding.',
       icon: Zap,
       accentColor: 'text-blue-400',
-      bgGlow: 'from-[#2607d5]/20 to-transparent',
+      bgGlow: 'from-[#040e40]/20 to-transparent',
       preview: (
         <div className="bg-slate-900/80 border border-white/10 rounded-2xl p-4 space-y-3 shadow-xl">
           <div className="flex items-center justify-between">
@@ -614,7 +614,7 @@ export default function AppOnboarding() {
                   disabled={(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted && !canSkipLocation)}
                   className={`h-1.5 rounded-full transition-all duration-300 ${
                     idx === currentStep 
-                      ? 'w-8 bg-[#2607d5]' 
+                      ? 'w-8 bg-[#040e40]' 
                       : 'w-2 bg-white/20 hover:bg-white/40'
                   } ${(idx > 0 && !termsAccepted) || (idx > 1 && !locationGranted && !canSkipLocation) ? 'opacity-30 cursor-not-allowed' : ''}`}
                   aria-label={`Go to step ${idx + 1}`}
@@ -639,8 +639,8 @@ export default function AppOnboarding() {
                 disabled={isNextDisabled}
                 className={`flex-1 py-3.5 px-6 rounded-2xl font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 group ${
                   isNextDisabled
-                    ? 'bg-[#2607d5]/30 text-white cursor-not-allowed border border-white/5'
-                    : 'bg-[#2607d5] hover:bg-[#1d05aa] text-white shadow-lg shadow-[#2607d5]/20'
+                    ? 'bg-[#040e40]/30 text-white cursor-not-allowed border border-white/5'
+                    : 'bg-[#040e40] hover:bg-[#020820] text-white shadow-lg shadow-[#040e40]/20'
                 }`}
               >
                 {isLastStep ? (

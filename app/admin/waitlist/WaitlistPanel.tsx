@@ -172,7 +172,7 @@ export default function WaitlistPanel() {
             placeholder="Search by email or name…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#2607d5]"
+            className="w-full pl-9 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-white text-sm placeholder:text-gray-600 focus:outline-none focus:border-[#040e40]"
           />
         </div>
         <div className="flex gap-2">
@@ -187,7 +187,7 @@ export default function WaitlistPanel() {
           <button
             onClick={downloadCsv}
             disabled={filtered.length === 0}
-            className="px-4 py-2.5 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] text-white text-sm font-black flex items-center gap-1.5 transition-colors disabled:opacity-40"
+            className="px-4 py-2.5 rounded-xl bg-[#040e40] hover:bg-[#020820] text-white text-sm font-black flex items-center gap-1.5 transition-colors disabled:opacity-40"
           >
             <Download className="w-4 h-4" />
             Export CSV
@@ -196,7 +196,7 @@ export default function WaitlistPanel() {
       </div>
 
       {/* Join page link */}
-      <div className="flex items-center gap-3 bg-[#2607d5]/10 border border-[#2607d5]/25 rounded-2xl px-5 py-3">
+      <div className="flex items-center gap-3 bg-[#040e40]/10 border border-[#040e40]/25 rounded-2xl px-5 py-3">
         <Mail className="w-4 h-4 text-blue-400 shrink-0" />
         <div className="text-sm text-gray-300 flex-1">
           <span className="font-bold text-white">Share this link</span> with users to collect emails:

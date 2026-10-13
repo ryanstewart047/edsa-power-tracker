@@ -66,7 +66,7 @@ export default function ResetPasswordForm() {
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           This reset link is incomplete or invalid.
         </div>
-        <Link href="/admin/forgot-password" className="inline-flex rounded-2xl bg-[#2607d5] px-5 py-3 text-sm font-bold text-white hover:bg-[#1d05aa]">
+        <Link href="/admin/forgot-password" className="inline-flex rounded-2xl bg-[#040e40] px-5 py-3 text-sm font-bold text-white hover:bg-[#020820]">
           Request a new reset link
         </Link>
       </div>
@@ -91,7 +91,7 @@ export default function ResetPasswordForm() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="At least 8 characters"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#2607d5]/50"
+            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#040e40]/50"
             required
           />
         </div>
@@ -103,7 +103,7 @@ export default function ResetPasswordForm() {
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             placeholder="Repeat your new password"
-            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#2607d5]/50"
+            className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-[#040e40]/50"
             required
           />
         </div>
@@ -123,7 +123,7 @@ export default function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-[#2607d5] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#1d05aa] disabled:opacity-60"
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-[#040e40] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#020820] disabled:opacity-60"
         >
           {loading ? 'Resetting password...' : 'Reset password'}
         </button>

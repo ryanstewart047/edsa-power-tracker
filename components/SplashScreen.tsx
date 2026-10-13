@@ -36,7 +36,7 @@ export default function SplashScreen() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
-          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#2607d5] text-white overflow-hidden"
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-[#040e40] text-white overflow-hidden"
         >
           <div className="relative flex flex-col items-center">
             <motion.div
@@ -55,7 +55,7 @@ export default function SplashScreen() {
                 width={512}
                 height={512}
                 priority
-                className="h-auto w-full shadow-2xl shadow-[#2607d5]/35"
+                className="h-auto w-full shadow-2xl shadow-[#040e40]/35"
               />
             </motion.div>
           </div>
@@ -78,7 +78,7 @@ export default function SplashScreen() {
               initial={{ width: "0%" }}
               animate={{ width: "100%" }}
               transition={{ duration: 2.5, ease: "linear" }}
-              className="h-full bg-[#2607d5]"
+              className="h-full bg-[#040e40]"
             />
           </div>
         </motion.div>

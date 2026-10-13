@@ -64,7 +64,7 @@ export default function DataDeletionPage() {
             You can request full deletion of any data associated with your submissions by contacting our data protection team via email:
           </p>
 
-          <div className="bg-white/5 border border-[#2607d5]/30 rounded-2xl p-6 space-y-4">
+          <div className="bg-white/5 border border-[#040e40]/30 rounded-2xl p-6 space-y-4">
             <h3 className="text-sm font-black uppercase tracking-wide text-blue-400">Submit a Request via Email</h3>
             <ul className="text-xs text-gray-300 space-y-2 list-disc pl-5">
               <li><strong>Send an email to:</strong> <a href={`mailto:${contactEmail}`} className="text-blue-400 underline">{contactEmail}</a></li>
@@ -75,7 +75,7 @@ export default function DataDeletionPage() {
             <div className="pt-2">
               <a
                 href={`mailto:${contactEmail}?subject=Data%20Deletion%20Request%20%E2%80%94%20EDSA%20Power%20Tracker&body=Hello%20BridgeTech%20Team%2C%0A%0AI%20would%20like%20to%20request%20the%20deletion%20of%20all%20data%20associated%20with%20my%20use%20of%20the%20EDSA%20Power%20Tracker%20app.%0A%0ADetails%20(date%2C%20community%2C%20etc.)%3A%0A%0AThank%20you.`}
-                className="inline-flex items-center gap-2 bg-[#2607d5] hover:bg-[#1d05aa] text-white font-black text-xs uppercase tracking-widest px-5 py-3 rounded-xl transition-all shadow-lg shadow-[#2607d5]/20"
+                className="inline-flex items-center gap-2 bg-[#040e40] hover:bg-[#020820] text-white font-black text-xs uppercase tracking-widest px-5 py-3 rounded-xl transition-all shadow-lg shadow-[#040e40]/20"
               >
                 Send Data Deletion Request Email
               </a>

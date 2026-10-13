@@ -41,7 +41,7 @@ const featurePills = [
 
 export default function WelcomePage() {
   return (
-    <main className="min-h-screen relative text-white selection:bg-[#2607d5]/40 overflow-x-hidden bg-[#020305]">
+    <main className="min-h-screen relative text-white selection:bg-[#040e40]/40 overflow-x-hidden bg-[#020305]">
       {/* Background Image Layer */}
       <div
         className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
@@ -61,16 +61,16 @@ export default function WelcomePage() {
             transition={{ duration: 0.8 }}
             className="space-y-8"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#2607d5]/15 border border-[#2607d5]/30 backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#040e40]/15 border border-[#040e40]/30 backdrop-blur-md">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#2607d5]"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#040e40]"></span>
               </span>
               <p className="text-[10px] font-black uppercase tracking-widest text-blue-300">EDSA Native Platform</p>
             </div>
 
             <h1 className="text-4xl sm:text-6xl font-black leading-[1.1] tracking-tight">
-              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-400 to-[#2607d5]">Operations.</span>
+              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-400 to-[#040e40]">Operations.</span>
             </h1>
 
             <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-xl">
@@ -80,7 +80,7 @@ export default function WelcomePage() {
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/tracker"
-                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-[#2607d5] hover:bg-[#1d05aa] px-8 py-4 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#2607d5]/30"
+                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-[#040e40] hover:bg-[#020820] px-8 py-4 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#040e40]/30"
               >
                 Launch Live Tracker
                 <div className="bg-white/10 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
@@ -112,7 +112,7 @@ export default function WelcomePage() {
               <WorkSlider />
             </div>
             {/* Ambient Glow */}
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#2607d5]/25 blur-[100px] rounded-full" />
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#040e40]/25 blur-[100px] rounded-full" />
           </motion.div>
         </div>
 
@@ -124,7 +124,7 @@ export default function WelcomePage() {
           >
             <div>
               <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-[#2607d5]/20 flex items-center justify-center">
+                <div className="h-14 w-14 rounded-2xl bg-[#040e40]/20 flex items-center justify-center">
                   <Activity className="h-7 w-7 text-blue-400" />
                 </div>
                 <Zap className="h-5 w-5 text-blue-300/30" />
