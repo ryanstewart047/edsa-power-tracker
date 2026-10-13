@@ -38,6 +38,7 @@ model AreaStatus {
 
 model HazardReport {
   id          String   @id @default(cuid())
+  referenceCode String @unique @default(cuid())
   type        String   // "Falling Pole", "Sparking Cable", "Other"
   description String?
   streetName  String?
@@ -50,6 +51,13 @@ model HazardReport {
   resolved    Boolean  @default(false)
   resolvedAt  DateTime?
   resolvedBy  String?  // Email of the admin who resolved it
+  incidentStatus String @default("received") // received | reviewing | dispatched | resolved
+  severity    String   @default("medium") // low | medium | high | critical
+  assignedTo  String?
+  slaDueAt    DateTime?
+  statusUpdatedAt DateTime @default(now())
+  resolutionNote String?
+  resolutionImageUrl String?
   deviceId    String?
   meterNumber String?
   contactPhone String?
@@ -59,6 +67,34 @@ model HazardReport {
   @@index([area, city])
   @@index([reportedAt])
   @@index([resolved])
+  @@index([incidentStatus, severity, slaDueAt])
+}
+
+model AreaSubscription {
+  id        String   @id @default(cuid())
+  deviceId  String
+  area      String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([deviceId, area])
+  @@index([area, active])
+}
+
+model ScheduledOutage {
+  id          String   @id @default(cuid())
+  title       String
+  message     String
+  area         String?
+  startsAt    DateTime
+  endsAt      DateTime
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  createdBy   String
+
+  @@index([active, startsAt, endsAt])
+  @@index([area, active])
 }
 
 model AdminUser {
@@ -159,4 +195,16 @@ model PasswordResetToken {
 
   @@index([adminId])
   @@index([expiresAt])
+}
+
+model WaitlistSignup {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  name        String?
+  source      String?  // e.g. "join-page", "share-link"
+  notified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([notified])
 }
