@@ -92,7 +92,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
         statusUpdatedAt: new Date(),
       },
     });
-    await auditAdminAction(admin.email, 'incident_updated', `${hazard.referenceCode}:${hazard.incidentStatus}`);
+    await auditAdminAction(admin.email, 'incident_updated', `${hazard.referenceCode || hazard.id}:${hazard.incidentStatus}`);
     return NextResponse.json({ success: true, hazard });
   } catch (error) {
     console.error('PATCH /api/hazards/[id] error:', error);

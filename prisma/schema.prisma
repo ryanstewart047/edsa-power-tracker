@@ -38,7 +38,7 @@ model AreaStatus {
 
 model HazardReport {
   id          String   @id @default(cuid())
-  referenceCode String @unique @default(cuid())
+  referenceCode String? @unique @default(cuid())
   type        String   // "Falling Pole", "Sparking Cable", "Other"
   description String?
   streetName  String?

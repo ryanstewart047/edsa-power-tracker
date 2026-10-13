@@ -143,7 +143,7 @@ export default function ChatBot() {
     return (
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 left-4 z-40 bg-[#040e40] hover:bg-[#020820] text-gray-950 rounded-full p-3.5 md:p-4 shadow-xl transition-all duration-300 hover:scale-110 md:bottom-24 md:left-6"
+        className="fixed bottom-20 left-4 z-40 rounded-full border-2 border-white bg-[#040e40] p-3.5 text-white shadow-xl ring-2 ring-white/30 transition-all duration-300 hover:scale-110 hover:bg-[#020820] md:bottom-24 md:left-6 md:p-4"
         aria-label="Open chatbot"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
