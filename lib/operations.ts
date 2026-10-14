@@ -34,5 +34,10 @@ export async function getActiveAnnouncement() {
 }
 
 export async function auditAdminAction(adminEmail: string, action: string, detail?: string) {
-  return prisma.adminAuditLog.create({ data: { adminEmail, action, detail } });
+  try {
+    return await prisma.adminAuditLog.create({ data: { adminEmail, action, detail } });
+  } catch (err) {
+    console.warn('[Audit] Skipping audit log (table not migrated):', err);
+    return null;
+  }
 }

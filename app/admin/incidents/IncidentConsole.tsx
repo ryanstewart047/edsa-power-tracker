@@ -72,6 +72,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
   // Edit outage state & modal
   const [editingOutage, setEditingOutage] = useState<Outage | null>(null);
   const [editForm, setEditForm] = useState(emptyOutage);
+  const [editError, setEditError] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Auto-search dropdown and input ref for main outage creation
@@ -246,6 +247,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
 
   const startEditOutage = (item: Outage) => {
     setEditingOutage(item);
+    setEditError('');
     setEditForm({
       title: item.title,
       message: item.message,
@@ -258,7 +260,20 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
   const saveEditOutage = async () => {
     if (!editingOutage) return;
     setBusy(editingOutage.id);
+    setEditError('');
     setError('');
+
+    if (!editForm.title.trim()) {
+      setEditError('Please enter a notice title.');
+      setBusy(null);
+      return;
+    }
+    if (!editForm.message.trim()) {
+      setEditError('Please enter notice details/message.');
+      setBusy(null);
+      return;
+    }
+
     try {
       const cleanedArea = editForm.area
         .split(',')
@@ -272,19 +287,23 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
         body: JSON.stringify({
           action: 'update-outage',
           id: editingOutage.id,
-          title: editForm.title,
-          message: editForm.message,
+          title: editForm.title.trim(),
+          message: editForm.message.trim(),
           area: cleanedArea || null,
-          startsAt: editForm.startsAt,
-          endsAt: editForm.endsAt,
+          startsAt: editForm.startsAt || undefined,
+          endsAt: editForm.endsAt || undefined,
         }),
       });
       const result = await parseResponse(response);
-      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not update maintenance notice.');
+      if (!response.ok) {
+        throw new Error(typeof result.error === 'string' ? result.error : 'Could not update maintenance notice.');
+      }
       setEditingOutage(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not update maintenance notice.');
+      const msg = err instanceof Error ? err.message : 'Could not update maintenance notice.';
+      setEditError(msg);
+      setError(msg);
     } finally {
       setBusy(null);
     }
@@ -655,6 +674,12 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                   <X className="h-5 w-5" />
                 </button>
               </div>
+
+              {editError && (
+                <p className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
+                  {editError}
+                </p>
+              )}
 
               <div className="mt-4 space-y-4">
                 <div>

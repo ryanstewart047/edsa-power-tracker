@@ -258,16 +258,28 @@ export async function POST(request: NextRequest) {
 
     if (body.action === 'update-outage' && typeof body.id === 'string') {
       const id = body.id;
-      const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : undefined;
-      const message = typeof body.message === 'string' ? body.message.trim().slice(0, 500) : undefined;
-      const area = typeof body.area === 'string' ? body.area.trim().slice(0, 500) || null : undefined;
-      const startsAt = typeof body.startsAt === 'string' ? new Date(body.startsAt) : undefined;
-      const endsAt = typeof body.endsAt === 'string' ? new Date(body.endsAt) : undefined;
-      if (startsAt && Number.isNaN(startsAt.getTime())) return NextResponse.json({ error: 'Invalid start time.' }, { status: 400 });
-      if (endsAt && Number.isNaN(endsAt.getTime())) return NextResponse.json({ error: 'Invalid end time.' }, { status: 400 });
-      if (startsAt && endsAt && endsAt <= startsAt) return NextResponse.json({ error: 'End time must be after start time.' }, { status: 400 });
+      const title = typeof body.title === 'string' && body.title.trim() ? body.title.trim().slice(0, 120) : undefined;
+      const message = typeof body.message === 'string' && body.message.trim() ? body.message.trim().slice(0, 500) : undefined;
+      const area = typeof body.area === 'string' ? body.area.trim().slice(0, 500) || null : (body.area === null ? null : undefined);
+      
+      let startsAt: Date | undefined = undefined;
+      if (typeof body.startsAt === 'string' && body.startsAt.trim()) {
+        const parsed = new Date(body.startsAt.trim());
+        if (!Number.isNaN(parsed.getTime())) {
+          startsAt = parsed;
+        }
+      }
+
+      let endsAt: Date | undefined = undefined;
+      if (typeof body.endsAt === 'string' && body.endsAt.trim()) {
+        const parsed = new Date(body.endsAt.trim());
+        if (!Number.isNaN(parsed.getTime())) {
+          endsAt = parsed;
+        }
+      }
 
       try {
+        await ensureScheduledOutageTable();
         const outage = await prisma.scheduledOutage.update({
           where: { id },
           data: {
@@ -289,19 +301,21 @@ export async function POST(request: NextRequest) {
           if (title !== undefined) { setParts.push(`"title" = $${idx++}`); vals.push(title); }
           if (message !== undefined) { setParts.push(`"message" = $${idx++}`); vals.push(message); }
           if (area !== undefined) { setParts.push(`"area" = $${idx++}`); vals.push(area); }
-          if (startsAt !== undefined) { setParts.push(`"startsAt" = $${idx++}`); vals.push(startsAt); }
-          if (endsAt !== undefined) { setParts.push(`"endsAt" = $${idx++}`); vals.push(endsAt); }
-          if (setParts.length === 0) return NextResponse.json({ error: 'Nothing to update.' }, { status: 400 });
-          vals.push(id);
-          await prisma.$executeRawUnsafe(
-            `UPDATE "ScheduledOutage" SET ${setParts.join(', ')} WHERE "id" = $${idx}`,
-            ...vals
-          );
+          if (startsAt !== undefined) { setParts.push(`"startsAt" = $${idx++}`); vals.push(startsAt.toISOString()); }
+          if (endsAt !== undefined) { setParts.push(`"endsAt" = $${idx++}`); vals.push(endsAt.toISOString()); }
+          
+          if (setParts.length > 0) {
+            vals.push(id);
+            await prisma.$executeRawUnsafe(
+              `UPDATE "ScheduledOutage" SET ${setParts.join(', ')} WHERE "id" = $${idx}`,
+              ...vals
+            );
+          }
           await auditAdminAction(admin.email, 'scheduled_outage_updated', id);
           return NextResponse.json({ success: true });
         } catch (rawErr) {
           console.error('Fatal raw update error for ScheduledOutage edit:', rawErr);
-          return NextResponse.json({ error: 'Failed to update scheduled outage.' }, { status: 500 });
+          return NextResponse.json({ error: 'Failed to update scheduled outage in database.' }, { status: 500 });
         }
       }
     }
