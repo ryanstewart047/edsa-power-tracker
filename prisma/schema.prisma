@@ -196,3 +196,14 @@ model PasswordResetToken {
   @@index([adminId])
   @@index([expiresAt])
 }
+
+model ClosedTestingOptin {
+  id        String   @id
+  email     String   @unique
+  name      String?
+  source    String?  @default("join-page")
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("closed_testing_optins")
+}
