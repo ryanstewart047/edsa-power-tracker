@@ -261,10 +261,6 @@ export default function AppOnboarding() {
     setIsVisible(false);
   };
 
-  const skipLocationOnDesktop = () => {
-    handleSkipLocation();
-  };
-
   const steps: OnboardingStep[] = [
     {
       badge: 'COMMUNITY AGREEMENT',
