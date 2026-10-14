@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2, Camera, Download } from 'lucide-react';
+import { ArrowLeft, Clock3, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2, Camera, Download } from 'lucide-react';
 import { SIERRA_LEONE_AREAS, AreaDefinition } from '@/lib/areas';
 
 type Incident = {
@@ -1030,6 +1030,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
 
               {/* Photo Display */}
               <div className="relative flex-1 flex items-center justify-center overflow-hidden rounded-xl bg-black/60 min-h-[300px] max-h-[70vh]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={viewingPhoto.url}
                   alt={viewingPhoto.title}
