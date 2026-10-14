@@ -19,6 +19,8 @@ type Incident = {
   slaDueAt: string | null;
   resolutionNote: string | null;
   resolutionImageUrl: string | null;
+  reportedAt?: string | null;
+  resolved?: boolean;
 };
 
 type Outage = {
