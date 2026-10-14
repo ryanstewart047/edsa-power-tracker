@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check, Plus } from 'lucide-react';
+import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2 } from 'lucide-react';
 import { SIERRA_LEONE_AREAS, AreaDefinition } from '@/lib/areas';
 
 type Incident = {
@@ -33,6 +33,23 @@ type Outage = {
 
 const emptyOutage = { title: '', message: '', area: '', startsAt: '', endsAt: '' };
 
+function formatDateForInput(dateVal: string | Date | undefined): string {
+  if (!dateVal) return '';
+  try {
+    const d = new Date(dateVal);
+    if (Number.isNaN(d.getTime())) return '';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const mm = pad(d.getMonth() + 1);
+    const dd = pad(d.getDate());
+    const hh = pad(d.getHours());
+    const min = pad(d.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  } catch {
+    return '';
+  }
+}
+
 async function parseResponse(response: Response) {
   const body = await response.text();
   if (!body) return {} as Record<string, unknown>;
@@ -48,12 +65,24 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
   const [outages, setOutages] = useState<Outage[]>([]);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
+
+  // New outage form state
   const [outage, setOutage] = useState(emptyOutage);
 
-  // Auto-search dropdown and input ref for affected areas
+  // Edit outage state & modal
+  const [editingOutage, setEditingOutage] = useState<Outage | null>(null);
+  const [editForm, setEditForm] = useState(emptyOutage);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Auto-search dropdown and input ref for main outage creation
   const [isAreaOpen, setIsAreaOpen] = useState(false);
   const areaSearchRef = useRef<HTMLDivElement>(null);
   const areaInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-search dropdown and input ref for edit modal
+  const [isEditAreaOpen, setIsEditAreaOpen] = useState(false);
+  const editAreaSearchRef = useRef<HTMLDivElement>(null);
+  const editAreaInputRef = useRef<HTMLInputElement>(null);
 
   // Close area dropdown when clicking outside
   useEffect(() => {
@@ -61,12 +90,15 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
       if (areaSearchRef.current && !areaSearchRef.current.contains(event.target as Node)) {
         setIsAreaOpen(false);
       }
+      if (editAreaSearchRef.current && !editAreaSearchRef.current.contains(event.target as Node)) {
+        setIsEditAreaOpen(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // List of already confirmed selected areas
+  // Creation: List of already confirmed selected areas
   const selectedAreaList = useMemo(() => {
     return outage.area
       .split(',')
@@ -74,29 +106,57 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
       .filter(Boolean);
   }, [outage.area]);
 
-  // Current query segment after the last comma
+  // Creation: Current query segment after the last comma
   const currentSegment = useMemo(() => {
     const segments = outage.area.split(',');
     return segments[segments.length - 1].trim().toLowerCase();
   }, [outage.area]);
 
-  // Filter areas based on current segment: prioritizing starting letters
+  // Creation: Filter areas based on current segment
   const filteredAreas = useMemo(() => {
     const selectedSet = new Set(selectedAreaList.map((s) => s.toLowerCase()));
     const available = SIERRA_LEONE_AREAS.filter((a) => !selectedSet.has(a.name.toLowerCase()));
 
     if (!currentSegment) {
-      // If segment is empty (e.g. user just typed a comma), show top available areas
       return available.slice(0, 10);
     }
 
-    // As soon as user enters a letter, show all areas starting with that letter first!
     const startsWith = available.filter((a) => a.name.toLowerCase().startsWith(currentSegment));
     const contains = available.filter(
       (a) => !a.name.toLowerCase().startsWith(currentSegment) && a.name.toLowerCase().includes(currentSegment)
     );
     return [...startsWith, ...contains].slice(0, 15);
   }, [selectedAreaList, currentSegment]);
+
+  // Edit: List of already confirmed selected areas
+  const editSelectedAreaList = useMemo(() => {
+    return editForm.area
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [editForm.area]);
+
+  // Edit: Current query segment
+  const editCurrentSegment = useMemo(() => {
+    const segments = editForm.area.split(',');
+    return segments[segments.length - 1].trim().toLowerCase();
+  }, [editForm.area]);
+
+  // Edit: Filtered areas for modal
+  const editFilteredAreas = useMemo(() => {
+    const selectedSet = new Set(editSelectedAreaList.map((s) => s.toLowerCase()));
+    const available = SIERRA_LEONE_AREAS.filter((a) => !selectedSet.has(a.name.toLowerCase()));
+
+    if (!editCurrentSegment) {
+      return available.slice(0, 10);
+    }
+
+    const startsWith = available.filter((a) => a.name.toLowerCase().startsWith(editCurrentSegment));
+    const contains = available.filter(
+      (a) => !a.name.toLowerCase().startsWith(editCurrentSegment) && a.name.toLowerCase().includes(editCurrentSegment)
+    );
+    return [...startsWith, ...contains].slice(0, 15);
+  }, [editSelectedAreaList, editCurrentSegment]);
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/incidents', { cache: 'no-store' });
@@ -184,20 +244,83 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     }
   };
 
+  const startEditOutage = (item: Outage) => {
+    setEditingOutage(item);
+    setEditForm({
+      title: item.title,
+      message: item.message,
+      area: item.area || '',
+      startsAt: formatDateForInput(item.startsAt),
+      endsAt: formatDateForInput(item.endsAt),
+    });
+  };
+
+  const saveEditOutage = async () => {
+    if (!editingOutage) return;
+    setBusy(editingOutage.id);
+    setError('');
+    try {
+      const cleanedArea = editForm.area
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .join(', ');
+
+      const response = await fetch('/api/admin/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'update-outage',
+          id: editingOutage.id,
+          title: editForm.title,
+          message: editForm.message,
+          area: cleanedArea || null,
+          startsAt: editForm.startsAt,
+          endsAt: editForm.endsAt,
+        }),
+      });
+      const result = await parseResponse(response);
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not update maintenance notice.');
+      setEditingOutage(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not update maintenance notice.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteOutage = async (id: string) => {
+    setBusy(id);
+    setError('');
+    try {
+      const response = await fetch('/api/admin/incidents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete-outage', id }),
+      });
+      const result = await parseResponse(response);
+      if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not delete notice.');
+      setConfirmDeleteId(null);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not delete notice.');
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const selectArea = (areaItem: AreaDefinition | null) => {
     if (!areaItem) {
-      // Clear to Nationwide / All Areas
       setOutage({ ...outage, area: '' });
       setIsAreaOpen(false);
       return;
     }
 
     const segments = outage.area.split(',');
-    // Remove the current query segment that was being typed
     const previousSegments = segments.slice(0, -1).map((s) => s.trim()).filter(Boolean);
     const updatedList = [...previousSegments, areaItem.name];
 
-    // Add trailing comma and space so user can immediately type the next area!
     setOutage({ ...outage, area: updatedList.join(', ') + ', ' });
     setIsAreaOpen(true);
     setTimeout(() => {
@@ -209,6 +332,32 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     const remaining = selectedAreaList.filter((n) => n.toLowerCase() !== nameToRemove.toLowerCase());
     setOutage({
       ...outage,
+      area: remaining.length > 0 ? remaining.join(', ') + ', ' : '',
+    });
+  };
+
+  const selectEditArea = (areaItem: AreaDefinition | null) => {
+    if (!areaItem) {
+      setEditForm({ ...editForm, area: '' });
+      setIsEditAreaOpen(false);
+      return;
+    }
+
+    const segments = editForm.area.split(',');
+    const previousSegments = segments.slice(0, -1).map((s) => s.trim()).filter(Boolean);
+    const updatedList = [...previousSegments, areaItem.name];
+
+    setEditForm({ ...editForm, area: updatedList.join(', ') + ', ' });
+    setIsEditAreaOpen(true);
+    setTimeout(() => {
+      editAreaInputRef.current?.focus();
+    }, 50);
+  };
+
+  const removeEditArea = (nameToRemove: string) => {
+    const remaining = editSelectedAreaList.filter((n) => n.toLowerCase() !== nameToRemove.toLowerCase());
+    setEditForm({
+      ...editForm,
       area: remaining.length > 0 ? remaining.join(', ') + ', ' : '',
     });
   };
@@ -415,33 +564,244 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
             {outages.map((item) => (
               <div
                 key={item.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-black/25 border border-white/5 p-3.5 text-sm"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-black/25 border border-white/5 p-3.5 text-sm"
               >
-                <div>
-                  <span className="font-bold text-white">{item.title}</span>
-                  <span className="ml-2 text-blue-300 font-medium">
-                    {item.area ? `· ${item.area}` : '· Nationwide (All areas)'}
-                  </span>
-                  <div className="text-xs text-gray-400 mt-0.5">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-bold text-white">{item.title}</span>
+                    <span className="text-blue-300 font-medium text-xs">
+                      {item.area ? `· ${item.area}` : '· Nationwide (All areas)'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1 line-clamp-1">{item.message}</p>
+                  <div className="text-[11px] text-gray-500 mt-1">
                     {new Date(item.startsAt).toLocaleString()} — {new Date(item.endsAt).toLocaleString()}
                   </div>
                 </div>
-                <button
-                  type="button"
-                  disabled={busy === item.id}
-                  onClick={() => void toggleOutage(item)}
-                  className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all disabled:opacity-50 ${
-                    item.active
-                      ? 'border-red-500/30 text-red-300 bg-red-500/10 hover:bg-red-500/20'
-                      : 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
-                  }`}
-                >
-                  {item.active ? 'Hide Notice' : 'Activate Notice'}
-                </button>
+
+                {/* Action buttons: Edit, Toggle Hide/Show, Delete */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    disabled={busy === item.id}
+                    onClick={() => startEditOutage(item)}
+                    className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-blue-500/30 text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 inline-flex items-center gap-1 transition-all disabled:opacity-50"
+                  >
+                    <Edit2 className="h-3 w-3" /> Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={busy === item.id}
+                    onClick={() => void toggleOutage(item)}
+                    className={`text-xs font-bold px-3 py-1.5 rounded-lg border transition-all disabled:opacity-50 ${
+                      item.active
+                        ? 'border-amber-500/30 text-amber-300 bg-amber-500/10 hover:bg-amber-500/20'
+                        : 'border-emerald-500/30 text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20'
+                    }`}
+                  >
+                    {item.active ? 'Hide' : 'Show'}
+                  </button>
+
+                  {confirmDeleteId === item.id ? (
+                    <span className="inline-flex items-center gap-1.5 text-xs text-red-300 font-bold bg-red-950/70 border border-red-500/40 rounded-lg px-2 py-1">
+                      Delete?
+                      <button
+                        type="button"
+                        disabled={busy === item.id}
+                        onClick={() => void deleteOutage(item.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-2 py-0.5 rounded text-[11px] font-bold"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmDeleteId(null)}
+                        className="text-gray-400 hover:text-white px-1 text-[11px]"
+                      >
+                        Cancel
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={busy === item.id}
+                      onClick={() => setConfirmDeleteId(item.id)}
+                      className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-red-500/30 text-red-300 bg-red-500/10 hover:bg-red-500/20 inline-flex items-center gap-1 transition-all disabled:opacity-50"
+                    >
+                      <Trash2 className="h-3 w-3" /> Delete
+                    </button>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         </section>
+
+        {/* Edit Outage Modal */}
+        {editingOutage && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="relative w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900 p-6 shadow-2xl">
+              <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                <div className="flex items-center gap-2">
+                  <Edit2 className="h-5 w-5 text-blue-400" />
+                  <h3 className="text-lg font-bold">Edit Maintenance Notice</h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditingOutage(null)}
+                  className="rounded-lg p-1 text-gray-400 hover:bg-white/10 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mt-4 space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-400">Notice Title</label>
+                  <input
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    placeholder="Notice Title"
+                    className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                {/* Edit Affected Areas */}
+                <div ref={editAreaSearchRef} className="relative">
+                  <label className="text-xs font-bold text-gray-400">Affected Areas</label>
+                  {editSelectedAreaList.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 my-1.5">
+                      {editSelectedAreaList.map((name) => (
+                        <span
+                          key={name}
+                          className="inline-flex items-center gap-1 rounded-lg bg-blue-600/20 border border-blue-500/30 px-2 py-0.5 text-xs font-semibold text-blue-200"
+                        >
+                          <MapPin className="h-3 w-3 text-blue-400" />
+                          {name}
+                          <button
+                            type="button"
+                            onClick={() => removeEditArea(name)}
+                            className="hover:text-white p-0.5 ml-0.5"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="relative mt-1">
+                    <input
+                      ref={editAreaInputRef}
+                      value={editForm.area}
+                      onFocus={() => setIsEditAreaOpen(true)}
+                      onChange={(e) => {
+                        setEditForm({ ...editForm, area: e.target.value });
+                        setIsEditAreaOpen(true);
+                      }}
+                      placeholder="Type area name or comma to add more..."
+                      className="w-full rounded-xl border border-white/10 bg-slate-950 pl-9 pr-8 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                    />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
+                    {editForm.area ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditForm({ ...editForm, area: '' });
+                          setIsEditAreaOpen(true);
+                        }}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    ) : null}
+                  </div>
+
+                  {isEditAreaOpen && (
+                    <div className="absolute z-50 left-0 right-0 mt-1 max-h-56 overflow-y-auto rounded-xl border border-white/15 bg-slate-950 p-1.5 shadow-2xl backdrop-blur-xl space-y-0.5">
+                      <button
+                        type="button"
+                        onClick={() => selectEditArea(null)}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-semibold hover:bg-blue-600/20 text-blue-300 transition-colors"
+                      >
+                        <span>🌐 All Areas (Nationwide Outage)</span>
+                        {!editForm.area ? <Check className="h-3.5 w-3.5 text-blue-400" /> : null}
+                      </button>
+
+                      {editFilteredAreas.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => selectEditArea(item)}
+                          className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-colors text-gray-200 hover:bg-white/10 group"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium group-hover:text-blue-300 transition-colors">{item.name}</span>
+                            <span className="text-[10px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded">
+                              {item.region}
+                            </span>
+                          </div>
+                          <span className="text-[10px] text-blue-400 flex items-center gap-0.5 font-semibold">
+                            <Plus className="h-3 w-3" /> Add
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-gray-400">Notice Details / Message</label>
+                  <textarea
+                    value={editForm.message}
+                    onChange={(e) => setEditForm({ ...editForm, message: e.target.value })}
+                    className="mt-1 w-full min-h-24 rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-xs font-bold text-gray-400">Start Time</label>
+                    <input
+                      type="datetime-local"
+                      value={editForm.startsAt}
+                      onChange={(e) => setEditForm({ ...editForm, startsAt: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-gray-400">Estimated End Time</label>
+                    <input
+                      type="datetime-local"
+                      value={editForm.endsAt}
+                      onChange={(e) => setEditForm({ ...editForm, endsAt: e.target.value })}
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex justify-end gap-3 border-t border-white/10 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEditingOutage(null)}
+                  className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={busy === editingOutage.id || !editForm.title || !editForm.message}
+                  onClick={() => void saveEditOutage()}
+                  className="rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] px-5 py-2 text-sm font-bold text-white transition-all disabled:opacity-50"
+                >
+                  {busy === editingOutage.id ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Incidents feed section */}
         <section className="space-y-3">

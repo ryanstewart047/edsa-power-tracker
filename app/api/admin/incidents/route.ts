@@ -255,7 +255,78 @@ export async function POST(request: NextRequest) {
       }
     }
 
+
+    if (body.action === 'update-outage' && typeof body.id === 'string') {
+      const id = body.id;
+      const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : undefined;
+      const message = typeof body.message === 'string' ? body.message.trim().slice(0, 500) : undefined;
+      const area = typeof body.area === 'string' ? body.area.trim().slice(0, 500) || null : undefined;
+      const startsAt = typeof body.startsAt === 'string' ? new Date(body.startsAt) : undefined;
+      const endsAt = typeof body.endsAt === 'string' ? new Date(body.endsAt) : undefined;
+      if (startsAt && Number.isNaN(startsAt.getTime())) return NextResponse.json({ error: 'Invalid start time.' }, { status: 400 });
+      if (endsAt && Number.isNaN(endsAt.getTime())) return NextResponse.json({ error: 'Invalid end time.' }, { status: 400 });
+      if (startsAt && endsAt && endsAt <= startsAt) return NextResponse.json({ error: 'End time must be after start time.' }, { status: 400 });
+
+      try {
+        const outage = await prisma.scheduledOutage.update({
+          where: { id },
+          data: {
+            ...(title !== undefined ? { title } : {}),
+            ...(message !== undefined ? { message } : {}),
+            ...(area !== undefined ? { area } : {}),
+            ...(startsAt !== undefined ? { startsAt } : {}),
+            ...(endsAt !== undefined ? { endsAt } : {}),
+          },
+        });
+        await auditAdminAction(admin.email, 'scheduled_outage_updated', id);
+        return NextResponse.json({ success: true, outage });
+      } catch (dbErr) {
+        console.warn('prisma.scheduledOutage.update (edit) failed, using raw SQL fallback:', dbErr);
+        try {
+          const setParts: string[] = [];
+          const vals: unknown[] = [];
+          let idx = 1;
+          if (title !== undefined) { setParts.push(`"title" = $${idx++}`); vals.push(title); }
+          if (message !== undefined) { setParts.push(`"message" = $${idx++}`); vals.push(message); }
+          if (area !== undefined) { setParts.push(`"area" = $${idx++}`); vals.push(area); }
+          if (startsAt !== undefined) { setParts.push(`"startsAt" = $${idx++}`); vals.push(startsAt); }
+          if (endsAt !== undefined) { setParts.push(`"endsAt" = $${idx++}`); vals.push(endsAt); }
+          if (setParts.length === 0) return NextResponse.json({ error: 'Nothing to update.' }, { status: 400 });
+          vals.push(id);
+          await prisma.$executeRawUnsafe(
+            `UPDATE "ScheduledOutage" SET ${setParts.join(', ')} WHERE "id" = $${idx}`,
+            ...vals
+          );
+          await auditAdminAction(admin.email, 'scheduled_outage_updated', id);
+          return NextResponse.json({ success: true });
+        } catch (rawErr) {
+          console.error('Fatal raw update error for ScheduledOutage edit:', rawErr);
+          return NextResponse.json({ error: 'Failed to update scheduled outage.' }, { status: 500 });
+        }
+      }
+    }
+
+    if (body.action === 'delete-outage' && typeof body.id === 'string') {
+      const id = body.id;
+      try {
+        await prisma.scheduledOutage.delete({ where: { id } });
+        await auditAdminAction(admin.email, 'scheduled_outage_deleted', id);
+        return NextResponse.json({ success: true });
+      } catch (dbErr) {
+        console.warn('prisma.scheduledOutage.delete failed, using raw SQL fallback:', dbErr);
+        try {
+          await prisma.$executeRawUnsafe(`DELETE FROM "ScheduledOutage" WHERE "id" = $1`, id);
+          await auditAdminAction(admin.email, 'scheduled_outage_deleted', id);
+          return NextResponse.json({ success: true });
+        } catch (rawErr) {
+          console.error('Fatal raw delete error for ScheduledOutage:', rawErr);
+          return NextResponse.json({ error: 'Failed to delete scheduled outage.' }, { status: 500 });
+        }
+      }
+    }
+
     return NextResponse.json({ error: 'Unsupported operation' }, { status: 400 });
+
   } catch (error) {
     console.error('POST /api/admin/incidents error:', error);
     return NextResponse.json({ error: 'Could not update the incident queue. Please try again.' }, { status: 500 });
