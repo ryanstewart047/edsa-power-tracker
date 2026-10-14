@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2, Camera, Download } from 'lucide-react';
 import { SIERRA_LEONE_AREAS, AreaDefinition } from '@/lib/areas';
 
 type Incident = {
@@ -74,6 +74,26 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
   const [editForm, setEditForm] = useState(emptyOutage);
   const [editError, setEditError] = useState('');
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
+  // Evidence photo preview lightbox modal
+  const [viewingPhoto, setViewingPhoto] = useState<{
+    url: string;
+    title: string;
+    subtitle?: string;
+  } | null>(null);
+
+  const downloadPhoto = (url: string, filename = 'evidence-photo.jpg') => {
+    try {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.warn('Download photo error:', err);
+    }
+  };
 
   // Auto-search dropdown and input ref for main outage creation
   const [isAreaOpen, setIsAreaOpen] = useState(false);
@@ -844,14 +864,22 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                       {item.description || 'No description supplied.'}
                     </p>
                     {item.imageUrl && (
-                      <a
-                        href={item.imageUrl}
-                        target="_blank"
-                        className="mt-2 inline-flex items-center gap-1.5 text-xs text-blue-300 hover:underline font-semibold"
-                        rel="noreferrer"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" /> View reporter evidence photo
-                      </a>
+                      <div className="mt-2.5 flex flex-wrap items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setViewingPhoto({
+                              url: item.imageUrl!,
+                              title: `${item.type} · ${item.areaName || item.area}`,
+                              subtitle: `Reference: ${item.referenceCode || 'Report'} · Reported: ${item.reportedAt ? new Date(item.reportedAt).toLocaleString() : 'Recent'}`,
+                            })
+                          }
+                          className="inline-flex items-center gap-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 px-3 py-1.5 text-xs text-blue-200 hover:text-white font-semibold transition-all shadow-sm"
+                        >
+                          <Camera className="h-3.5 w-3.5 text-blue-400" />
+                          View reporter evidence photo
+                        </button>
+                      </div>
                     )}
                   </div>
                   <span
@@ -910,15 +938,32 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                       placeholder="Resolution note for citizens"
                       className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
                     />
-                    <input
-                      defaultValue={item.resolutionImageUrl || ''}
-                      onBlur={(event) =>
-                        event.target.value !== (item.resolutionImageUrl || '') &&
-                        void update(item, { resolutionImageUrl: event.target.value })
-                      }
-                      placeholder="Resolution photo URL"
-                      className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
-                    />
+                    <div className="flex flex-col gap-1">
+                      <input
+                        defaultValue={item.resolutionImageUrl || ''}
+                        onBlur={(event) =>
+                          event.target.value !== (item.resolutionImageUrl || '') &&
+                          void update(item, { resolutionImageUrl: event.target.value })
+                        }
+                        placeholder="Resolution photo URL"
+                        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                      />
+                      {item.resolutionImageUrl && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setViewingPhoto({
+                              url: item.resolutionImageUrl!,
+                              title: `Resolution Evidence · ${item.type}`,
+                              subtitle: `Resolved report for ${item.areaName || item.area}`,
+                            })
+                          }
+                          className="inline-flex items-center gap-1.5 text-xs text-emerald-300 hover:text-emerald-200 font-semibold"
+                        >
+                          <Camera className="h-3 w-3" /> View resolution photo
+                        </button>
+                      )}
+                    </div>
                     <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/5 px-3 py-2 text-sm text-blue-200 hover:bg-white/10 transition-colors">
                       Upload resolution evidence
                       <input
@@ -939,6 +984,61 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
             </p>
           )}
         </section>
+
+        {/* Evidence Photo Lightbox Modal */}
+        {viewingPhoto && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setViewingPhoto(null)}
+          >
+            <div
+              className="relative max-h-[90vh] max-w-4xl w-full rounded-2xl border border-white/20 bg-slate-900 p-4 shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b border-white/10 pb-3 mb-3">
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <Camera className="h-4 w-4 text-blue-400" />
+                    {viewingPhoto.title}
+                  </h3>
+                  {viewingPhoto.subtitle && (
+                    <p className="text-xs text-gray-400 mt-0.5">{viewingPhoto.subtitle}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      downloadPhoto(
+                        viewingPhoto.url,
+                        `${viewingPhoto.title.replace(/[^a-zA-Z0-9]/g, '_')}.jpg`
+                      )
+                    }
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-white/15 bg-white/5 hover:bg-white/10 px-3 py-1.5 text-xs font-semibold text-gray-200 hover:text-white transition-colors"
+                  >
+                    <Download className="h-3.5 w-3.5 text-blue-400" /> Download
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewingPhoto(null)}
+                    className="rounded-lg p-1.5 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Photo Display */}
+              <div className="relative flex-1 flex items-center justify-center overflow-hidden rounded-xl bg-black/60 min-h-[300px] max-h-[70vh]">
+                <img
+                  src={viewingPhoto.url}
+                  alt={viewingPhoto.title}
+                  className="max-h-[70vh] max-w-full object-contain rounded-lg"
+                />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );
