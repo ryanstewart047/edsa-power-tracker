@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check } from 'lucide-react';
+import { ArrowLeft, Clock3, ExternalLink, RefreshCw, MapPin, X, Check, Plus } from 'lucide-react';
 import { SIERRA_LEONE_AREAS, AreaDefinition } from '@/lib/areas';
 
 type Incident = {
@@ -50,9 +50,10 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
   const [busy, setBusy] = useState<string | null>(null);
   const [outage, setOutage] = useState(emptyOutage);
 
-  // Auto-search dropdown state for affected areas
+  // Auto-search dropdown and input ref for affected areas
   const [isAreaOpen, setIsAreaOpen] = useState(false);
   const areaSearchRef = useRef<HTMLDivElement>(null);
+  const areaInputRef = useRef<HTMLInputElement>(null);
 
   // Close area dropdown when clicking outside
   useEffect(() => {
@@ -65,20 +66,37 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Filter areas based on input: prioritizing starting letters
+  // List of already confirmed selected areas
+  const selectedAreaList = useMemo(() => {
+    return outage.area
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }, [outage.area]);
+
+  // Current query segment after the last comma
+  const currentSegment = useMemo(() => {
+    const segments = outage.area.split(',');
+    return segments[segments.length - 1].trim().toLowerCase();
+  }, [outage.area]);
+
+  // Filter areas based on current segment: prioritizing starting letters
   const filteredAreas = useMemo(() => {
-    const q = outage.area.trim().toLowerCase();
-    if (!q) {
-      // If nothing typed yet, show top Freetown areas
-      return SIERRA_LEONE_AREAS.slice(0, 10);
+    const selectedSet = new Set(selectedAreaList.map((s) => s.toLowerCase()));
+    const available = SIERRA_LEONE_AREAS.filter((a) => !selectedSet.has(a.name.toLowerCase()));
+
+    if (!currentSegment) {
+      // If segment is empty (e.g. user just typed a comma), show top available areas
+      return available.slice(0, 10);
     }
+
     // As soon as user enters a letter, show all areas starting with that letter first!
-    const startsWith = SIERRA_LEONE_AREAS.filter((a) => a.name.toLowerCase().startsWith(q));
-    const contains = SIERRA_LEONE_AREAS.filter(
-      (a) => !a.name.toLowerCase().startsWith(q) && a.name.toLowerCase().includes(q)
+    const startsWith = available.filter((a) => a.name.toLowerCase().startsWith(currentSegment));
+    const contains = available.filter(
+      (a) => !a.name.toLowerCase().startsWith(currentSegment) && a.name.toLowerCase().includes(currentSegment)
     );
     return [...startsWith, ...contains].slice(0, 15);
-  }, [outage.area]);
+  }, [selectedAreaList, currentSegment]);
 
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/incidents', { cache: 'no-store' });
@@ -125,10 +143,16 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
     setBusy('outage');
     setError('');
     try {
+      const cleanedArea = outage.area
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .join(', ');
+
       const response = await fetch('/api/admin/incidents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'create-outage', ...outage }),
+        body: JSON.stringify({ action: 'create-outage', ...outage, area: cleanedArea || null }),
       });
       const result = await parseResponse(response);
       if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not schedule outage.');
@@ -162,11 +186,31 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
 
   const selectArea = (areaItem: AreaDefinition | null) => {
     if (!areaItem) {
+      // Clear to Nationwide / All Areas
       setOutage({ ...outage, area: '' });
-    } else {
-      setOutage({ ...outage, area: areaItem.name });
+      setIsAreaOpen(false);
+      return;
     }
-    setIsAreaOpen(false);
+
+    const segments = outage.area.split(',');
+    // Remove the current query segment that was being typed
+    const previousSegments = segments.slice(0, -1).map((s) => s.trim()).filter(Boolean);
+    const updatedList = [...previousSegments, areaItem.name];
+
+    // Add trailing comma and space so user can immediately type the next area!
+    setOutage({ ...outage, area: updatedList.join(', ') + ', ' });
+    setIsAreaOpen(true);
+    setTimeout(() => {
+      areaInputRef.current?.focus();
+    }, 50);
+  };
+
+  const removeArea = (nameToRemove: string) => {
+    const remaining = selectedAreaList.filter((n) => n.toLowerCase() !== nameToRemove.toLowerCase());
+    setOutage({
+      ...outage,
+      area: remaining.length > 0 ? remaining.join(', ') + ', ' : '',
+    });
   };
 
   const now = Date.now();
@@ -214,10 +258,34 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
               className="rounded-xl border border-white/10 bg-slate-900 px-3.5 py-2.5 text-sm focus:outline-none focus:border-blue-500"
             />
 
-            {/* Affected Area with Auto-Search */}
+            {/* Affected Area with Multi-Area Auto-Search */}
             <div ref={areaSearchRef} className="relative">
+              {/* Selected Area Badges */}
+              {selectedAreaList.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {selectedAreaList.map((name) => (
+                    <span
+                      key={name}
+                      className="inline-flex items-center gap-1 rounded-lg bg-blue-600/20 border border-blue-500/30 px-2.5 py-1 text-xs font-semibold text-blue-200"
+                    >
+                      <MapPin className="h-3 w-3 text-blue-400" />
+                      {name}
+                      <button
+                        type="button"
+                        onClick={() => removeArea(name)}
+                        className="hover:text-white p-0.5 ml-0.5 rounded-full hover:bg-white/10 transition-colors"
+                        title={`Remove ${name}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
               <div className="relative">
                 <input
+                  ref={areaInputRef}
                   value={outage.area}
                   onFocus={() => setIsAreaOpen(true)}
                   onChange={(event) => {
@@ -227,7 +295,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                   onKeyDown={(e) => {
                     if (e.key === 'Escape') setIsAreaOpen(false);
                   }}
-                  placeholder="Affected area (type any letter to auto-search)..."
+                  placeholder="Affected areas: type letter, pick, separate with comma (,)..."
                   className="w-full rounded-xl border border-white/10 bg-slate-900 pl-9 pr-8 py-2.5 text-sm focus:outline-none focus:border-blue-500"
                 />
                 <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 pointer-events-none" />
@@ -240,6 +308,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                       setIsAreaOpen(true);
                     }}
                     className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-white"
+                    title="Clear all areas"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -249,8 +318,15 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
               {/* Autocomplete Dropdown */}
               {isAreaOpen && (
                 <div className="absolute z-50 left-0 right-0 mt-1 max-h-64 overflow-y-auto rounded-xl border border-white/15 bg-slate-900/98 p-1.5 shadow-2xl backdrop-blur-xl space-y-0.5">
-                  <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                    {outage.area.trim() ? `Areas matching "${outage.area}"` : 'Select or search area'}
+                  <div className="flex items-center justify-between px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                    <span>
+                      {currentSegment
+                        ? `Areas starting with "${currentSegment}" (${filteredAreas.length})`
+                        : selectedAreaList.length > 0
+                        ? 'Type a letter for next area or select below'
+                        : 'Select or search area'}
+                    </span>
+                    <span className="text-[9px] text-gray-500 lowercase">use comma (,) for multiple</span>
                   </div>
 
                   {/* All Areas (Nationwide) option */}
@@ -259,40 +335,39 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                     onClick={() => selectArea(null)}
                     className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs font-semibold hover:bg-blue-600/20 text-blue-300 transition-colors"
                   >
-                    <span>🌐 All Areas (Nationwide)</span>
+                    <span>🌐 All Areas (Nationwide Outage)</span>
                     {!outage.area ? <Check className="h-3.5 w-3.5 text-blue-400" /> : null}
                   </button>
 
                   {/* Filtered Areas */}
                   {filteredAreas.length > 0 ? (
-                    filteredAreas.map((item) => {
-                      const isSelected = outage.area.trim().toLowerCase() === item.name.toLowerCase();
-                      return (
-                        <button
-                          key={item.id}
-                          type="button"
-                          onClick={() => selectArea(item)}
-                          className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-colors ${
-                            isSelected
-                              ? 'bg-blue-600 text-white font-bold'
-                              : 'text-gray-200 hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{item.name}</span>
-                            <span className="text-[10px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded">
-                              {item.region}
-                            </span>
-                          </div>
-                          {isSelected ? <Check className="h-3.5 w-3.5" /> : null}
-                        </button>
-                      );
-                    })
+                    filteredAreas.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => selectArea(item)}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-left text-xs transition-colors text-gray-200 hover:bg-white/10 group"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium group-hover:text-blue-300 transition-colors">{item.name}</span>
+                          <span className="text-[10px] text-gray-400 bg-white/5 px-1.5 py-0.5 rounded">
+                            {item.region}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-blue-400 flex items-center gap-0.5 opacity-80 group-hover:opacity-100 font-semibold">
+                          <Plus className="h-3 w-3" /> Add
+                        </span>
+                      </button>
+                    ))
                   ) : (
                     <div className="px-3 py-3 text-center text-xs text-gray-500">
-                      No matching areas found. You can keep typing custom text.
+                      No matching areas found for &quot;{currentSegment}&quot;. You can keep typing custom area names.
                     </div>
                   )}
+
+                  <div className="border-t border-white/5 px-2.5 py-1 text-[10px] text-gray-500">
+                    💡 Tip: Separate areas with a comma (,) to add multiple areas.
+                  </div>
                 </div>
               )}
             </div>

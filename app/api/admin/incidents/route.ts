@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     if (body.action === 'create-outage') {
       const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
       const message = typeof body.message === 'string' ? body.message.trim().slice(0, 500) : '';
-      const area = typeof body.area === 'string' ? body.area.trim().slice(0, 120) || null : null;
+      const area = typeof body.area === 'string' ? body.area.trim().slice(0, 500) || null : null;
       const startsAt = typeof body.startsAt === 'string' ? new Date(body.startsAt) : new Date('invalid');
       const endsAt = typeof body.endsAt === 'string' ? new Date(body.endsAt) : new Date('invalid');
       if (!title || !message || Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime()) || endsAt <= startsAt) {
