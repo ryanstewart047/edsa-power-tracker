@@ -54,12 +54,25 @@ export default function AppOnboarding() {
   const [isAndroid, setIsAndroid] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
   const [locationSkippedOnDesktop, setLocationSkippedOnDesktop] = useState(false);
+  const [locationSkipped, setLocationSkipped] = useState(false);
+  const [stepAttempts, setStepAttempts] = useState<Record<number, number>>({});
   const hasRequestedLocationRef = useRef(false);
+
+  const registerAttempt = useCallback((stepIdx: number) => {
+    setStepAttempts((prev) => ({
+      ...prev,
+      [stepIdx]: (prev[stepIdx] || 0) + 1,
+    }));
+  }, []);
 
   useEffect(() => {
     // Check if user has already completed onboarding and accepted terms
     const completed = localStorage.getItem('edsa_welcome_onboarding_v1');
     const termsAcceptedStorage = localStorage.getItem('edsa_terms_accepted_v1');
+    const locSkipped = localStorage.getItem('edsa_location_skipped_v1') === 'true';
+    if (locSkipped) {
+      setLocationSkipped(true);
+    }
     
     if (termsAcceptedStorage === 'true') {
       setTermsAccepted(true);
@@ -82,6 +95,7 @@ export default function AppOnboarding() {
       setLocationAccuracy(roundedAccuracy);
       setLocationGranted(false);
       setLocationIssue('accuracy');
+      registerAttempt(1);
       setLocationError(
         roundedAccuracy === null
           ? 'Your device did not provide a GPS accuracy radius. Turn on Precise Location to continue.'
@@ -95,11 +109,12 @@ export default function AppOnboarding() {
     setLocationIssue(null);
     setLocationError(null);
     setShowLocationHelp(false);
-  }, []);
+  }, [registerAttempt]);
 
   const handleLocationFailure = useCallback((err: GeolocationPositionError) => {
     setLocationLoading(false);
     setLocationGranted(false);
+    registerAttempt(1);
     if (err.code === err.PERMISSION_DENIED) {
       setLocationIssue('denied');
       setLocationError('Permission was denied. Allow location access in browser or app settings to continue.');
@@ -115,7 +130,7 @@ export default function AppOnboarding() {
       setLocationIssue('accuracy');
       setLocationError('Unable to get an accurate GPS fix. Move to an open area, then try again.');
     }
-  }, []);
+  }, [registerAttempt]);
 
   const requestLocationWithFallback = useCallback((showLoading = false) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
@@ -201,12 +216,14 @@ export default function AppOnboarding() {
 
   const requestLocation = () => {
     hasRequestedLocationRef.current = true;
+    registerAttempt(1);
     setLocationError(null);
     setLocationIssue(null);
     requestLocationWithFallback(true);
   };
 
   const openLocationSettings = () => {
+    registerAttempt(1);
     if (isAndroid) {
       const action = locationIssue === 'denied'
         ? 'android.settings.APPLICATION_DETAILS_SETTINGS'
@@ -225,12 +242,27 @@ export default function AppOnboarding() {
     setIsVisible(false);
   };
 
-  const skipLocationOnDesktop = () => {
+  const handleSkipLocation = () => {
+    localStorage.setItem('edsa_location_skipped_v1', 'true');
     localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+    setLocationSkipped(true);
     setLocationSkippedOnDesktop(true);
     setLocationError(null);
     setLocationIssue(null);
     setCurrentStep(2);
+  };
+
+  const handleSkipAllAndEnter = () => {
+    localStorage.setItem('edsa_location_skipped_v1', 'true');
+    localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+    localStorage.setItem('edsa_welcome_onboarding_v1', 'true');
+    localStorage.setItem('edsa_terms_accepted_v1', 'true');
+    window.dispatchEvent(new Event(LOCATION_ONBOARDING_COMPLETE_EVENT));
+    setIsVisible(false);
+  };
+
+  const skipLocationOnDesktop = () => {
+    handleSkipLocation();
   };
 
   const steps: OnboardingStep[] = [
@@ -380,13 +412,14 @@ export default function AppOnboarding() {
                   </>
                 )}
               </button>
-              {isDesktop && !locationGranted && (
+              {(((stepAttempts[1] || 0) >= 2) || (isDesktop && !locationGranted)) && !locationGranted && (
                 <button
                   type="button"
-                  onClick={skipLocationOnDesktop}
-                  className="w-full text-center text-xs font-bold text-gray-400 underline underline-offset-4 transition-colors hover:text-white"
+                  onClick={handleSkipLocation}
+                  className="w-full py-2.5 px-3 rounded-xl border border-amber-400/35 bg-amber-400/10 hover:bg-amber-400/20 text-amber-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm mt-1 animate-in fade-in"
                 >
-                  Continue without location on this computer
+                  <span>Skip location for now (Set up later)</span>
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-300" />
                 </button>
               )}
             </div>
@@ -505,11 +538,31 @@ export default function AppOnboarding() {
   const isLastStep = currentStep === steps.length - 1;
   const isTermsStep = currentStep === 0;
   const isLocationStep = currentStep === 1;
-  const canSkipLocation = isDesktop && locationSkippedOnDesktop;
-  const isNextDisabled = (isTermsStep && !termsAccepted) || (isLocationStep && !locationGranted && !canSkipLocation);
+  const canSkipLocation = (isDesktop && locationSkippedOnDesktop) || locationSkipped || (stepAttempts[1] || 0) >= 2;
+  const canSkipTerms = (stepAttempts[0] || 0) >= 2;
+  const isNextDisabled =
+    (isTermsStep && !termsAccepted && !canSkipTerms) ||
+    (isLocationStep && !locationGranted && !canSkipLocation);
 
   const nextStep = () => {
-    if (isNextDisabled) return;
+    if (isTermsStep && !termsAccepted) {
+      if (canSkipTerms) {
+        setTermsAccepted(true);
+        localStorage.setItem('edsa_terms_accepted_v1', 'true');
+        setCurrentStep(1);
+        return;
+      }
+      registerAttempt(0);
+      return;
+    }
+    if (isLocationStep && !locationGranted) {
+      if (canSkipLocation) {
+        handleSkipLocation();
+        return;
+      }
+      registerAttempt(1);
+      return;
+    }
     if (isLastStep) {
       handleFinish();
     } else {
@@ -543,17 +596,19 @@ export default function AppOnboarding() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           className="relative w-full max-w-md bg-slate-950/95 border border-white/10 rounded-[2.5rem] p-6 md:p-8 shadow-2xl flex flex-col justify-between overflow-hidden text-center min-h-[580px]"
         >
-          {/* Top Bar: Skip button (only available after agreeing to Terms and granting GPS) and step counter */}
+          {/* Top Bar: Skip button triggers when user encounters issues or on informational slides */}
           <div className="flex items-center justify-between mb-4">
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
               Step {currentStep + 1} of {steps.length}
             </div>
-            {!isLastStep && !isTermsStep && !isLocationStep && (
+            {((stepAttempts[currentStep] || 0) >= 2 || (!isLastStep && !isTermsStep && !isLocationStep)) && (
               <button
-                onClick={handleFinish}
-                className="text-xs font-bold text-gray-400 hover:text-white transition-colors px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/5"
+                type="button"
+                onClick={handleSkipAllAndEnter}
+                className="text-xs font-bold text-amber-300 hover:text-white transition-colors px-3 py-1 rounded-full bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/30 flex items-center gap-1 shadow-sm"
               >
-                Skip
+                <span>Skip & set up later</span>
+                <ChevronRight className="w-3.5 h-3.5" />
               </button>
             )}
           </div>
@@ -650,12 +705,24 @@ export default function AppOnboarding() {
                   </>
                 ) : isTermsStep ? (
                   <>
-                    <span>{termsAccepted ? 'I Agree & Continue' : 'Accept Terms to Continue'}</span>
-                    <ChevronRight className={`w-4 h-4 ${termsAccepted ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
+                    <span>
+                      {termsAccepted
+                        ? 'I Agree & Continue'
+                        : canSkipTerms
+                        ? 'Skip Terms & Continue'
+                        : 'Accept Terms to Continue'}
+                    </span>
+                    <ChevronRight className={`w-4 h-4 ${termsAccepted || canSkipTerms ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
                   </>
                 ) : isLocationStep ? (
                   <>
-                    <span>{locationGranted ? 'GPS Verified — Continue' : canSkipLocation ? 'Continue on Desktop' : 'Allow GPS to Continue'}</span>
+                    <span>
+                      {locationGranted
+                        ? 'GPS Verified — Continue'
+                        : canSkipLocation
+                        ? 'Skip Location & Continue'
+                        : 'Allow GPS to Continue'}
+                    </span>
                     <ChevronRight className={`w-4 h-4 ${locationGranted || canSkipLocation ? 'group-hover:translate-x-0.5' : ''} transition-transform`} />
                   </>
                 ) : (

@@ -47,6 +47,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const [desktopLocationSkipped, setDesktopLocationSkipped] = useState(false);
   const [onboardingActive, setOnboardingActive] = useState(true);
   const [showManualGuide, setShowManualGuide] = useState(false);
+  const [attemptCount, setAttemptCount] = useState(0);
   
   const permissionStatusRef = useRef<PermissionStatus | null>(null);
   const pollTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -67,10 +68,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       setIsAndroid(/android/i.test(ua));
       const desktop = isDesktopEnvironment();
       setIsDesktop(desktop);
-      setDesktopLocationSkipped(
-        desktop &&
-        localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
-      );
+      const isSkipped =
+        (desktop && localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true') ||
+        localStorage.getItem('edsa_location_skipped_v1') === 'true';
+      setDesktopLocationSkipped(isSkipped);
     }
   }, []);
 
@@ -81,10 +82,13 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       setOnboardingActive(!completed);
       const desktop = isDesktopEnvironment();
       setIsDesktop(desktop);
-      setDesktopLocationSkipped(
-        desktop &&
-        localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true',
-      );
+      const isSkipped =
+        (desktop && localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true') ||
+        localStorage.getItem('edsa_location_skipped_v1') === 'true';
+      setDesktopLocationSkipped(isSkipped);
+      if (isSkipped) {
+        setState('READY');
+      }
     };
 
     checkOnboarding();
@@ -96,13 +100,17 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     };
   }, []);
 
-  const handleSkipOnDesktop = useCallback(() => {
+  const handleSkipLocation = useCallback(() => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+      localStorage.setItem('edsa_location_skipped_v1', 'true');
       setDesktopLocationSkipped(true);
       setState('READY');
     }
   }, []);
+
+  const handleSkipOnDesktop = useCallback(() => {
+    handleSkipLocation();
+  }, [handleSkipLocation]);
 
   // Core function to test GPS availability and acquire coordinates
   const probeLocation = useCallback((silent = false) => {
@@ -290,10 +298,12 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
 
   // User Actions
   const handleRequestPermission = () => {
+    setAttemptCount((prev) => prev + 1);
     probeLocation(false);
   };
 
   const handleOpenLocationSettings = () => {
+    setAttemptCount((prev) => prev + 1);
     if (isAndroid) {
       try {
         // Best-effort Android system settings link. Other browser/PWA environments
@@ -308,6 +318,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   };
 
   const handleOpenAppSettings = () => {
+    setAttemptCount((prev) => prev + 1);
     if (isAndroid) {
       try {
         // A browser PWA does not have a stable Android package ID. Open the
@@ -478,7 +489,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
 
                 <button
                   type="button"
-                  onClick={() => probeLocation(false)}
+                  onClick={() => {
+                    setAttemptCount((prev) => prev + 1);
+                    probeLocation(false);
+                  }}
                   disabled={isRequesting}
                   className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
                 >
@@ -499,7 +513,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
 
                 <button
                   type="button"
-                  onClick={() => probeLocation(false)}
+                  onClick={() => {
+                    setAttemptCount((prev) => prev + 1);
+                    probeLocation(false);
+                  }}
                   disabled={isRequesting}
                   className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
                 >
@@ -509,7 +526,18 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               </>
             )}
 
-            {isDesktop && (
+            {attemptCount >= 2 && (
+              <button
+                type="button"
+                onClick={handleSkipLocation}
+                className="w-full py-3.5 px-4 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                <span>Skip for now & open app (Set up later)</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+            )}
+
+            {isDesktop && attemptCount < 2 && (
               <button
                 type="button"
                 onClick={handleSkipOnDesktop}
