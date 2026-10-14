@@ -88,23 +88,47 @@ async function ensureHazardColumns(): Promise<boolean> {
   if (hazardTableColumnsReady) return true;
   try {
     await prisma.$executeRawUnsafe(`
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "referenceCode" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received';
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium';
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "assignedTo" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3);
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3);
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT;
+      ALTER TABLE "HazardReport"
+        ADD COLUMN IF NOT EXISTS "referenceCode" TEXT,
+        ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received',
+        ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium',
+        ADD COLUMN IF NOT EXISTS "assignedTo" TEXT,
+        ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3),
+        ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT,
+        ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT,
+        ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3),
+        ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT
     `);
     hazardTableColumnsReady = true;
     return true;
   } catch (err) {
-    console.warn('[HazardReport] ensure columns in admin incidents route:', err);
-    return false;
+    console.warn('[HazardReport] multi-column ALTER TABLE warning, trying individual columns:', err);
+    const columns = [
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "referenceCode" TEXT',
+      `ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received'`,
+      `ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium'`,
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "assignedTo" TEXT',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3)',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3)',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT',
+    ];
+    let succeeded = false;
+    for (const sql of columns) {
+      try {
+        await prisma.$executeRawUnsafe(sql);
+        succeeded = true;
+      } catch (colErr) {
+        console.warn('[HazardReport] individual column warning:', colErr);
+      }
+    }
+    if (succeeded) hazardTableColumnsReady = true;
+    return succeeded;
   }
 }
 

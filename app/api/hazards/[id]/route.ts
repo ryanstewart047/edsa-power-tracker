@@ -21,23 +21,47 @@ async function ensureHazardColumns(): Promise<boolean> {
   if (hazardColumnsEnsured) return true;
   try {
     await prisma.$executeRawUnsafe(`
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "referenceCode" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received';
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium';
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "assignedTo" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3);
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false;
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3);
-      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT;
+      ALTER TABLE "HazardReport"
+        ADD COLUMN IF NOT EXISTS "referenceCode" TEXT,
+        ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received',
+        ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium',
+        ADD COLUMN IF NOT EXISTS "assignedTo" TEXT,
+        ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3),
+        ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT,
+        ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT,
+        ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false,
+        ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3),
+        ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT
     `);
     hazardColumnsEnsured = true;
     return true;
   } catch (err) {
-    console.warn('[HazardReport] ensure columns warning:', err);
-    return false;
+    console.warn('[HazardReport] multi-column ALTER TABLE warning, trying individual columns:', err);
+    const columns = [
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "referenceCode" TEXT',
+      `ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received'`,
+      `ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium'`,
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "assignedTo" TEXT',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3)',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3)',
+      'ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT',
+    ];
+    let succeeded = false;
+    for (const sql of columns) {
+      try {
+        await prisma.$executeRawUnsafe(sql);
+        succeeded = true;
+      } catch (colErr) {
+        console.warn('[HazardReport] individual column warning:', colErr);
+      }
+    }
+    if (succeeded) hazardColumnsEnsured = true;
+    return succeeded;
   }
 }
 
@@ -76,11 +100,20 @@ export async function DELETE(_request: Request, { params }: RouteContext) {
       });
     } catch (dbErr) {
       console.warn('prisma.hazardReport.update failed in DELETE, using raw fallback:', dbErr);
-      await prisma.$executeRawUnsafe(
-        `UPDATE "HazardReport" SET "resolved" = true, "resolvedAt" = NOW(), "resolvedBy" = $1, "incidentStatus" = 'resolved', "statusUpdatedAt" = NOW() WHERE "id" = $2`,
-        admin.email,
-        hazardId
-      );
+      try {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "HazardReport" SET "resolved" = true, "resolvedAt" = NOW(), "resolvedBy" = $1, "incidentStatus" = 'resolved', "statusUpdatedAt" = NOW() WHERE "id" = $2`,
+          admin.email,
+          hazardId
+        );
+      } catch (rawErr) {
+        console.warn('DELETE raw update with statusUpdatedAt failed, trying standard resolved update:', rawErr);
+        await prisma.$executeRawUnsafe(
+          `UPDATE "HazardReport" SET "resolved" = true, "resolvedAt" = NOW(), "resolvedBy" = $1 WHERE "id" = $2`,
+          admin.email,
+          hazardId
+        );
+      }
       await auditAdminAction(admin.email, 'incident_resolved', hazardId);
       return NextResponse.json({
         success: true,
@@ -200,10 +233,21 @@ export async function PATCH(request: Request, { params }: RouteContext) {
       }
 
       values.push(hazardId);
-      await prisma.$executeRawUnsafe(
-        `UPDATE "HazardReport" SET ${setParts.join(', ')} WHERE "id" = $${idx}`,
-        ...values
-      );
+      try {
+        await prisma.$executeRawUnsafe(
+          `UPDATE "HazardReport" SET ${setParts.join(', ')} WHERE "id" = $${idx}`,
+          ...values
+        );
+      } catch (rawErr) {
+        console.warn('Raw SQL update with all columns failed, trying without statusUpdatedAt:', rawErr);
+        const fallbackParts = setParts.filter((p) => !p.includes('statusUpdatedAt'));
+        if (fallbackParts.length > 0) {
+          await prisma.$executeRawUnsafe(
+            `UPDATE "HazardReport" SET ${fallbackParts.join(', ')} WHERE "id" = $${idx}`,
+            ...values
+          );
+        }
+      }
 
       await auditAdminAction(admin.email, 'incident_updated', `${hazardId}:${incidentStatus || 'modified'}`);
       return NextResponse.json({ success: true, hazard: { id: hazardId, incidentStatus, severity, assignedTo } });
