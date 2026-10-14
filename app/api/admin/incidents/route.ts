@@ -77,6 +77,11 @@ async function ensureScheduledOutageTable(): Promise<boolean> {
     outageTableReady = true;
     return true;
   } catch (err) {
+    console.warn('[ScheduledOutage] Could not auto-create table:', err);
+    return false;
+  }
+}
+
 let hazardTableColumnsReady = false;
 
 async function ensureHazardColumns(): Promise<boolean> {

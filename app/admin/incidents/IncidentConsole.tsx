@@ -35,6 +35,20 @@ type Outage = {
 
 const emptyOutage = { title: '', message: '', area: '', startsAt: '', endsAt: '' };
 
+const STATUS_COLORS: Record<string, string> = {
+  received: 'bg-slate-500/20 text-slate-200 border-slate-500/30',
+  reviewing: 'bg-amber-500/20 text-amber-200 border-amber-500/30',
+  dispatched: 'bg-blue-500/20 text-blue-200 border-blue-500/30',
+  resolved: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30',
+};
+
+const SEVERITY_COLORS: Record<string, string> = {
+  low: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+  medium: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+  high: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+  critical: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+};
+
 function formatDateForInput(dateVal: string | Date | undefined): string {
   if (!dateVal) return '';
   try {
@@ -911,18 +925,6 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
         <section className="space-y-4">
           {incidents.map((item) => {
             const overdue = item.slaDueAt && new Date(item.slaDueAt).getTime() < now && item.incidentStatus !== 'resolved';
-            const statusColors: Record<string, string> = {
-              received: 'bg-slate-500/20 text-slate-200 border-slate-500/30',
-              reviewing: 'bg-amber-500/20 text-amber-200 border-amber-500/30',
-              dispatched: 'bg-blue-500/20 text-blue-200 border-blue-500/30',
-              resolved: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30',
-            };
-            const severityColors: Record<string, string> = {
-              low: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
-              medium: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
-              high: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
-              critical: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
-            };
             return (
               <article key={item.id} className={`rounded-2xl border p-5 shadow-md transition-all ${
                 item.incidentStatus === 'resolved'
@@ -935,10 +937,10 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
                       <p className="text-xs font-mono text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">{item.referenceCode || 'Report'}</p>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${statusColors[item.incidentStatus] || statusColors.received}`}>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${STATUS_COLORS[item.incidentStatus] || STATUS_COLORS.received}`}>
                         {item.incidentStatus.charAt(0).toUpperCase() + item.incidentStatus.slice(1)}
                       </span>
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${severityColors[item.severity] || severityColors.medium}`}>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${SEVERITY_COLORS[item.severity] || SEVERITY_COLORS.medium}`}>
                         {item.severity.charAt(0).toUpperCase() + item.severity.slice(1)}
                       </span>
                     </div>
