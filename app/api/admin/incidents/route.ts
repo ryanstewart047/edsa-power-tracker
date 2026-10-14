@@ -49,6 +49,37 @@ interface OutageItem {
   startsAt: Date | string;
   endsAt: Date | string;
   active: boolean;
+  createdAt?: Date | string;
+  createdBy?: string;
+}
+
+let outageTableReady = false;
+
+/**
+ * Automatically creates the ScheduledOutage table if it does not exist in PostgreSQL.
+ */
+async function ensureScheduledOutageTable(): Promise<boolean> {
+  if (outageTableReady) return true;
+  try {
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "ScheduledOutage" (
+        "id" TEXT PRIMARY KEY,
+        "title" TEXT NOT NULL,
+        "message" TEXT NOT NULL,
+        "area" TEXT,
+        "startsAt" TIMESTAMP(3) NOT NULL,
+        "endsAt" TIMESTAMP(3) NOT NULL,
+        "active" BOOLEAN NOT NULL DEFAULT true,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "createdBy" TEXT NOT NULL
+      );
+    `);
+    outageTableReady = true;
+    return true;
+  } catch (err) {
+    console.warn('[ScheduledOutage] Could not auto-create table via executeRawUnsafe:', err);
+    return false;
+  }
 }
 
 export async function GET() {
@@ -59,7 +90,7 @@ export async function GET() {
     let incidents: IncidentItem[] = [];
     let outages: OutageItem[] = [];
 
-    // 1. Try to fetch hazard reports defensively
+    // 1. Fetch hazard reports defensively
     try {
       const dbHazards = await prisma.hazardReport.findMany({
         orderBy: { reportedAt: 'desc' },
@@ -114,15 +145,25 @@ export async function GET() {
       }
     }
 
-    // 2. Try to fetch outages defensively
+    // 2. Fetch outages defensively with auto-migrated table
+    await ensureScheduledOutageTable();
     try {
       outages = await prisma.scheduledOutage.findMany({
         orderBy: { startsAt: 'asc' },
         take: 50,
       });
     } catch (outageErr) {
-      console.warn('ScheduledOutage table not available or unmigrated, returning empty outages:', outageErr);
-      outages = [];
+      console.warn('prisma.scheduledOutage.findMany failed, trying raw fallback query:', outageErr);
+      try {
+        const rawOutages = await prisma.$queryRawUnsafe<OutageItem[]>(
+          `SELECT "id", "title", "message", "area", "startsAt", "endsAt", "active", "createdAt", "createdBy" FROM "ScheduledOutage" ORDER BY "startsAt" ASC LIMIT 50`
+        );
+        if (Array.isArray(rawOutages)) {
+          outages = rawOutages;
+        }
+      } catch {
+        outages = [];
+      }
     }
 
     return NextResponse.json({ incidents, outages }, { status: 200 });
@@ -137,6 +178,9 @@ export async function POST(request: NextRequest) {
     const admin = await getAdminSession();
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     const body = (await request.json()) as Record<string, unknown>;
+
+    // Ensure ScheduledOutage table exists before any write operation
+    await ensureScheduledOutageTable();
 
     if (body.action === 'create-outage') {
       const title = typeof body.title === 'string' ? body.title.trim().slice(0, 120) : '';
@@ -155,8 +199,37 @@ export async function POST(request: NextRequest) {
         await auditAdminAction(admin.email, 'scheduled_outage_created', outage.id);
         return NextResponse.json({ success: true, outage });
       } catch (dbErr) {
-        console.warn('Cannot create outage (table not migrated):', dbErr);
-        return NextResponse.json({ error: 'Scheduled outages database table is not migrated yet.' }, { status: 500 });
+        console.warn('prisma.scheduledOutage.create failed, using raw SQL insert fallback:', dbErr);
+        const id = `so_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        try {
+          await prisma.$executeRawUnsafe(
+            `INSERT INTO "ScheduledOutage" ("id", "title", "message", "area", "startsAt", "endsAt", "active", "createdAt", "createdBy")
+             VALUES ($1, $2, $3, $4, $5, $6, true, NOW(), $7)`,
+            id,
+            title,
+            message,
+            area,
+            startsAt,
+            endsAt,
+            admin.email
+          );
+          const rawOutage: OutageItem = {
+            id,
+            title,
+            message,
+            area,
+            startsAt,
+            endsAt,
+            active: true,
+            createdAt: new Date().toISOString(),
+            createdBy: admin.email,
+          };
+          await auditAdminAction(admin.email, 'scheduled_outage_created', id);
+          return NextResponse.json({ success: true, outage: rawOutage });
+        } catch (rawInsertErr) {
+          console.error('Fatal raw insert error for ScheduledOutage:', rawInsertErr);
+          return NextResponse.json({ error: 'Failed to save scheduled outage to database.' }, { status: 500 });
+        }
       }
     }
 
@@ -166,8 +239,19 @@ export async function POST(request: NextRequest) {
         await auditAdminAction(admin.email, body.active ? 'scheduled_outage_enabled' : 'scheduled_outage_disabled', body.id);
         return NextResponse.json({ success: true });
       } catch (dbErr) {
-        console.warn('Cannot update outage:', dbErr);
-        return NextResponse.json({ error: 'Scheduled outage not found or unmigrated.' }, { status: 500 });
+        console.warn('prisma.scheduledOutage.update failed, using raw SQL update fallback:', dbErr);
+        try {
+          await prisma.$executeRawUnsafe(
+            `UPDATE "ScheduledOutage" SET "active" = $1 WHERE "id" = $2`,
+            body.active,
+            body.id
+          );
+          await auditAdminAction(admin.email, body.active ? 'scheduled_outage_enabled' : 'scheduled_outage_disabled', body.id);
+          return NextResponse.json({ success: true });
+        } catch (rawUpdateErr) {
+          console.error('Fatal raw update error for ScheduledOutage:', rawUpdateErr);
+          return NextResponse.json({ error: 'Failed to update outage status in database.' }, { status: 500 });
+        }
       }
     }
 
