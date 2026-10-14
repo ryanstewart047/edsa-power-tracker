@@ -891,6 +891,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                   </div>
                 </div>
               </div>
+              </div>
 
               {/* Sticky Footer */}
               <div className="flex justify-end gap-3 border-t border-white/10 px-6 py-4 bg-slate-900/95 shrink-0">
