@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
-import { ArrowLeft, Clock3, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2, Camera, Download } from 'lucide-react';
+import { ArrowLeft, Clock3, RefreshCw, MapPin, X, Check, Plus, Edit2, Trash2, Camera, Download, Loader2, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { SIERRA_LEONE_AREAS, AreaDefinition } from '@/lib/areas';
 
 type Incident = {
@@ -66,6 +66,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [outages, setOutages] = useState<Outage[]>([]);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [busy, setBusy] = useState<string | null>(null);
 
   // New outage form state
@@ -204,6 +205,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
       });
       const result = await parseResponse(response);
       if (!response.ok) throw new Error(typeof result.error === 'string' ? result.error : 'Could not update incident.');
+      setSuccessMessage('Incident updated successfully.');
+      setTimeout(() => setSuccessMessage(''), 3000);
       await load();
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : 'Could not update incident.');
@@ -430,7 +433,37 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
           </div>
         </header>
 
-        {error && <p className="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
+        {error && (
+          <div className="flex items-center justify-between rounded-2xl border border-rose-500/30 bg-rose-500/15 p-4 text-sm text-rose-200 shadow-lg backdrop-blur-md animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-rose-400 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setError('')}
+              className="p-1 hover:bg-white/10 rounded-lg text-rose-300 hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {successMessage && (
+          <div className="flex items-center justify-between rounded-2xl border border-emerald-500/30 bg-emerald-500/15 p-4 text-sm text-emerald-200 shadow-lg backdrop-blur-md animate-in fade-in duration-200">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+              <span>{successMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSuccessMessage('')}
+              className="p-1 hover:bg-white/10 rounded-lg text-emerald-300 hover:text-white transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
         {/* Planned maintenance notice section */}
         <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-lg">
@@ -595,9 +628,19 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
             type="button"
             disabled={busy === 'outage' || !outage.title || !outage.message || !outage.startsAt || !outage.endsAt}
             onClick={() => void createOutage()}
-            className="mt-4 rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] px-5 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50 shadow-md"
+            className="mt-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 px-6 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50 shadow-lg shadow-blue-600/25 active:scale-[0.98] inline-flex items-center gap-2"
           >
-            {busy === 'outage' ? 'Publishing...' : 'Publish Maintenance Notice'}
+            {busy === 'outage' ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Publishing Notice...</span>
+              </>
+            ) : (
+              <>
+                <Clock3 className="h-4 w-4" />
+                <span>Publish Maintenance Notice</span>
+              </>
+            )}
           </button>
 
           {/* List of active and recent maintenance notices */}
@@ -679,29 +722,35 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
           </div>
         </section>
 
-        {/* Edit Outage Modal */}
+        {/* Edit Outage Modal with scrollable form and sticky actions */}
         {editingOutage && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="relative w-full max-w-2xl rounded-2xl border border-white/20 bg-slate-900 p-6 shadow-2xl">
-              <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                <div className="flex items-center gap-2">
-                  <Edit2 className="h-5 w-5 text-blue-400" />
-                  <h3 className="text-lg font-bold">Edit Maintenance Notice</h3>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-3 sm:p-4 backdrop-blur-md animate-in fade-in duration-200">
+            <div className="relative w-full max-w-2xl rounded-3xl border border-white/20 bg-slate-900 shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+              <div className="flex items-center justify-between border-b border-white/10 px-6 py-4 shrink-0 bg-slate-900/95">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-blue-400">
+                    <Edit2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-white">Edit Maintenance Notice</h3>
+                    <p className="text-xs text-gray-400">Update times, message, or affected areas</p>
+                  </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setEditingOutage(null)}
-                  className="rounded-lg p-1 text-gray-400 hover:bg-white/10 hover:text-white"
+                  className="rounded-xl p-2 text-gray-400 hover:bg-white/10 hover:text-white transition-colors"
                 >
                   <X className="h-5 w-5" />
                 </button>
               </div>
 
-              {editError && (
-                <p className="mt-3 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
-                  {editError}
-                </p>
-              )}
+              <div className="p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+                {editError && (
+                  <p className="rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-200">
+                    {editError}
+                  </p>
+                )}
 
               <div className="mt-4 space-y-4">
                 <div>
@@ -823,17 +872,18 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                       type="datetime-local"
                       value={editForm.endsAt}
                       onChange={(e) => setEditForm({ ...editForm, endsAt: e.target.value })}
-                      className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2 text-sm focus:outline-none focus:border-blue-500"
+                      className="mt-1 w-full rounded-xl border border-white/10 bg-slate-950 px-3.5 py-2 text-sm focus:outline-none focus:border-blue-500 text-white"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="mt-6 flex justify-end gap-3 border-t border-white/10 pt-4">
+              {/* Sticky Footer */}
+              <div className="flex justify-end gap-3 border-t border-white/10 px-6 py-4 bg-slate-900/95 shrink-0">
                 <button
                   type="button"
                   onClick={() => setEditingOutage(null)}
-                  className="rounded-xl border border-white/10 px-4 py-2 text-sm font-semibold hover:bg-white/5"
+                  className="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-semibold hover:bg-white/5 transition-colors text-gray-300 hover:text-white"
                 >
                   Cancel
                 </button>
@@ -841,9 +891,16 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                   type="button"
                   disabled={busy === editingOutage.id || !editForm.title || !editForm.message}
                   onClick={() => void saveEditOutage()}
-                  className="rounded-xl bg-[#2607d5] hover:bg-[#1d05aa] px-5 py-2 text-sm font-bold text-white transition-all disabled:opacity-50"
+                  className="rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-500 hover:to-indigo-500 px-6 py-2.5 text-sm font-bold text-white transition-all disabled:opacity-50 shadow-lg shadow-blue-600/25 active:scale-[0.98] inline-flex items-center gap-2"
                 >
-                  {busy === editingOutage.id ? 'Saving...' : 'Save Changes'}
+                  {busy === editingOutage.id ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Saving Changes...</span>
+                    </>
+                  ) : (
+                    <span>Save Changes</span>
+                  )}
                 </button>
               </div>
             </div>
@@ -851,20 +908,49 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
         )}
 
         {/* Incidents feed section */}
-        <section className="space-y-3">
+        <section className="space-y-4">
           {incidents.map((item) => {
             const overdue = item.slaDueAt && new Date(item.slaDueAt).getTime() < now && item.incidentStatus !== 'resolved';
+            const statusColors: Record<string, string> = {
+              received: 'bg-slate-500/20 text-slate-200 border-slate-500/30',
+              reviewing: 'bg-amber-500/20 text-amber-200 border-amber-500/30',
+              dispatched: 'bg-blue-500/20 text-blue-200 border-blue-500/30',
+              resolved: 'bg-emerald-500/20 text-emerald-200 border-emerald-500/30',
+            };
+            const severityColors: Record<string, string> = {
+              low: 'bg-slate-500/20 text-slate-300 border-slate-500/30',
+              medium: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+              high: 'bg-orange-500/20 text-orange-300 border-orange-500/30',
+              critical: 'bg-rose-500/20 text-rose-300 border-rose-500/30',
+            };
             return (
-              <article key={item.id} className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 shadow-md">
+              <article key={item.id} className={`rounded-2xl border p-5 shadow-md transition-all ${
+                item.incidentStatus === 'resolved'
+                  ? 'border-emerald-500/20 bg-emerald-500/[0.03]'
+                  : overdue
+                  ? 'border-rose-500/30 bg-rose-500/[0.04]'
+                  : 'border-white/10 bg-white/[0.03] hover:border-white/15'
+              }`}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-mono text-blue-300">{item.referenceCode || 'Report'}</p>
-                    <h2 className="font-bold text-base mt-0.5">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <p className="text-xs font-mono text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">{item.referenceCode || 'Report'}</p>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${statusColors[item.incidentStatus] || statusColors.received}`}>
+                        {item.incidentStatus.charAt(0).toUpperCase() + item.incidentStatus.slice(1)}
+                      </span>
+                      <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${severityColors[item.severity] || severityColors.medium}`}>
+                        {item.severity.charAt(0).toUpperCase() + item.severity.slice(1)}
+                      </span>
+                    </div>
+                    <h2 className="font-bold text-base text-white">
                       {item.type} · {item.areaName || item.area}
                     </h2>
                     <p className="mt-1 max-w-2xl text-sm text-gray-300 leading-relaxed">
                       {item.description || 'No description supplied.'}
                     </p>
+                    {item.reportedAt && (
+                      <p className="text-xs text-gray-500 mt-1">{new Date(item.reportedAt).toLocaleString()}</p>
+                    )}
                     {item.imageUrl && (
                       <div className="mt-2.5 flex flex-wrap items-center gap-3">
                         <button
@@ -879,18 +965,26 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                           className="inline-flex items-center gap-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 px-3 py-1.5 text-xs text-blue-200 hover:text-white font-semibold transition-all shadow-sm"
                         >
                           <Camera className="h-3.5 w-3.5 text-blue-400" />
-                          View reporter evidence photo
+                          View evidence photo
                         </button>
                       </div>
                     )}
                   </div>
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-                      overdue ? 'bg-red-500/20 text-red-200 border border-red-500/30' : 'bg-white/10 text-gray-300'
-                    }`}
-                  >
-                    {overdue ? 'SLA Overdue' : item.slaDueAt ? `SLA Due: ${new Date(item.slaDueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}` : 'Standard SLA'}
-                  </span>
+                  <div className="flex flex-col items-end gap-2">
+                    {overdue && (
+                      <span className="rounded-full px-2.5 py-1 text-xs font-bold bg-rose-500/20 text-rose-200 border border-rose-500/30 flex items-center gap-1">
+                        <AlertTriangle className="h-3 w-3" /> SLA Overdue
+                      </span>
+                    )}
+                    {!overdue && item.slaDueAt && (
+                      <span className="text-xs text-gray-400">
+                        SLA: {new Date(item.slaDueAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    )}
+                    {busy === item.id && (
+                      <Loader2 className="h-4 w-4 text-blue-400 animate-spin" />
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-4 grid gap-2.5 sm:grid-cols-3">
@@ -898,7 +992,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                     value={item.incidentStatus}
                     onChange={(event) => void update(item, { incidentStatus: event.target.value })}
                     disabled={busy === item.id}
-                    className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:opacity-50 text-white"
                   >
                     <option value="received">Received</option>
                     <option value="reviewing">Under review</option>
@@ -910,7 +1004,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                     value={item.severity}
                     onChange={(event) => void update(item, { severity: event.target.value })}
                     disabled={busy === item.id}
-                    className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:opacity-50 text-white"
                   >
                     <option value="low">Low Severity</option>
                     <option value="medium">Medium Severity</option>
@@ -925,7 +1019,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                       void update(item, { assignedTo: event.target.value })
                     }
                     placeholder="Assign to crew / team"
-                    className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                    disabled={busy === item.id}
+                    className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-500 disabled:opacity-50 text-white placeholder-gray-500"
                   />
                 </div>
 
@@ -938,7 +1033,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                         void update(item, { resolutionNote: event.target.value })
                       }
                       placeholder="Resolution note for citizens"
-                      className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                      disabled={busy === item.id}
+                      className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 disabled:opacity-50 text-white placeholder-gray-500"
                     />
                     <div className="flex flex-col gap-1">
                       <input
@@ -948,7 +1044,8 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                           void update(item, { resolutionImageUrl: event.target.value })
                         }
                         placeholder="Resolution photo URL"
-                        className="rounded-xl border border-white/10 bg-slate-900 px-3 py-2 text-sm focus:outline-none focus:border-blue-500"
+                        disabled={busy === item.id}
+                        className="rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/40 focus:border-emerald-500 disabled:opacity-50 text-white placeholder-gray-500"
                       />
                       {item.resolutionImageUrl && (
                         <button
@@ -966,7 +1063,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                         </button>
                       )}
                     </div>
-                    <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-white/20 bg-white/5 px-3 py-2 text-sm text-blue-200 hover:bg-white/10 transition-colors">
+                    <label className="flex cursor-pointer items-center justify-center rounded-xl border border-dashed border-emerald-500/30 bg-emerald-500/5 px-3 py-2 text-sm text-emerald-200 hover:bg-emerald-500/10 transition-colors">
                       Upload resolution evidence
                       <input
                         type="file"
@@ -978,6 +1075,7 @@ export default function IncidentConsole({ adminEmail }: { adminEmail: string }) 
                   </div>
                 )}
               </article>
+
             );
           })}
           {incidents.length === 0 && (

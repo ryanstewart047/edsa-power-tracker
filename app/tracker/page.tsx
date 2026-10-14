@@ -897,182 +897,200 @@ export default function Home() {
 
         {/* Report Status Modal */}
         {reportModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-sm bg-gray-900 border border-white/10 rounded-3xl p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Report Status</h2>
-                <button onClick={closeReportModal} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="w-full max-w-sm bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/10 shrink-0">
+                <h2 className="text-lg font-bold text-white">Report Status</h2>
+                <button onClick={closeReportModal} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {reportResult ? (
-                <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                  <p className="font-bold">{reportResult.success ? 'Report Received' : 'Failed'}</p>
-                  <p className="text-sm mt-1">{reportResult.message}</p>
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-400">Your report for <span className="text-white font-bold">{reportModal.name}</span> helps verify the local power status.</p>
-                  {location && (
-                    <p className="text-xs text-gray-500">
-                      Reporting with {formatAccuracy(location.accuracy)} GPS accuracy.
-                    </p>
-                  )}
-                  <div className="grid grid-cols-2 gap-3">
-                    <button
-                      onClick={() => handleReport('on')}
-                      disabled={reporting || !locationAccurateEnough}
-                      className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <Zap className="w-8 h-8 text-green-400" />
-                      <span className="font-bold text-green-400">Power ON</span>
-                    </button>
-                    <button
-                      onClick={() => handleReport('out')}
-                      disabled={reporting || !locationAccurateEnough}
-                      className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      <ZapOff className="w-8 h-8 text-red-400" />
-                      <span className="font-bold text-red-400">Power OUT</span>
-                    </button>
+              <div className="p-6 overflow-y-auto overscroll-contain space-y-5">
+                {reportResult ? (
+                  <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                    <p className="font-bold">{reportResult.success ? 'Report Received' : 'Failed'}</p>
+                    <p className="text-sm mt-1">{reportResult.message}</p>
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-300">Your report for <span className="text-white font-bold">{reportModal.name}</span> helps verify the local power status.</p>
+                    {location && (
+                      <p className="text-xs text-gray-400">
+                        Reporting with {formatAccuracy(location.accuracy)} GPS accuracy.
+                      </p>
+                    )}
+                    <div className="grid grid-cols-2 gap-3 pt-2">
+                      <button
+                        onClick={() => handleReport('on')}
+                        disabled={reporting || !locationAccurateEnough}
+                        className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/10"
+                      >
+                        <Zap className="w-8 h-8 text-emerald-400" />
+                        <span className="font-bold text-emerald-400">Power ON</span>
+                      </button>
+                      <button
+                        onClick={() => handleReport('out')}
+                        disabled={reporting || !locationAccurateEnough}
+                        className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30 hover:bg-rose-500/25 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-rose-500/10"
+                      >
+                        <ZapOff className="w-8 h-8 text-rose-400" />
+                        <span className="font-bold text-rose-400">Power OUT</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
 
-        {/* Hazard Report Modal */}
+        {/* Hazard Report Modal with smooth scrolling to avoid bottom cutoff */}
         {hazardModal && (
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="w-full max-w-sm bg-gray-900 border border-white/10 rounded-3xl p-6 space-y-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold">Report Hazard</h2>
-                <button onClick={closeHazardModal} className="p-2 hover:bg-white/5 rounded-full"><X className="w-5 h-5" /></button>
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+            <div className="w-full max-w-md bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/10 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400">
+                    <AlertTriangle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-white">Report Hazard</h2>
+                    <p className="text-xs text-gray-400">{hazardModal.name}</p>
+                  </div>
+                </div>
+                <button onClick={closeHazardModal} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {reportResult ? (
-                <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
-                  <p className="font-bold">{reportResult.success ? 'Hazard Reported!' : 'Failed'}</p>
-                  <p className="text-sm mt-1">{reportResult.message}</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Hazard Type</label>
-                    <select
-                      value={hazardType}
-                      onChange={e => setHazardType(e.target.value as HazardType)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                    >
-                      {HAZARD_TYPES.map((type) => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
+              <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
+                {reportResult ? (
+                  <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                    <p className="font-bold">{reportResult.success ? 'Hazard Reported!' : 'Failed'}</p>
+                    <p className="text-sm mt-1">{reportResult.message}</p>
                   </div>
+                ) : (
+                  <div className="space-y-4 pb-2">
+                    <div className="space-y-1.5">
+                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Hazard Type</label>
+                      <select
+                        value={hazardType}
+                        onChange={e => setHazardType(e.target.value as HazardType)}
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white"
+                      >
+                        {HAZARD_TYPES.map((type) => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Specific Area Name <span className="text-red-400">*</span></label>
-                    <input
-                      value={hazardAreaName}
-                      onChange={e => setHazardAreaName(e.target.value)}
-                      placeholder="e.g. Jui Junction"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                    />
-                  </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Specific Area Name <span className="text-red-400">*</span></label>
+                      <input
+                        value={hazardAreaName}
+                        onChange={e => setHazardAreaName(e.target.value)}
+                        placeholder="e.g. Jui Junction"
+                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white placeholder-gray-500"
+                      />
+                    </div>
 
-                  {hazardType === 'Stolen Meter' && (
-                    <div className="grid grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                      <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-blue-400">Meter Number (11 digits) <span className="text-red-400">*</span></label>
+                    {hazardType === 'Stolen Meter' && (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="space-y-1.5">
+                          <label className="text-xs uppercase tracking-wider font-bold text-blue-400">Meter Number (11 digits) <span className="text-red-400">*</span></label>
+                          <input
+                            value={meterNumber}
+                            maxLength={11}
+                            onChange={e => setMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                            placeholder="e.g. 01423859201"
+                            className="w-full bg-slate-950 border border-blue-500/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 font-mono text-white"
+                          />
+                        </div>
+                        <div className="space-y-1.5">
+                          <label className="text-xs uppercase tracking-wider font-bold text-blue-400">Contact Phone <span className="text-red-400">*</span></label>
+                          <input
+                            value={contactPhone}
+                            onChange={e => setContactPhone(e.target.value)}
+                            placeholder="e.g. 076..."
+                            className="w-full bg-slate-950 border border-blue-500/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 text-white"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Street Name {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
                         <input
-                          value={meterNumber}
-                          maxLength={11}
-                          onChange={e => setMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
-                          placeholder="11 digits (e.g. 01423859201)"
-                          className="w-full bg-white/5 border border-[#040e40]/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#040e40] font-mono"
+                          value={hazardStreet}
+                          onChange={e => setHazardStreet(e.target.value)}
+                          placeholder="e.g. Main St"
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white placeholder-gray-500"
                         />
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-500 text-blue-400">Contact Phone <span className="text-red-400">*</span></label>
+                      <div className="space-y-1.5">
+                        <label className="text-xs uppercase tracking-wider font-bold text-gray-400">House No {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
                         <input
-                          value={contactPhone}
-                          onChange={e => setContactPhone(e.target.value)}
-                          placeholder="e.g. 076..."
-                          className="w-full bg-white/5 border border-[#040e40]/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-[#040e40]"
+                          value={hazardHouse}
+                          onChange={e => setHazardHouse(e.target.value)}
+                          placeholder="e.g. 12B"
+                          className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white placeholder-gray-500"
                         />
                       </div>
                     </div>
-                  )}
 
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Street Name {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
-                      <input
-                        value={hazardStreet}
-                        onChange={e => setHazardStreet(e.target.value)}
-                        placeholder="e.g. Main St"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
+                    <div className="space-y-1.5">
+                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Description</label>
+                      <textarea
+                        value={hazardDesc}
+                        onChange={e => setHazardDesc(e.target.value)}
+                        placeholder="Briefly describe the danger..."
+                        className="w-full h-24 bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 resize-none text-white placeholder-gray-500"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-xs uppercase tracking-wider font-bold text-gray-500">House No {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
-                      <input
-                        value={hazardHouse}
-                        onChange={e => setHazardHouse(e.target.value)}
-                        placeholder="e.g. 12B"
-                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500"
-                      />
+
+                    <div className="space-y-1.5">
+                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Evidence (Photo)</label>
+                      <div className="relative group cursor-pointer h-28 rounded-xl border-2 border-dashed border-white/15 flex flex-col items-center justify-center hover:bg-white/5 transition-all bg-slate-950/60">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          className="absolute inset-0 opacity-0 cursor-pointer"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const reader = new FileReader();
+                              reader.onloadend = () => setHazardImage(reader.result as string);
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                        />
+                        {hazardImage ? (
+                          <img src={hazardImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
+                        ) : (
+                          <>
+                            <Camera className="w-7 h-7 text-gray-400 group-hover:text-red-400 transition-colors" />
+                            <span className="text-[10px] mt-1.5 text-gray-400 font-bold uppercase tracking-wider">Snap or Upload Evidence</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-2">
+                      <button
+                        onClick={handleHazardReport}
+                        disabled={reporting || !locationAccurateEnough}
+                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 active:scale-[0.98]"
+                      >
+                        {reporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
+                        Submit Danger Report
+                      </button>
                     </div>
                   </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Description</label>
-                    <textarea
-                      value={hazardDesc}
-                      onChange={e => setHazardDesc(e.target.value)}
-                      placeholder="Briefly describe the danger..."
-                      className="w-full h-24 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-red-500 resize-none"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-xs uppercase tracking-wider font-bold text-gray-500">Evidence (Photo)</label>
-                    <div className="relative group cursor-pointer h-32 rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center hover:bg-white/5 transition-all">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        capture="environment"
-                        className="absolute inset-0 opacity-0 cursor-pointer"
-                        onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => setHazardImage(reader.result as string);
-                            reader.readAsDataURL(file);
-                          }
-                        }}
-                      />
-                      {hazardImage ? (
-                        <img src={hazardImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                      ) : (
-                        <>
-                          <Camera className="w-8 h-8 text-gray-500 group-hover:text-red-400 transition-colors" />
-                          <span className="text-[10px] mt-2 text-gray-500 font-bold uppercase">Snap or Upload</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleHazardReport}
-                    disabled={reporting || !locationAccurateEnough}
-                    className="w-full py-3.5 rounded-2xl bg-red-600 hover:bg-red-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2"
-                  >
-                    {reporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
-                    Submit Danger Report
-                  </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         )}

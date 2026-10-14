@@ -77,7 +77,28 @@ async function ensureScheduledOutageTable(): Promise<boolean> {
     outageTableReady = true;
     return true;
   } catch (err) {
-    console.warn('[ScheduledOutage] Could not auto-create table via executeRawUnsafe:', err);
+let hazardTableColumnsReady = false;
+
+async function ensureHazardColumns(): Promise<boolean> {
+  if (hazardTableColumnsReady) return true;
+  try {
+    await prisma.$executeRawUnsafe(`
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "referenceCode" TEXT;
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "incidentStatus" TEXT NOT NULL DEFAULT 'received';
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "severity" TEXT NOT NULL DEFAULT 'medium';
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "assignedTo" TEXT;
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "slaDueAt" TIMESTAMP(3);
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP;
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionNote" TEXT;
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolutionImageUrl" TEXT;
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolved" BOOLEAN NOT NULL DEFAULT false;
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedAt" TIMESTAMP(3);
+      ALTER TABLE "HazardReport" ADD COLUMN IF NOT EXISTS "resolvedBy" TEXT;
+    `);
+    hazardTableColumnsReady = true;
+    return true;
+  } catch (err) {
+    console.warn('[HazardReport] ensure columns in admin incidents route:', err);
     return false;
   }
 }
@@ -89,6 +110,10 @@ export async function GET() {
 
     let incidents: IncidentItem[] = [];
     let outages: OutageItem[] = [];
+
+    // Ensure columns and tables ready
+    await ensureHazardColumns();
+    await ensureScheduledOutageTable();
 
     // 1. Fetch hazard reports defensively
     try {

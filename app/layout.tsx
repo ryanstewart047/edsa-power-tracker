@@ -1,10 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import PWAInstallBanner from "@/components/PWAInstallBanner";
 import FloatingPrompts from "@/components/FloatingPrompts";
-
-const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
   themeColor: "#040e40",
@@ -84,12 +81,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800;900&display=swap"
+          rel="stylesheet"
+        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} bg-gray-950 text-white min-h-screen pb-24 md:pb-24`}>
+      <body className="font-sans bg-[#030712] text-slate-100 min-h-screen pb-24 md:pb-24 selection:bg-blue-600/30 selection:text-white antialiased">
         <SplashScreen />
         <AppOnboarding />
         <LocationGuard />

@@ -1,25 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --status-on: #22c55e;
-    --status-out: #ef4444;
-    --status-unknown: #6b7280;
+    --status-on: #10b981;
+    --status-out: #f43f5e;
+    --status-unknown: #64748b;
+    --edsa-blue: #1e40af;
+    --edsa-blue-glow: rgba(37, 99, 235, 0.35);
+  }
+
+  html {
+    font-family: 'Onest', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color-scheme: dark;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Onest', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: #030712;
+    color: #f8fafc;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom subtle scrollbars for modal forms and containers */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.25);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.45);
   }
 }
 
 @layer utilities {
-  .status-on    { @apply bg-green-500 text-white; }
-  .status-out   { @apply bg-red-500 text-white; }
-  .status-unknown { @apply bg-gray-600 text-gray-200; }
+  .status-on    { @apply bg-emerald-500 text-white; }
+  .status-out   { @apply bg-rose-500 text-white; }
+  .status-unknown { @apply bg-slate-600 text-slate-200; }
+  
+  /* Modal scrollable form container with safe bottom clearance */
+  .modal-form-scroll {
+    @apply max-h-[82vh] overflow-y-auto overscroll-contain pr-1.5 pb-6;
+  }
 }
 
 /* Pulse ring for "out" areas */
 @keyframes ping-slow {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50%       { opacity: 0.4; transform: scale(1.15); }
+  50%       { opacity: 0.35; transform: scale(1.18); }
 }
 .animate-ping-slow {
   animation: ping-slow 2s ease-in-out infinite;
@@ -27,5 +67,5 @@
 
 /* Smooth card hover */
 .area-card {
-  @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 transition-all duration-200 hover:border-white/20 hover:bg-white/10 cursor-pointer;
+  @apply rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-md p-4 transition-all duration-200 hover:border-blue-500/30 hover:bg-white/[0.07] cursor-pointer shadow-sm hover:shadow-lg hover:shadow-blue-500/5;
 }
