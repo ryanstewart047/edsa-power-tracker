@@ -10,24 +10,24 @@ const prompts = [
     id: 1,
     question: "Is your area safe today?",
     icon: ShieldAlert,
-    color: "text-red-400",
-    bg: "bg-red-500/10",
+    color: "text-rose-600",
+    bg: "bg-rose-50",
     action: "Report Hazard"
   },
   {
     id: 2,
     question: "Got power right now?",
     icon: Zap,
-    color: "text-blue-400",
-    bg: "bg-[#040e40]/15",
+    color: "text-blue-600",
+    bg: "bg-blue-50",
     action: "Update Status"
   },
   {
     id: 3,
     question: "Notice any illegal connections?",
     icon: MessageSquare,
-    color: "text-blue-400",
-    bg: "bg-blue-500/10",
+    color: "text-indigo-600",
+    bg: "bg-indigo-50",
     action: "Alert EDSA"
   }
 ];
@@ -68,18 +68,19 @@ export default function FloatingPrompts() {
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             className="pointer-events-auto"
           >
-            <div className="bg-gray-900/90 backdrop-blur-xl border border-white/10 rounded-2xl p-4 shadow-2xl max-w-[280px] relative overflow-hidden group">
+            <div className="bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl p-4 shadow-xl max-w-[280px] relative overflow-hidden group">
               {/* Animated Progress Bar */}
               <motion.div 
                 initial={{ width: "0%" }}
                 animate={{ width: "100%" }}
                 transition={{ duration: 15, ease: "linear" }}
-                className="absolute bottom-0 left-0 h-0.5 bg-[#040e40]/30"
+                className="absolute bottom-0 left-0 h-0.5 bg-blue-600/30"
               />
 
               <button 
                 onClick={() => setShow(false)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-white transition-colors"
+                className="absolute top-2 right-2 text-slate-400 hover:text-slate-700 transition-colors"
+                aria-label="Dismiss prompt"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -90,13 +91,13 @@ export default function FloatingPrompts() {
                 </div>
                 
                 <div className="flex-1">
-                  <p className="text-white text-sm font-semibold leading-tight pr-4">
+                  <p className="text-slate-900 text-sm font-semibold leading-tight pr-4">
                     {active.question}
                   </p>
                   
                   <Link 
                     href="/tracker"
-                    className="mt-3 flex items-center gap-1.5 text-xs font-bold text-blue-400 hover:text-blue-300 transition-colors group/btn"
+                    className="mt-3 flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-700 transition-colors group/btn"
                   >
                     {active.action}
                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />

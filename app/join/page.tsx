@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Zap,
   Mail,
@@ -11,6 +12,7 @@ import {
   Star,
   Clock,
   ExternalLink,
+  ArrowLeft,
 } from 'lucide-react';
 
 const PLAY_STORE_LINK = 'https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker';
@@ -55,33 +57,43 @@ export default function JoinPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020305] text-white flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
+    <main className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden">
       {/* Background glow */}
       <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-[#040e40]/15 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-[#040e40]/10 rounded-full blur-[100px]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-blue-100/60 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-0 w-[400px] h-[300px] bg-indigo-50/70 rounded-full blur-[100px]" />
       </div>
 
       <div className="relative z-10 w-full max-w-md">
+        {/* Back Link */}
+        <div className="mb-6">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors p-2 rounded-xl bg-slate-100 hover:bg-slate-200"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back to Tracker
+          </Link>
+        </div>
+
         {/* Logo & Branding */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-8 scroll-reveal">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#040e40] flex items-center justify-center shadow-xl shadow-[#040e40]/30">
+            <div className="w-14 h-14 rounded-2xl bg-blue-600 flex items-center justify-center shadow-xl shadow-blue-500/20">
               <Zap className="w-7 h-7 text-white fill-white" />
             </div>
           </div>
-          <h1 className="text-3xl font-black tracking-tight mb-2">
+          <h1 className="text-3xl font-black tracking-tight mb-2 text-slate-900">
             EDSA Power Tracker
           </h1>
-          <p className="text-gray-400 text-sm leading-relaxed max-w-xs mx-auto">
+          <p className="text-slate-600 text-sm leading-relaxed max-w-xs mx-auto">
             Real-time electricity outage tracking, token vault &amp; prepaid alerts — built for Freetown.
           </p>
         </div>
 
         {/* Social proof */}
-        <div className="flex items-center justify-center gap-5 mb-6 text-xs text-gray-500">
-          <span className="flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5 text-[#040e40]" />
+        <div className="flex items-center justify-center gap-5 mb-6 text-xs text-slate-500 scroll-reveal">
+          <span className="flex items-center gap-1.5 font-medium">
+            <Users className="w-3.5 h-3.5 text-blue-600" />
             Free for Sierra Leone
           </span>
           <span className="flex items-center gap-1">
@@ -91,44 +103,44 @@ export default function JoinPage() {
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
             <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
           </span>
-          <span className="flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5 text-emerald-400" />
+          <span className="flex items-center gap-1.5 font-medium">
+            <Zap className="w-3.5 h-3.5 text-emerald-600" />
             Android App
           </span>
         </div>
 
         {/* Card */}
-        <div className="bg-slate-900 border border-white/10 rounded-3xl p-6 md:p-8 shadow-2xl">
+        <div className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-100 scroll-reveal">
           {success ? (
             /* Success state with 15-minute wait time guidance */
             <div className="space-y-5 text-left">
               <div className="text-center space-y-2">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mx-auto">
-                  <CheckCircle2 className="w-7 h-7 text-emerald-400" />
+                <div className="w-14 h-14 rounded-full bg-emerald-50 border border-emerald-200 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-7 h-7 text-emerald-600" />
                 </div>
-                <h2 className="text-xl font-black text-white">Email Captured!</h2>
-                <p className="text-gray-300 text-xs">
+                <h2 className="text-xl font-black text-slate-900">Email Captured!</h2>
+                <p className="text-slate-600 text-xs">
                   Your email has been sent to our developer team for enrollment.
                 </p>
               </div>
 
               {/* 15-minute callout */}
-              <div className="bg-amber-950/60 border border-amber-500/40 rounded-2xl p-4 space-y-2">
-                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wider">
-                  <Clock className="w-4 h-4 text-amber-400" />
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wider">
+                  <Clock className="w-4 h-4 text-amber-600" />
                   <span>Please wait at least 15 minutes</span>
                 </div>
-                <p className="text-amber-200/90 text-xs leading-relaxed">
+                <p className="text-amber-800/90 text-xs leading-relaxed">
                   We need to manually add your email to the Google Play Console closed tester list. Google Play takes about <strong>15 minutes</strong> to sync and activate access.
                 </p>
-                <p className="text-amber-300/80 text-[11px]">
+                <p className="text-amber-700 text-[11px]">
                   ⚠️ If you tap the links immediately before 15 minutes, Google may show <em>&quot;Item isn&apos;t available in your country&quot;</em>.
                 </p>
               </div>
 
               {/* Action Buttons for after 15 min */}
               <div className="space-y-3 pt-1">
-                <div className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                <div className="text-[11px] font-black uppercase tracking-wider text-slate-500">
                   After 15 minutes, open these links:
                 </div>
 
@@ -136,7 +148,7 @@ export default function JoinPage() {
                   href={PLAY_TESTING_OPTIN_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between shadow-md"
+                  className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between shadow-md shadow-blue-500/20 active:scale-95"
                 >
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-black">1</span>
@@ -149,7 +161,7 @@ export default function JoinPage() {
                   href={PLAY_STORE_LINK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-3 px-4 rounded-xl bg-[#040e40] hover:bg-[#020820] text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between shadow-md"
+                  className="w-full py-3 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-between shadow-md active:scale-95"
                 >
                   <div className="flex items-center gap-2">
                     <span className="w-5 h-5 rounded-full bg-white/20 text-white flex items-center justify-center text-[10px] font-black">2</span>
@@ -159,14 +171,14 @@ export default function JoinPage() {
                 </a>
               </div>
 
-              <div className="text-center pt-2 border-t border-white/10 space-y-2">
-                <p className="text-gray-500 text-[11px]">
+              <div className="text-center pt-2 border-t border-slate-200 space-y-2">
+                <p className="text-slate-500 text-[11px]">
                   We also sent these instructions and direct links to your inbox.
                 </p>
                 <button
                   type="button"
                   onClick={() => setSuccess(null)}
-                  className="text-blue-400 text-xs font-semibold hover:underline"
+                  className="text-blue-600 text-xs font-semibold hover:underline"
                 >
                   Register another email
                 </button>
@@ -176,34 +188,34 @@ export default function JoinPage() {
             /* Form */
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#6d8ef0] bg-[#040e40]/15 border border-[#040e40]/30 px-3 py-1.5 rounded-full mb-3">
-                  <Mail className="w-3 h-3" />
+                <div className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-full mb-3">
+                  <Mail className="w-3 h-3 text-blue-600" />
                   Closed Testing Access
                 </div>
-                <h2 className="text-xl font-black text-white">Join Closed Testing</h2>
-                <p className="text-gray-400 text-xs mt-1">
+                <h2 className="text-xl font-black text-slate-900">Join Closed Testing</h2>
+                <p className="text-slate-600 text-xs mt-1">
                   Enter your Google Play email to be added to our official tester list.
                 </p>
               </div>
 
               {/* Name field */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400">
-                  Your name <span className="text-gray-600 font-normal">(optional)</span>
+                <label className="text-xs font-bold text-slate-700">
+                  Your name <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. Mohamed Kamara"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 text-sm focus:outline-none focus:border-[#040e40] focus:bg-white/8 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
                 />
               </div>
 
               {/* Email field */}
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-gray-400">
-                  Google Play Email address <span className="text-red-400">*</span>
+                <label className="text-xs font-bold text-slate-700">
+                  Google Play Email address <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="email"
@@ -211,16 +223,16 @@ export default function JoinPage() {
                   placeholder="you@gmail.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-gray-600 text-sm focus:outline-none focus:border-[#040e40] focus:bg-white/8 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
                 />
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-slate-500">
                   Use the email logged into your Android Google Play Store.
                 </p>
               </div>
 
               {/* Error */}
               {error && (
-                <div className="text-red-400 text-xs bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+                <div className="text-rose-700 text-xs bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
                   {error}
                 </div>
               )}
@@ -229,7 +241,7 @@ export default function JoinPage() {
               <button
                 type="submit"
                 disabled={loading || !email.trim()}
-                className="w-full py-3.5 rounded-xl bg-[#040e40] hover:bg-[#020820] text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#040e40]/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
+                className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 active:scale-[0.98] disabled:opacity-50 disabled:cursor-wait"
               >
                 {loading ? (
                   <>
@@ -244,7 +256,7 @@ export default function JoinPage() {
                 )}
               </button>
 
-              <p className="text-center text-gray-600 text-[11px]">
+              <p className="text-center text-slate-500 text-[11px]">
                 You will be notified as soon as you submit. Please allow 15 min for Google Play activation.
               </p>
             </form>
@@ -252,15 +264,15 @@ export default function JoinPage() {
         </div>
 
         {/* Feature bullets */}
-        <div className="mt-8 grid grid-cols-3 gap-3 text-center">
+        <div className="mt-8 grid grid-cols-3 gap-3 text-center scroll-reveal">
           {[
             { icon: '🗺️', label: 'Live outage map for Freetown' },
             { icon: '⚡', label: 'Token vault for prepaid codes' },
             { icon: '🔔', label: 'Area outage alerts' },
           ].map((f) => (
-            <div key={f.label} className="bg-white/3 border border-white/8 rounded-2xl p-3 space-y-1">
+            <div key={f.label} className="bg-slate-50 border border-slate-200 rounded-2xl p-3 space-y-1 shadow-sm">
               <div className="text-xl">{f.icon}</div>
-              <p className="text-[11px] text-gray-400 leading-tight">{f.label}</p>
+              <p className="text-[11px] text-slate-600 leading-tight font-medium">{f.label}</p>
             </div>
           ))}
         </div>

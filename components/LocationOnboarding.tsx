@@ -68,61 +68,61 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs"
         >
           <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
-            className="w-full max-w-md bg-[#020617] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+            className="w-full max-w-md bg-white border border-slate-200 rounded-[2.5rem] overflow-hidden shadow-2xl"
           >
             <div className="p-8 space-y-6">
               <div className="flex items-center gap-4">
-                <div className="h-12 w-12 rounded-2xl bg-[#040e40]/15 flex items-center justify-center border border-[#040e40]/20">
-                  <MapPin className="h-6 w-6 text-blue-400" />
+                <div className="h-12 w-12 rounded-2xl bg-blue-50 flex items-center justify-center border border-blue-200">
+                  <MapPin className="h-6 w-6 text-blue-600" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-white uppercase tracking-tight">Location Setup</h3>
-                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Improving Accuracy</p>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Location Setup</h3>
+                  <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Improving Accuracy</p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm text-gray-400 leading-relaxed">
+                <p className="text-sm text-slate-600 leading-relaxed">
                   Search for the community where you primarily live or report. Your live GPS location is always used to verify reports.
                 </p>
               </div>
 
               <div className="relative">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   type="text"
                   placeholder="Search any Sierra Leone location..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-11 pr-4 py-4 text-sm focus:outline-none focus:border-[#040e40]/50 transition-all text-white"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl pl-11 pr-4 py-4 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-all text-slate-900 placeholder:text-slate-400"
                 />
               </div>
 
               <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                 {searchTerm.trim().length < 2 && (
-                  <p className="px-2 py-5 text-center text-xs text-gray-500">Enter at least two letters to search all Sierra Leone locations.</p>
+                  <p className="px-2 py-5 text-center text-xs text-slate-500">Enter at least two letters to search all Sierra Leone locations.</p>
                 )}
-                {searching && <p className="px-2 py-5 text-center text-xs text-gray-500">Searching locations...</p>}
+                {searching && <p className="px-2 py-5 text-center text-xs text-slate-500">Searching locations...</p>}
                 {!searching && areas.map((area) => (
                   <button
                     key={area.id}
                     onClick={() => setSelectedArea(area.id)}
                     className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${
                       selectedArea === area.id
-                        ? 'bg-[#040e40] border-[#040e40] text-black shadow-lg shadow-[#040e40]/20' 
-                        : 'bg-white/5 border-white/5 text-gray-400 hover:bg-white/10'
+                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-500/20' 
+                        : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
                     }`}
                   >
                     <span className="text-left">
                       <span className="block font-bold text-sm">{area.name}</span>
-                      <span className="block text-[10px] opacity-70 mt-0.5">{area.region}</span>
+                      <span className={`block text-[10px] mt-0.5 ${selectedArea === area.id ? 'text-blue-100' : 'text-slate-500'}`}>{area.region}</span>
                     </span>
-                    {selectedArea === area.id && <CheckCircle className="h-4 w-4" />}
+                    {selectedArea === area.id && <CheckCircle className="h-4 w-4 text-white" />}
                   </button>
                 ))}
               </div>
@@ -130,14 +130,14 @@ export default function LocationOnboarding({ onComplete }: LocationOnboardingPro
               <button
                 onClick={handleFinish}
                 disabled={!selectedArea}
-                className="w-full py-4 rounded-2xl bg-[#040e40] text-white font-black text-sm uppercase tracking-widest transition-all hover:bg-[#020820] disabled:opacity-30 flex items-center justify-center gap-2"
+                className="w-full py-4 rounded-2xl bg-blue-600 text-white font-black text-sm uppercase tracking-widest transition-all hover:bg-blue-700 disabled:opacity-40 flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95"
               >
                 Set Primary Community
                 <ChevronRight className="h-4 w-4" />
               </button>
               
-              <div className="flex items-center justify-center gap-2 text-[10px] text-gray-600 font-bold uppercase tracking-widest pt-2">
-                <Zap className="h-3 w-3" />
+              <div className="flex items-center justify-center gap-2 text-[10px] text-slate-400 font-bold uppercase tracking-widest pt-2">
+                <Zap className="h-3 w-3 text-blue-600" />
                 Location-Verified Reporting
               </div>
             </div>

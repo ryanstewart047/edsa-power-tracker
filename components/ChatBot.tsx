@@ -143,7 +143,7 @@ export default function ChatBot() {
     return (
       <motion.button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 left-4 z-40 rounded-full border-2 border-white bg-[#040e40] p-3.5 text-white shadow-xl ring-2 ring-white/30 transition-all duration-300 hover:scale-110 hover:bg-[#020820] md:bottom-24 md:left-6 md:p-4"
+        className="fixed bottom-20 left-4 z-40 rounded-full border-2 border-white bg-blue-600 p-3.5 text-white shadow-xl shadow-blue-500/30 ring-2 ring-blue-500/20 transition-all duration-300 hover:scale-110 hover:bg-blue-700 md:bottom-24 md:left-6 md:p-4"
         aria-label="Open chatbot"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -161,112 +161,112 @@ export default function ChatBot() {
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed bottom-20 left-4 right-4 z-50 w-auto max-w-md max-h-[30rem] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden mx-auto md:bottom-24 md:right-6 md:left-auto md:w-96 md:mx-0"
+          className="fixed bottom-20 left-4 right-4 z-50 w-auto max-w-md max-h-[30rem] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden mx-auto md:bottom-24 md:right-6 md:left-auto md:w-96 md:mx-0"
           initial={{ opacity: 0, scale: 0.8, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.8, y: 20 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         >
-      {/* Header */}
-      <div className="bg-[#040e40] text-white p-4 flex justify-between items-center">
-        <div>
-          <h3 className="font-semibold">EDSA Assistant</h3>
-          <p className="text-sm text-blue-300">Always here to help</p>
-        </div>
-        <button
-          onClick={() => setIsOpen(false)}
-          className="hover:bg-[#020820] p-1 rounded transition-colors"
-          aria-label="Close chatbot"
-        >
-          <motion.div
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ duration: 0.3 }}
-          >
-            <X size={20} />
-          </motion.div>
-        </button>
-      </div>
-
-      {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
-        {messages.map((message, index) => (
-          <motion.div
-            key={message.id}
-            className={`flex ${
-              message.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, duration: 0.3 }}
-          >
-            <div
-              className={`max-w-xs px-4 py-2 rounded-lg ${
-                message.role === 'user'
-                  ? 'bg-[#040e40] text-white rounded-br-none'
-                  : 'bg-gray-200 text-gray-800 rounded-bl-none'
-              }`}
-            >
-              <p className="text-sm">
-                {message.role === 'user' 
-                  ? message.content 
-                  : renderMessageWithLinks(message.content)}
-              </p>
-              <span
-                className={`text-xs mt-1 block ${
-                  message.role === 'user' ? 'text-blue-300' : 'text-gray-500'
-                }`}
-              >
-                {message.timestamp.toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </span>
+          {/* Header */}
+          <div className="bg-blue-600 text-white p-4 flex justify-between items-center shadow-sm">
+            <div>
+              <h3 className="font-semibold text-sm">EDSA Assistant</h3>
+              <p className="text-xs text-blue-100">Always here to help</p>
             </div>
-          </motion.div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg rounded-bl-none">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="hover:bg-blue-700 p-1.5 rounded-lg transition-colors"
+              aria-label="Close chatbot"
+            >
+              <motion.div
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ duration: 0.3 }}
+              >
+                <X size={18} />
+              </motion.div>
+            </button>
+          </div>
+
+          {/* Messages Container */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+            {messages.map((message, index) => (
+              <motion.div
+                key={message.id}
+                className={`flex ${
+                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                }`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1, duration: 0.3 }}
+              >
                 <div
-                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                  style={{ animationDelay: '0.2s' }}
-                ></div>
-                <div
-                  className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"
-                  style={{ animationDelay: '0.4s' }}
-                ></div>
+                  className={`max-w-xs px-4 py-2.5 rounded-2xl shadow-xs ${
+                    message.role === 'user'
+                      ? 'bg-blue-600 text-white rounded-br-none'
+                      : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed">
+                    {message.role === 'user' 
+                      ? message.content 
+                      : renderMessageWithLinks(message.content)}
+                  </p>
+                  <span
+                    className={`text-[10px] mt-1 block font-medium ${
+                      message.role === 'user' ? 'text-blue-100' : 'text-slate-400'
+                    }`}
+                  >
+                    {message.timestamp.toLocaleTimeString([], {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+            {isLoading && (
+              <div className="flex justify-start">
+                <div className="bg-white border border-slate-200 text-slate-800 px-4 py-2.5 rounded-2xl rounded-bl-none shadow-xs">
+                  <div className="flex space-x-1.5 items-center py-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                      style={{ animationDelay: '0.4s' }}
+                    ></div>
+                  </div>
+                </div>
               </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Input Area */}
+          <div className="p-3 border-t border-slate-200 bg-white">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Type your message..."
+                className="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white text-sm text-slate-900 placeholder-slate-400 transition-colors"
+                disabled={isLoading}
+              />
+              <button
+                onClick={handleSendMessage}
+                disabled={isLoading || !input.trim()}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white p-2.5 rounded-xl transition-colors font-semibold flex items-center justify-center shadow-sm shadow-blue-500/20 active:scale-95"
+                aria-label="Send message"
+              >
+                <Send size={18} />
+              </button>
             </div>
           </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 bg-white">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#040e40] text-sm text-gray-900 placeholder-gray-500"
-            disabled={isLoading}
-          />
-          <button
-            onClick={handleSendMessage}
-            disabled={isLoading || !input.trim()}
-            className="bg-[#040e40] hover:bg-[#020820] disabled:bg-gray-400 text-gray-950 p-2 rounded-lg transition-colors font-semibold"
-            aria-label="Send message"
-          >
-            <Send size={18} />
-          </button>
-        </div>
-      </div>
         </motion.div>
       )}
     </AnimatePresence>

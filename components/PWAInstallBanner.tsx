@@ -81,22 +81,23 @@ export default function PWAInstallBanner() {
 
   return (
     <div className="fixed top-6 left-4 right-4 z-[9999] animate-in slide-in-from-top-10 duration-500 pointer-events-auto">
-      <div className="bg-gray-900/95 backdrop-blur-2xl border border-white/20 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] ring-1 ring-white/10">
+      <div className="bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-slate-100">
         <button 
           onClick={() => { setShow(false); sessionStorage.setItem('edsa-pwa-dismissed', 'true'); }}
-          className="absolute top-4 right-4 text-gray-500 hover:text-white"
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1"
+          aria-label="Dismiss banner"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-900 border border-blue-400/30 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/30">
-            <Zap className="w-8 h-8 text-red-500 fill-red-500 filter drop-shadow-[0_0_8px_rgba(239,68,68,0.7)]" />
+          <div className="w-14 h-14 rounded-2xl bg-blue-600 border border-blue-500 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+            <Zap className="w-8 h-8 text-white fill-white" />
           </div>
           
           <div className="flex-1 pr-6">
-            <h3 className="font-bold text-white text-lg leading-tight">Install EDSA Tracker</h3>
-            <p className="text-gray-400 text-sm mt-0.5">
+            <h3 className="font-bold text-slate-900 text-lg leading-tight">Install EDSA Tracker</h3>
+            <p className="text-slate-600 text-sm mt-0.5">
               {device.isIOS 
                 ? 'Add to home screen for real-time alerts' 
                 : 'Get the native app for better tracking'}
@@ -106,18 +107,18 @@ export default function PWAInstallBanner() {
 
         <div className="mt-5">
           {device.isIOS ? (
-            <div className="flex items-center gap-3 bg-white/5 rounded-2xl p-3 border border-white/5">
-              <div className="p-2 bg-blue-500/10 rounded-xl">
-                <Share className="w-5 h-5 text-blue-400" />
+            <div className="flex items-center gap-3 bg-slate-50 rounded-2xl p-3 border border-slate-200">
+              <div className="p-2 bg-blue-100 rounded-xl">
+                <Share className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-xs text-gray-300">
-                Tap <span className="text-white font-bold">Share</span> then <span className="text-white font-bold">Add to Home Screen</span>
+              <p className="text-xs text-slate-700">
+                Tap <span className="text-slate-900 font-bold">Share</span> then <span className="text-slate-900 font-bold">Add to Home Screen</span>
               </p>
             </div>
           ) : (
             <button
               onClick={handleInstall}
-              className="w-full bg-white text-black font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-gray-200 transition-colors shadow-lg"
+              className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 active:scale-95"
             >
               <Download className="w-5 h-5" />
               Install App

@@ -343,34 +343,34 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9995] flex items-center justify-center p-4 bg-slate-950/95 backdrop-blur-2xl overflow-y-auto"
+        className="fixed inset-0 z-[9995] flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs overflow-y-auto"
       >
         {/* Ambient Glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-[140px] bg-red-600/15 pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-[140px] bg-blue-100/60 pointer-events-none" />
 
         <motion.div
           initial={{ scale: 0.94, y: 15 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl text-center space-y-6 my-auto"
+          className="relative w-full max-w-md bg-white border border-slate-200 rounded-[2.5rem] p-6 sm:p-8 shadow-2xl text-center space-y-6 my-auto text-slate-900"
         >
           {/* Header Icon Indicator */}
           <div className="relative mx-auto w-24 h-24 flex items-center justify-center">
             {state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' ? (
               <>
-                <div className="absolute inset-0 rounded-3xl bg-amber-500/10 border border-amber-500/20 animate-pulse" />
-                <MapPinOff className="w-12 h-12 text-amber-400" />
+                <div className="absolute inset-0 rounded-3xl bg-amber-50 border border-amber-200 animate-pulse" />
+                <MapPinOff className="w-12 h-12 text-amber-600" />
               </>
             ) : state === 'PERMISSION_DENIED' ? (
               <>
-                <div className="absolute inset-0 rounded-3xl bg-red-500/10 border border-red-500/20" />
-                <ShieldAlert className="w-12 h-12 text-red-500" />
+                <div className="absolute inset-0 rounded-3xl bg-rose-50 border border-rose-200" />
+                <ShieldAlert className="w-12 h-12 text-rose-600" />
               </>
             ) : (
               <>
-                <div className="absolute inset-0 rounded-3xl bg-blue-500/10 border border-blue-500/20" />
-                <Navigation className="w-12 h-12 text-blue-400 animate-bounce" />
+                <div className="absolute inset-0 rounded-3xl bg-blue-50 border border-blue-200" />
+                <Navigation className="w-12 h-12 text-blue-600 animate-bounce" />
               </>
             )}
           </div>
@@ -379,10 +379,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           <div className="space-y-2">
             <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${
               state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE'
-                ? 'bg-amber-500/10 border-amber-500/30 text-amber-400' 
+                ? 'bg-amber-50 border-amber-200 text-amber-700' 
                 : state === 'PERMISSION_DENIED'
-                ? 'bg-red-500/10 border-red-500/30 text-red-400'
-                : 'bg-blue-500/10 border-blue-500/30 text-blue-400'
+                ? 'bg-rose-50 border-rose-200 text-rose-700'
+                : 'bg-blue-50 border-blue-200 text-blue-700'
             }`}>
               {state === 'GPS_OFF'
                 ? 'DEVICE GPS TURNED OFF' 
@@ -395,7 +395,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 : 'LOCATION REQUIRED'}
             </span>
 
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               {state === 'GPS_OFF'
                 ? 'Enable Location Services'
                 : state === 'GPS_UNAVAILABLE'
@@ -407,7 +407,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 : 'Allow Location Access'}
             </h2>
 
-            <p className="text-xs text-gray-300 leading-relaxed max-w-sm mx-auto">
+            <p className="text-xs text-slate-600 leading-relaxed max-w-sm mx-auto">
               {errorMessage || (
                 state === 'GPS_OFF'
                   ? 'Your device location (GPS) is turned off. EDSA Tracker requires active GPS to detect your Sierra Leone community and prevent false outage alarms.'
@@ -423,30 +423,30 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           </div>
 
           {/* Why We Need Location Box */}
-          <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-left space-y-2 text-xs text-gray-300">
-            <div className="flex items-center gap-2 font-bold text-white text-[11px] uppercase tracking-wider mb-1">
-              <AlertTriangle className="w-3.5 h-3.5 text-blue-400" />
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-left space-y-2 text-xs text-slate-600 shadow-xs">
+            <div className="flex items-center gap-2 font-bold text-slate-900 text-[11px] uppercase tracking-wider mb-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-blue-600" />
               <span>Why GPS is mandatory:</span>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold leading-none mt-0.5">•</span>
-              <p><strong className="text-white">Auto-Detection:</strong> Anchors power status directly to your exact Sierra Leone community.</p>
+              <span className="text-emerald-600 font-bold leading-none mt-0.5">•</span>
+              <p><strong className="text-slate-900">Auto-Detection:</strong> Anchors power status directly to your exact Sierra Leone community.</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold leading-none mt-0.5">•</span>
-              <p><strong className="text-white">Fraud Prevention:</strong> Blocks false reports submitted from outside the actual zone.</p>
+              <span className="text-emerald-600 font-bold leading-none mt-0.5">•</span>
+              <p><strong className="text-slate-900">Fraud Prevention:</strong> Blocks false reports submitted from outside the actual zone.</p>
             </div>
             <div className="flex items-start gap-2">
-              <span className="text-emerald-400 font-bold leading-none mt-0.5">•</span>
-              <p><strong className="text-white">Hazard Response:</strong> Attaches exact coordinates for transformer and cable fires.</p>
+              <span className="text-emerald-600 font-bold leading-none mt-0.5">•</span>
+              <p><strong className="text-slate-900">Hazard Response:</strong> Attaches exact coordinates for transformer and cable fires.</p>
             </div>
           </div>
 
           {/* Manual Instructions Accordion / Card */}
           {showManualGuide && (
-            <div className="bg-slate-950/80 border border-amber-500/20 rounded-2xl p-4 text-left text-xs text-amber-200/90 space-y-2">
-              <p className="font-bold text-white">How to enable location:</p>
-              <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-gray-300">
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-left text-xs text-amber-900 space-y-2">
+              <p className="font-bold text-slate-900">How to enable location:</p>
+              <ol className="list-decimal list-inside space-y-1.5 text-[11px] text-slate-700">
                 <li>Swipe down from the top of your phone screen to open Quick Settings.</li>
                 <li>Tap the <strong>Location</strong> icon to turn it ON.</li>
                 <li>If using a browser or app, tap the lock/tune icon next to the URL and select <strong>Permissions → Location → Allow</strong>.</li>
@@ -461,16 +461,16 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 type="button"
                 onClick={handleRequestPermission}
                 disabled={isRequesting}
-                className="w-full py-4 px-6 rounded-2xl bg-[#040e40] hover:bg-[#020820] text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#040e40]/20 active:scale-95 disabled:opacity-50"
+                className="w-full py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20 active:scale-95 disabled:opacity-50"
               >
                 {isRequesting ? (
                   <>
-                    <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+                    <RefreshCw className="w-4 h-4 animate-spin text-white" />
                     <span>Detecting Location...</span>
                   </>
                 ) : (
                   <>
-                    <MapPin className="w-4 h-4 fill-slate-950" />
+                    <MapPin className="w-4 h-4 text-white" />
                     <span>Allow Location Access</span>
                     <ChevronRight className="w-4 h-4" />
                   </>
@@ -481,7 +481,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 <button
                   type="button"
                   onClick={handleOpenLocationSettings}
-                  className="w-full py-4 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-400/20 active:scale-95"
+                  className="w-full py-4 px-6 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95"
                 >
                   <Settings className="w-4 h-4" />
                   <span>{state === 'GPS_OFF' ? 'Turn On Device GPS' : 'Open Location Settings'}</span>
@@ -494,7 +494,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                     probeLocation(false);
                   }}
                   disabled={isRequesting}
-                  className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isRequesting ? 'animate-spin' : ''}`} />
                   <span>I Switched It On — Check Again</span>
@@ -505,7 +505,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                 <button
                   type="button"
                   onClick={handleOpenAppSettings}
-                  className="w-full py-4 px-6 rounded-2xl bg-red-500 hover:bg-red-400 text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-red-500/20 active:scale-95"
+                  className="w-full py-4 px-6 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black text-sm uppercase tracking-wider transition-all flex items-center justify-center gap-2 shadow-lg shadow-rose-500/20 active:scale-95"
                 >
                   <Settings className="w-4 h-4" />
                   <span>Open App Permissions</span>
@@ -518,7 +518,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                     probeLocation(false);
                   }}
                   disabled={isRequesting}
-                  className="w-full py-3 px-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${isRequesting ? 'animate-spin' : ''}`} />
                   <span>I Allowed Permission — Re-Check</span>
@@ -530,7 +530,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               <button
                 type="button"
                 onClick={handleSkipLocation}
-                className="w-full py-3.5 px-4 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-400/40 text-amber-200 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-lg"
+                className="w-full py-3.5 px-4 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs"
               >
                 <span>Skip for now & open app (Set up later)</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -541,7 +541,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               <button
                 type="button"
                 onClick={handleSkipOnDesktop}
-                className="w-full py-3.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/10 text-white text-xs font-bold transition-all flex items-center justify-center gap-2"
+                className="w-full py-3.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2"
               >
                 <span>Continue without location on this computer</span>
                 <ChevronRight className="w-3.5 h-3.5" />
@@ -552,7 +552,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               <button
                 type="button"
                 onClick={() => setShowManualGuide(true)}
-                className="text-xs text-gray-400 hover:text-white underline font-medium"
+                className="text-xs text-slate-500 hover:text-slate-800 underline font-medium"
               >
                 Need help turning on location?
               </button>

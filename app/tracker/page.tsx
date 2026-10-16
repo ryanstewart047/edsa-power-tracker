@@ -24,9 +24,9 @@ const GPS_REFRESH_INTERVAL_MS = 30_000;
 const MOVEMENT_REFRESH_DISTANCE_METERS = 35;
 
 const STATUS_META = {
-  on: { label: 'Power ON', icon: Zap, dot: 'bg-green-400', ring: 'ring-green-500/30', card: 'border-green-500/30 bg-green-500/5', text: 'text-green-400' },
-  out: { label: 'Power OUT', icon: ZapOff, dot: 'bg-red-400 animate-ping-slow', ring: 'ring-red-500/30', card: 'border-red-500/30 bg-red-500/5', text: 'text-red-400' },
-  unknown: { label: 'Unknown', icon: HelpCircle, dot: 'bg-gray-500', ring: 'ring-gray-500/20', card: 'border-white/10 bg-white/5', text: 'text-gray-400' },
+  on: { label: 'Power ON', icon: Zap, dot: 'bg-emerald-500', ring: 'ring-emerald-500/30', card: 'border-emerald-200 bg-emerald-50/60 shadow-sm', text: 'text-emerald-700' },
+  out: { label: 'Power OUT', icon: ZapOff, dot: 'bg-rose-500 animate-ping-slow', ring: 'ring-rose-500/30', card: 'border-rose-200 bg-rose-50/60 shadow-sm', text: 'text-rose-700' },
+  unknown: { label: 'Unknown', icon: HelpCircle, dot: 'bg-slate-400', ring: 'ring-slate-400/20', card: 'border-slate-200 bg-slate-50/60 shadow-sm', text: 'text-slate-600' },
 };
 
 type LocationSnapshot = {
@@ -652,10 +652,10 @@ export default function Home() {
   };
 
   const locationChipTone = !location
-    ? 'bg-white/5 border-white/10 text-gray-500'
+    ? 'bg-slate-100 border-slate-200 text-slate-500'
     : !locationAccurateEnough || (location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS)
-      ? 'bg-[#040e40]/15 border-[#040e40]/20 text-blue-300'
-      : 'bg-green-500/5 border-green-500/20 text-green-400';
+      ? 'bg-blue-50 border-blue-200 text-blue-700'
+      : 'bg-emerald-50 border-emerald-200 text-emerald-700';
 
   const locationChipLabel = !location
     ? 'Locating...'
@@ -673,36 +673,32 @@ export default function Home() {
         : 'Enable GPS';
 
   return (
-    <main className="min-h-screen relative text-white selection:bg-[#040e40]/40 overflow-x-hidden">
+    <main className="min-h-screen relative text-slate-900 bg-white selection:bg-blue-100 overflow-x-hidden">
       <LocationOnboarding onComplete={(area) => setPrimaryArea(area)} />
-      {/* Background Image Layer */}
-      <div
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url("/assets/bg-action.png")',
-          filter: 'brightness(0.3) saturate(1.2)',
-        }}
-      />
-      <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-[#020617]/80 to-[#020617]" />
+      {/* Background Ambient Glow */}
+      <div className="fixed inset-0 pointer-events-none -z-10">
+        <div className="absolute -top-40 -left-40 w-96 h-96 bg-blue-100/60 blur-[120px] rounded-full" />
+        <div className="absolute top-1/2 -right-40 w-96 h-96 bg-indigo-50/70 blur-[120px] rounded-full" />
+      </div>
 
       {/* Content Layer */}
       <div className="relative z-10 min-h-screen">
-        <header className="sticky top-0 z-40 bg-[#020617]/80 backdrop-blur-2xl border-b border-white/10">
+        <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-2xl border-b border-slate-200/80 shadow-xs">
           <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Link
                 href="/"
-                className="p-2 -ml-2 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white transition-all group"
+                className="p-2 -ml-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 transition-all group"
                 title="Back to Home"
               >
                 <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
               </Link>
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-900 border border-blue-400/30 flex items-center justify-center shadow-md shadow-blue-500/20">
-                  <Zap className="w-5 h-5 text-red-500 fill-red-500 filter drop-shadow-[0_0_6px_rgba(239,68,68,0.7)]" />
+                <div className="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center shadow-md shadow-blue-500/20">
+                  <Zap className="w-5 h-5 text-white fill-white" />
                 </div>
                 <div>
-                  <h1 className="font-bold text-base sm:text-lg leading-tight">Live Tracker</h1>
+                  <h1 className="font-bold text-base sm:text-lg leading-tight text-slate-900">Live Tracker</h1>
                 </div>
               </div>
             </div>
@@ -714,7 +710,7 @@ export default function Home() {
               </div>
               <button
                 onClick={() => fetchStatus(location, search)}
-                className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10"
+                className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg hover:bg-slate-100"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Updated {timeAgo(lastRefresh.toISOString())}</span>
@@ -726,20 +722,20 @@ export default function Home() {
 
         <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
           {statusError && (
-            <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 shadow-xs">
               {statusError}
             </div>
           )}
 
           {locationHelpMessage && (
-            <div className={`rounded-2xl border px-4 py-3 text-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between ${location && !locationAccurateEnough
-                ? 'border-[#040e40]/20 bg-[#040e40]/15 text-blue-100'
-                : 'border-white/10 bg-white/5 text-gray-200'
+            <div className={`rounded-2xl border px-4 py-3 text-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between shadow-xs ${location && !locationAccurateEnough
+                ? 'border-blue-200 bg-blue-50 text-blue-900'
+                : 'border-slate-200 bg-slate-50 text-slate-700'
               }`}>
               <span>{locationHelpMessage}</span>
               <button
                 onClick={requestLocation}
-                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-semibold uppercase tracking-wider text-white hover:bg-white/10"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wider text-slate-800 hover:bg-slate-100 shadow-xs"
               >
                 {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                 {locationActionLabel}
@@ -749,19 +745,19 @@ export default function Home() {
 
           {/* Your Reporting Area - Shows Nearby Areas */}
           {nearbyAreas.length > 0 ? (
-            <div className="bg-gradient-to-br from-blue-600/15 via-blue-600/[0.04] to-transparent border border-blue-500/30 rounded-[2.5rem] p-6 sm:p-8 space-y-6 shadow-2xl shadow-[#040e40]/10 backdrop-blur-sm">
+            <div className="bg-blue-50/60 border border-blue-200 rounded-[2.5rem] p-6 sm:p-8 space-y-6 shadow-sm scroll-reveal">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-blue-300">Your Current & Nearby Areas</h2>
+                <h2 className="text-lg font-bold text-slate-900">Your Current & Nearby Areas</h2>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={requestLocation}
-                    className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold text-white transition-all"
+                    className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-white hover:bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700 transition-all shadow-xs"
                   >
                     {locationLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                     {locationActionLabel}
                   </button>
-                  <div className="flex items-center gap-1.5 text-[10px] text-blue-200 bg-[#040e40]/30 px-2.5 py-1 rounded-full font-bold">
-                    <MapPin className="w-3 h-3 text-blue-300" />
+                  <div className="flex items-center gap-1.5 text-[10px] text-blue-700 bg-blue-100 px-2.5 py-1 rounded-full font-bold">
+                    <MapPin className="w-3 h-3 text-blue-600" />
                     LIVE TRACKING
                   </div>
                 </div>
@@ -774,30 +770,30 @@ export default function Home() {
                     area.distance <= MAX_REPORTING_DISTANCE_KM;
 
                   return (
-                    <div key={area.id} className={`relative p-5 rounded-2xl border transition-all duration-500 group/card ${area.isSavedArea ? 'border-blue-500/30 bg-blue-500/[0.06]' : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.05]'}`}>
-                      <h3 className="text-xl font-bold text-white mb-1 flex flex-wrap items-center gap-1.5">
+                    <div key={area.id} className={`relative p-5 rounded-2xl border transition-all duration-300 shadow-xs ${area.isSavedArea ? 'border-blue-300 bg-white ring-2 ring-blue-500/20' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                      <h3 className="text-xl font-bold text-slate-900 mb-1 flex flex-wrap items-center gap-1.5">
                         {area.name}
                         {area.isSavedArea && (
-                          <span className="text-[10px] bg-[#040e40] text-white px-2 py-0.5 rounded-md uppercase font-black tracking-tight">Your Area</span>
+                          <span className="text-[10px] bg-blue-600 text-white px-2 py-0.5 rounded-md uppercase font-black tracking-tight">Your Area</span>
                         )}
                         {area.isClosest && !area.isSavedArea && (
-                          <span className="text-[10px] bg-green-500 text-white px-1.5 py-0.5 rounded-md uppercase font-black tracking-tighter">GPS Closest</span>
+                          <span className="text-[10px] bg-emerald-600 text-white px-1.5 py-0.5 rounded-md uppercase font-black tracking-tighter">GPS Closest</span>
                         )}
                         {!area.isClosest && !area.isSavedArea && (
-                          <span className="text-[10px] bg-white/10 text-gray-400 border border-white/10 px-1.5 py-0.5 rounded-md uppercase font-bold">Nearby</span>
+                          <span className="text-[10px] bg-slate-100 text-slate-600 border border-slate-200 px-1.5 py-0.5 rounded-md uppercase font-bold">Nearby</span>
                         )}
                       </h3>
                       <p className={`text-xs font-medium mb-1 ${STATUS_META[area.status].text}`}>{STATUS_META[area.status].label}</p>
-                      <p className="text-[10px] text-gray-500 mb-3">{area.region}</p>
+                      <p className="text-[10px] text-slate-500 mb-3">{area.region}</p>
 
-                      <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-400 mb-4">
-                        <span className="rounded bg-white/10 px-1.5 py-0.5">
+                      <div className="flex flex-wrap gap-1.5 text-[10px] text-slate-500 mb-4">
+                        <span className="rounded bg-slate-100 px-1.5 py-0.5 border border-slate-200 font-medium">
                           {area.distance !== null ? `${(area.distance * 1000).toFixed(0)}m away` : 'Distance unavailable'}
                         </span>
                         {location && (area.isClosest || area.isSavedArea) && (
-                          <span className={`rounded px-1.5 py-0.5 ${location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
-                              ? 'bg-[#040e40]/20 text-blue-200'
-                              : 'bg-green-500/10 text-green-200'
+                          <span className={`rounded px-1.5 py-0.5 font-medium ${location.accuracy !== null && location.accuracy > GPS_WARNING_ACCURACY_METERS
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-emerald-100 text-emerald-800'
                             }`}>
                             GPS ±{formatAccuracy(location.accuracy)}
                           </span>
@@ -808,34 +804,34 @@ export default function Home() {
                         <button
                           onClick={() => { setReportModal(area); setReportResult(null); }}
                           disabled={!canReportForArea}
-                          className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="flex-1 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                           title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > MAX_REPORTING_DISTANCE_KM ? "Too far from this area" : ""}
                         >
-                          <Zap className="w-3.5 h-3.5" /> Report Status
+                          <Zap className="w-3.5 h-3.5 text-blue-600" /> Report Status
                         </button>
                         <button
                           onClick={() => { setHazardModal(area); setReportResult(null); }}
                           disabled={!canReportForArea}
-                          className="flex-1 py-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
+                          className="flex-1 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
                           title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > MAX_REPORTING_DISTANCE_KM ? "Too far from this area" : ""}
                         >
-                          <AlertTriangle className="w-3.5 h-3.5" /> Report Hazard
+                          <AlertTriangle className="w-3.5 h-3.5 text-rose-600" /> Report Hazard
                         </button>
                       </div>
                     </div>
                   );
                 })}
               </div>
-              <p className="text-xs text-gray-400 text-center mt-2 pt-2 border-t border-white/5">
+              <p className="text-xs text-slate-500 text-center mt-2 pt-2 border-t border-blue-100">
                 Select the correct exact neighbourhood from above to submit your report.
               </p>
             </div>
           ) : (
-            <div className="bg-gray-900/50 border border-white/10 rounded-3xl p-6 text-center">
-              <p className="text-gray-400 font-medium">Waiting for location... Enable GPS to report</p>
+            <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-center scroll-reveal shadow-xs">
+              <p className="text-slate-600 font-medium">Waiting for location... Enable GPS to report</p>
               <button
                 onClick={requestLocation}
-                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-sm font-semibold text-white hover:bg-white/20"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 shadow-sm shadow-blue-500/20 active:scale-95"
               >
                 {locationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
                 Enable GPS
@@ -843,15 +839,15 @@ export default function Home() {
             </div>
           )}
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-3 scroll-reveal">
             {[
-              { label: 'Have Power', count: counts.on, color: 'text-green-400', bg: 'bg-green-500/10 border-green-500/20' },
-              { label: 'Power Out', count: counts.out, color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/20' },
-              { label: 'Unknown', count: counts.unknown, color: 'text-gray-400', bg: 'bg-gray-500/10 border-gray-500/20' },
+              { label: 'Have Power', count: counts.on, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
+              { label: 'Power Out', count: counts.out, color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
+              { label: 'Unknown', count: counts.unknown, color: 'text-slate-600', bg: 'bg-slate-50 border-slate-200' },
             ].map(s => (
-              <div key={s.label} className={`rounded-2xl border p-4 text-center ${s.bg}`}>
+              <div key={s.label} className={`rounded-2xl border p-4 text-center shadow-xs ${s.bg}`}>
                 <p className={`text-2xl font-bold ${s.color}`}>{s.count}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{s.label}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
               </div>
             ))}
           </div>
@@ -859,24 +855,24 @@ export default function Home() {
           <AreaAlertsPanel area={subscribedAreaName} />
           <EmergencySafetyCard />
 
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 scroll-reveal">
             <input
               type="search"
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="Search Sierra Leone locations..."
-              className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm placeholder-gray-500 focus:outline-none focus:border-[#040e40]/50 focus:ring-1 focus:ring-[#040e40]/30"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
             />
             <div className="flex gap-2">
               {(['all', 'out', 'on', 'unknown'] as const).map(f => (
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${filter === f
-                      ? f === 'out' ? 'bg-red-500 text-white'
-                        : f === 'on' ? 'bg-green-500 text-white'
-                          : 'bg-white text-gray-900'
-                      : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                  className={`px-3 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all shadow-xs ${filter === f
+                      ? f === 'out' ? 'bg-rose-600 text-white'
+                        : f === 'on' ? 'bg-emerald-600 text-white'
+                          : 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'
                     }`}
                 >
                   {f}
@@ -887,14 +883,14 @@ export default function Home() {
 
           <AdUnit />
 
-        <div className="border-t border-white/5 pt-6">
+          <div className="border-t border-slate-200 pt-6 scroll-reveal">
             <button
               onClick={() => setShowCommunities(!showCommunities)}
-              className="w-full flex items-center justify-between p-4 rounded-2xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors mb-4"
+              className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 bg-slate-50 hover:bg-slate-100 transition-colors mb-4 shadow-xs"
             >
-              <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest">All Communities</h3>
+              <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest">All Communities</h3>
               <ChevronDown
-                className={`w-5 h-5 text-gray-400 transition-transform ${showCommunities ? 'rotate-180' : ''}`}
+                className={`w-5 h-5 text-slate-500 transition-transform ${showCommunities ? 'rotate-180' : ''}`}
               />
             </button>
 
@@ -902,7 +898,7 @@ export default function Home() {
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {loading ? (
                   Array.from({ length: 9 }).map((_, i) => (
-                    <div key={i} className="h-32 rounded-2xl bg-white/5 animate-pulse" />
+                    <div key={i} className="h-32 rounded-2xl bg-slate-100 animate-pulse border border-slate-200" />
                   ))
                 ) : (
                   filtered.map(area => {
@@ -915,27 +911,27 @@ export default function Home() {
                       locationAccurateEnough;
 
                     return (
-                      <div key={area.id} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-40' : ''}`}>
+                      <div key={area.id} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-60' : ''}`}>
                         <div className="flex items-start justify-between mb-2">
                           <div className={`w-3 h-3 rounded-full mt-1 ${meta.dot}`} />
                           <Icon className={`w-5 h-5 ${meta.text}`} />
                         </div>
-                        <h3 className="font-bold text-lg">{area.name}</h3>
-                        <p className="text-[10px] text-gray-500">{area.region}</p>
+                        <h3 className="font-bold text-lg text-slate-900">{area.name}</h3>
+                        <p className="text-[10px] text-slate-500">{area.region}</p>
                         <p className={`text-sm font-medium ${meta.text}`}>{meta.label}</p>
 
                         <div className="mt-4 flex items-center gap-2">
                           <button
                             onClick={() => { if (canReport) { setReportModal(area); setReportResult(null); } }}
                             disabled={!canReport}
-                            className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-200"
                           >
                             Report Status
                           </button>
                           <button
                             onClick={() => { if (canReport) { setHazardModal(area); setReportResult(null); } }}
                             disabled={!canReport}
-                            className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                            className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 disabled:opacity-40 disabled:cursor-not-allowed transition-all border border-rose-200"
                             title={canReport ? "Report Hazard" : "Move to this area and verify GPS to report"}
                           >
                             <AlertTriangle className="w-4 h-4" />
@@ -943,8 +939,8 @@ export default function Home() {
                         </div>
 
                         {!canReport && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-gray-950/40 backdrop-blur-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
-                            <p className="text-[10px] bg-black/80 px-2 py-1 rounded text-gray-400 uppercase tracking-widest font-bold">
+                          <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-[10px] bg-slate-900 text-white px-2.5 py-1 rounded-lg uppercase tracking-widest font-bold shadow-sm">
                               {locationAccurateEnough ? 'Move to report here' : 'Need better GPS to report'}
                             </p>
                           </div>
@@ -960,26 +956,26 @@ export default function Home() {
 
         {/* Report Status Modal */}
         {reportModal && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-3 sm:p-4 pb-safe">
-            <div className="w-full max-w-sm bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
-              <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/10 shrink-0">
-                <h2 className="text-lg font-bold text-white">Report Status</h2>
-                <button onClick={closeReportModal} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[70] flex items-center justify-center p-3 sm:p-4 pb-safe">
+            <div className="w-full max-w-sm bg-white border border-slate-200 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden text-slate-900">
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 shrink-0">
+                <h2 className="text-lg font-bold text-slate-900">Report Status</h2>
+                <button onClick={closeReportModal} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-700 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-6 overflow-y-auto overscroll-contain space-y-5">
                 {reportResult ? (
-                  <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                  <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
                     <p className="font-bold">{reportResult.success ? 'Report Received' : 'Failed'}</p>
                     <p className="text-sm mt-1">{reportResult.message}</p>
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm text-gray-300">Your report for <span className="text-white font-bold">{reportModal.name}</span> helps verify the local power status.</p>
+                    <p className="text-sm text-slate-600">Your report for <span className="text-slate-900 font-bold">{reportModal.name}</span> helps verify the local power status.</p>
                     {location && (
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-slate-500">
                         Reporting with {formatAccuracy(location.accuracy)} GPS accuracy.
                       </p>
                     )}
@@ -987,18 +983,18 @@ export default function Home() {
                       <button
                         onClick={() => handleReport('on')}
                         disabled={reporting || !locationAccurateEnough}
-                        className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 hover:bg-emerald-500/25 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-emerald-500/10"
+                        className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       >
-                        <Zap className="w-8 h-8 text-emerald-400" />
-                        <span className="font-bold text-emerald-400">Power ON</span>
+                        <Zap className="w-8 h-8 text-emerald-600" />
+                        <span className="font-bold text-emerald-700">Power ON</span>
                       </button>
                       <button
                         onClick={() => handleReport('out')}
                         disabled={reporting || !locationAccurateEnough}
-                        className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-rose-500/15 border border-rose-500/30 hover:bg-rose-500/25 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-rose-500/10"
+                        className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-300 hover:bg-rose-100 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       >
-                        <ZapOff className="w-8 h-8 text-rose-400" />
-                        <span className="font-bold text-rose-400">Power OUT</span>
+                        <ZapOff className="w-8 h-8 text-rose-600" />
+                        <span className="font-bold text-rose-700">Power OUT</span>
                       </button>
                     </div>
                   </div>
@@ -1010,37 +1006,37 @@ export default function Home() {
 
         {/* Hazard Report Modal with smooth scrolling to avoid bottom cutoff */}
         {hazardModal && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-3 sm:p-4 pb-safe">
-            <div className="w-full max-w-md bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
-              <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/10 shrink-0">
+          <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-[70] flex items-center justify-center p-3 sm:p-4 pb-safe">
+            <div className="w-full max-w-md bg-white border border-slate-200 rounded-3xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden text-slate-900">
+              <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-slate-100 shrink-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400">
+                  <div className="p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-600">
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Report Hazard</h2>
-                    <p className="text-xs text-gray-400">{hazardModal.name}</p>
+                    <h2 className="text-lg font-bold text-slate-900">Report Hazard</h2>
+                    <p className="text-xs text-slate-500">{hazardModal.name}</p>
                   </div>
                 </div>
-                <button onClick={closeHazardModal} className="p-2 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition-colors">
+                <button onClick={closeHazardModal} className="p-2 hover:bg-slate-100 rounded-xl text-slate-400 hover:text-slate-700 transition-colors">
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
               <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
                 {reportResult ? (
-                  <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                  <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
                     <p className="font-bold">{reportResult.success ? 'Hazard Reported!' : 'Failed'}</p>
                     <p className="text-sm mt-1">{reportResult.message}</p>
                   </div>
                 ) : (
                   <div className="space-y-4 pb-2">
                     <div className="space-y-1.5">
-                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Hazard Type</label>
+                      <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Hazard Type</label>
                       <select
                         value={hazardType}
                         onChange={e => setHazardType(e.target.value as HazardType)}
-                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 text-slate-900"
                       >
                         {HAZARD_TYPES.map((type) => (
                           <option key={type} value={type}>{type}</option>
@@ -1049,34 +1045,34 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Specific Area Name <span className="text-red-400">*</span></label>
+                      <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Specific Area Name <span className="text-rose-600">*</span></label>
                       <input
                         value={hazardAreaName}
                         onChange={e => setHazardAreaName(e.target.value)}
                         placeholder="e.g. Jui Junction"
-                        className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white placeholder-gray-500"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 text-slate-900 placeholder-slate-400"
                       />
                     </div>
 
                     {hazardType === 'Stolen Meter' && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="space-y-1.5">
-                          <label className="text-xs uppercase tracking-wider font-bold text-blue-400">Meter Number (11 digits) <span className="text-red-400">*</span></label>
+                          <label className="text-xs uppercase tracking-wider font-bold text-blue-600">Meter Number (11 digits) <span className="text-rose-600">*</span></label>
                           <input
                             value={meterNumber}
                             maxLength={11}
                             onChange={e => setMeterNumber(e.target.value.replace(/\D/g, '').slice(0, 11))}
                             placeholder="e.g. 01423859201"
-                            className="w-full bg-slate-950 border border-blue-500/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 font-mono text-white"
+                            className="w-full bg-slate-50 border border-blue-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 font-mono text-slate-900"
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs uppercase tracking-wider font-bold text-blue-400">Contact Phone <span className="text-red-400">*</span></label>
+                          <label className="text-xs uppercase tracking-wider font-bold text-blue-600">Contact Phone <span className="text-rose-600">*</span></label>
                           <input
                             value={contactPhone}
                             onChange={e => setContactPhone(e.target.value)}
                             placeholder="e.g. 076..."
-                            className="w-full bg-slate-950 border border-blue-500/30 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/40 focus:border-blue-400 text-white"
+                            className="w-full bg-slate-50 border border-blue-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 text-slate-900"
                           />
                         </div>
                       </div>
@@ -1084,59 +1080,59 @@ export default function Home() {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1.5">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Street Name {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
+                        <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Street Name {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-rose-600">*</span>}</label>
                         <input
                           value={hazardStreet}
                           onChange={e => setHazardStreet(e.target.value)}
                           placeholder="e.g. Main St"
-                          className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white placeholder-gray-500"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 text-slate-900 placeholder-slate-400"
                         />
                       </div>
                       <div className="space-y-1.5">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-400">House No {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-red-400">*</span>}</label>
+                        <label className="text-xs uppercase tracking-wider font-bold text-slate-700">House No {(hazardType === 'Illegal Connection' || hazardType === 'Stolen Meter') && <span className="text-rose-600">*</span>}</label>
                         <input
                           value={hazardHouse}
                           onChange={e => setHazardHouse(e.target.value)}
                           placeholder="e.g. 12B"
-                          className="w-full bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 text-white placeholder-gray-500"
+                          className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 text-slate-900 placeholder-slate-400"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Description</label>
+                      <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Description</label>
                       <textarea
                         value={hazardDesc}
                         onChange={e => setHazardDesc(e.target.value)}
                         placeholder="Briefly describe the danger..."
-                        className="w-full h-24 bg-slate-950 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 focus:border-red-500 resize-none text-white placeholder-gray-500"
+                        className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 resize-none text-slate-900 placeholder-slate-400"
                       />
                     </div>
 
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Evidence (Photo)</label>
-                        {isCompressingImage && <span className="text-[11px] text-blue-400 animate-pulse font-medium">Optimizing photo...</span>}
+                        <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Evidence (Photo)</label>
+                        {isCompressingImage && <span className="text-[11px] text-blue-600 animate-pulse font-medium">Optimizing photo...</span>}
                       </div>
 
                       {hazardImage ? (
-                        <div className="relative rounded-2xl overflow-hidden border border-white/20 bg-slate-950">
+                        <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100">
                           <img src={hazardImage} alt="Hazard preview" className="w-full h-36 object-cover" />
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 flex items-between justify-between p-3 flex-col pointer-events-none">
                             <div className="flex justify-between items-center w-full pointer-events-auto">
-                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/80 text-white text-[11px] font-bold backdrop-blur-sm">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold backdrop-blur-sm shadow-sm">
                                 <CheckCircle2 className="w-3.5 h-3.5" /> Photo Attached
                               </span>
                               <button
                                 type="button"
                                 onClick={() => setHazardImage(null)}
-                                className="p-1.5 rounded-full bg-red-600/90 hover:bg-red-500 text-white shadow-lg transition-colors"
+                                className="p-1.5 rounded-full bg-rose-600 hover:bg-rose-700 text-white shadow-lg transition-colors"
                                 title="Remove Photo"
                               >
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
-                            <p className="text-[10px] text-gray-300 pointer-events-auto">
+                            <p className="text-[10px] text-slate-200 pointer-events-auto">
                               Tap the remove button above to retake or pick another photo.
                             </p>
                           </div>
@@ -1144,7 +1140,7 @@ export default function Home() {
                       ) : (
                         <div className="grid grid-cols-2 gap-2.5">
                           {/* Direct Camera Button */}
-                          <label className="relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-dashed border-red-500/30 bg-red-500/5 hover:bg-red-500/10 cursor-pointer transition-all active:scale-[0.98] group">
+                          <label className="relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50/50 hover:bg-rose-50 cursor-pointer transition-all active:scale-[0.98] group">
                             <input
                               type="file"
                               accept="image/*"
@@ -1153,15 +1149,15 @@ export default function Home() {
                               onChange={handleImageSelection}
                               disabled={isCompressingImage}
                             />
-                            <div className="p-2.5 rounded-xl bg-red-500/20 text-red-400 group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 rounded-xl bg-rose-100 text-rose-600 group-hover:scale-110 transition-transform">
                               {isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
                             </div>
-                            <span className="text-xs font-bold text-white mt-1.5">Take Photo</span>
-                            <span className="text-[10px] text-gray-400 font-medium">Use Camera</span>
+                            <span className="text-xs font-bold text-slate-900 mt-1.5">Take Photo</span>
+                            <span className="text-[10px] text-slate-500 font-medium">Use Camera</span>
                           </label>
 
                           {/* Gallery / File Button */}
-                          <label className="relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-dashed border-white/15 bg-white/5 hover:bg-white/10 cursor-pointer transition-all active:scale-[0.98] group">
+                          <label className="relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 cursor-pointer transition-all active:scale-[0.98] group">
                             <input
                               type="file"
                               accept="image/*"
@@ -1169,11 +1165,11 @@ export default function Home() {
                               onChange={handleImageSelection}
                               disabled={isCompressingImage}
                             />
-                            <div className="p-2.5 rounded-xl bg-white/10 text-gray-300 group-hover:scale-110 transition-transform">
+                            <div className="p-2.5 rounded-xl bg-slate-200 text-slate-700 group-hover:scale-110 transition-transform">
                               {isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
                             </div>
-                            <span className="text-xs font-bold text-white mt-1.5">Choose File</span>
-                            <span className="text-[10px] text-gray-400 font-medium">From Gallery</span>
+                            <span className="text-xs font-bold text-slate-900 mt-1.5">Choose File</span>
+                            <span className="text-[10px] text-slate-500 font-medium">From Gallery</span>
                           </label>
                         </div>
                       )}
@@ -1184,11 +1180,11 @@ export default function Home() {
 
               {/* Sticky Footer for action button — pinned above home/nav buttons */}
               {!reportResult && (
-                <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900/95 backdrop-blur-md shrink-0 pb-6 sm:pb-5">
+                <div className="p-4 sm:p-5 border-t border-slate-100 bg-white/95 backdrop-blur-md shrink-0 pb-6 sm:pb-5">
                   <button
                     onClick={handleHazardReport}
                     disabled={reporting || !locationAccurateEnough || isCompressingImage}
-                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 active:scale-[0.98]"
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-rose-500/25 active:scale-[0.98]"
                   >
                     {reporting || isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
                     {isCompressingImage ? 'Optimizing Photo...' : 'Submit Danger Report'}

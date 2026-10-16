@@ -81,39 +81,39 @@ export default function FeedbackPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#020617] text-white px-4 py-12 md:py-20 relative overflow-x-hidden">
+    <main className="min-h-screen bg-white text-slate-900 px-4 py-12 md:py-20 relative overflow-x-hidden">
       {/* Background Glow */}
-      <div className="fixed -top-40 -left-40 w-96 h-96 bg-[#040e40]/15 blur-[120px] rounded-full pointer-events-none" />
-      <div className="fixed top-1/2 -right-40 w-96 h-96 bg-blue-500/10 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed -top-40 -left-40 w-96 h-96 bg-blue-100/60 blur-[120px] rounded-full pointer-events-none" />
+      <div className="fixed top-1/2 -right-40 w-96 h-96 bg-indigo-50/70 blur-[120px] rounded-full pointer-events-none" />
 
       <div className="max-w-3xl mx-auto space-y-10 relative z-10">
 
         {/* Back Link */}
-        <div>
+        <div className="scroll-reveal">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-blue-400 transition-colors p-2 rounded-xl bg-white/5 hover:bg-white/10"
+            className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-blue-600 transition-colors p-2 rounded-xl bg-slate-100 hover:bg-slate-200"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Tracker
           </Link>
         </div>
 
         {/* Header */}
-        <div className="space-y-3 border-b border-white/10 pb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#040e40]/15 border border-[#040e40]/20 text-blue-300 text-xs font-bold uppercase tracking-widest">
-            <MessageSquareHeart className="w-3.5 h-3.5" /> Tester & User Feedback
+        <div className="space-y-3 border-b border-slate-200 pb-8 scroll-reveal">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-widest">
+            <MessageSquareHeart className="w-3.5 h-3.5 text-blue-600" /> Tester & User Feedback
           </div>
-          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white">
-            Share Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 to-blue-500">Feedback</span>
+          <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900">
+            Share Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Feedback</span>
           </h1>
-          <p className="text-sm md:text-base text-gray-300 leading-relaxed max-w-2xl">
+          <p className="text-sm md:text-base text-slate-600 leading-relaxed max-w-2xl">
             Help us improve EDSA Power Tracker. Whether you are testing internal releases on Google Play or tracking daily power in your neighborhood, we appreciate your thoughts.
           </p>
         </div>
 
         {!submitted && (
-          <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-center space-y-3">
-            <p className="text-xs font-bold text-gray-300">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center space-y-3 shadow-sm scroll-reveal">
+            <p className="text-xs font-bold text-slate-700">
               ⚡ Short on time? Tap an emoji for a quick 1-tap reaction:
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3">
@@ -124,7 +124,7 @@ export default function FeedbackPage() {
                     window.dispatchEvent(new Event('open-emoji-feedback'));
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 text-xs font-bold transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-all active:scale-95 shadow-sm"
               >
                 <span className="text-xl">😞</span>
                 <span>Sad / Issues</span>
@@ -136,7 +136,7 @@ export default function FeedbackPage() {
                     window.dispatchEvent(new Event('open-emoji-feedback'));
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 text-xs font-bold transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-emerald-200 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-all active:scale-95 shadow-sm"
               >
                 <span className="text-xl">😊</span>
                 <span>Happy / Good</span>
@@ -148,7 +148,7 @@ export default function FeedbackPage() {
                     window.dispatchEvent(new Event('open-emoji-feedback'));
                   }
                 }}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-[#040e40]/30 bg-[#040e40]/15 hover:bg-[#040e40]/20 text-blue-300 text-xs font-bold transition-all active:scale-95"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold transition-all active:scale-95 shadow-sm"
               >
                 <span className="text-xl">🤩</span>
                 <span>Excited / Loving it</span>
@@ -159,18 +159,18 @@ export default function FeedbackPage() {
 
         {submitted ? (
           /* Submission Success State */
-          <div className="bg-gradient-to-b from-white/[0.07] to-white/[0.02] border border-green-500/30 rounded-3xl p-8 md:p-12 text-center space-y-6 shadow-2xl animate-in fade-in zoom-in-95 duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-green-500/20 border border-green-500/30 flex items-center justify-center mx-auto text-green-400">
+          <div className="bg-slate-50 border border-emerald-300 rounded-3xl p-8 md:p-12 text-center space-y-6 shadow-xl animate-in fade-in zoom-in-95 duration-300">
+            <div className="w-16 h-16 rounded-2xl bg-emerald-100 border border-emerald-200 flex items-center justify-center mx-auto text-emerald-600">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-2xl md:text-3xl font-black text-white">Thank You!</h2>
-              <p className="text-sm text-gray-300 max-w-md mx-auto">
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900">Thank You!</h2>
+              <p className="text-sm text-slate-600 max-w-md mx-auto">
                 Your feedback has been received and logged directly with our engineering team at BridgeTech IT Services.
               </p>
               {refId && (
-                <p className="text-xs text-blue-400 font-mono pt-2">
+                <p className="text-xs text-blue-600 font-mono pt-2">
                   Reference ID: <span className="font-bold">{refId}</span>
                 </p>
               )}
@@ -182,13 +182,13 @@ export default function FeedbackPage() {
                   setSubmitted(false);
                   setMessage('');
                 }}
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-all"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs uppercase tracking-wider transition-all"
               >
                 Submit Another Response
               </button>
               <Link
                 href="/tracker"
-                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#040e40] hover:bg-[#020820] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg shadow-[#040e40]/20"
+                className="w-full sm:w-auto px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider transition-all shadow-md shadow-blue-500/20"
               >
                 Return to Live Tracker
               </Link>
@@ -196,19 +196,19 @@ export default function FeedbackPage() {
           </div>
         ) : (
           /* Feedback Form */
-          <form onSubmit={handleSubmit} className="space-y-8 bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-8 backdrop-blur-xl">
+          <form onSubmit={handleSubmit} className="space-y-8 bg-white border border-slate-200 rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-100 scroll-reveal">
 
             {/* Error Banner */}
             {error && (
-              <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm flex items-center gap-3">
-                <AlertCircle className="w-5 h-5 shrink-0 text-red-400" />
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-center gap-3">
+                <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
                 <span>{error}</span>
               </div>
             )}
 
             {/* Star Rating */}
             <div className="space-y-3">
-              <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
                 Overall Experience Rating
               </label>
               <div className="flex items-center gap-2">
@@ -219,14 +219,14 @@ export default function FeedbackPage() {
                     onClick={() => setRating(star)}
                     className={`p-2 rounded-xl border transition-all ${
                       rating >= star
-                        ? 'border-[#040e40]/50 bg-[#040e40]/15 text-blue-400 scale-105'
-                        : 'border-white/5 bg-white/5 text-gray-600 hover:text-gray-400'
+                        ? 'border-blue-300 bg-blue-50 text-blue-600 scale-105'
+                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:text-slate-600'
                     }`}
                   >
-                    <Star className={`w-6 h-6 ${rating >= star ? 'fill-blue-400' : ''}`} />
+                    <Star className={`w-6 h-6 ${rating >= star ? 'fill-blue-600' : ''}`} />
                   </button>
                 ))}
-                <span className="ml-3 text-xs font-bold text-blue-400">
+                <span className="ml-3 text-xs font-bold text-blue-600">
                   {rating === 5 && 'Outstanding ⭐⭐⭐⭐⭐'}
                   {rating === 4 && 'Good Experience ⭐⭐⭐⭐'}
                   {rating === 3 && 'Average / Fair ⭐⭐⭐'}
@@ -238,7 +238,7 @@ export default function FeedbackPage() {
 
             {/* Category */}
             <div className="space-y-3">
-              <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
                 What is your feedback about?
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
@@ -249,8 +249,8 @@ export default function FeedbackPage() {
                     onClick={() => setCategory(cat.id)}
                     className={`p-3 rounded-xl border text-left text-xs font-bold transition-all flex items-center gap-2 ${
                       category === cat.id
-                        ? 'border-[#040e40] bg-[#040e40]/15 text-white shadow-md shadow-[#040e40]/10'
-                        : 'border-white/5 bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
+                        ? 'border-blue-600 bg-blue-50 text-blue-700 shadow-sm'
+                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                     }`}
                   >
                     <span>{cat.icon}</span>
@@ -262,22 +262,22 @@ export default function FeedbackPage() {
 
             {/* Area / Community */}
             <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
-                Community or Area in Freetown <span className="text-gray-600 font-normal">(Optional)</span>
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Community or Area in Freetown <span className="text-slate-400 font-normal">(Optional)</span>
               </label>
               <input
                 type="text"
                 value={area}
                 onChange={(e) => setArea(e.target.value)}
                 placeholder="e.g. Lumley, Wellington, Aberdeen, Wilberforce, Central"
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
               />
             </div>
 
             {/* Message */}
             <div className="space-y-2">
-              <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
-                Your Feedback or Suggestions <span className="text-blue-400">*</span>
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                Your Feedback or Suggestions <span className="text-blue-600">*</span>
               </label>
               <textarea
                 value={message}
@@ -285,35 +285,35 @@ export default function FeedbackPage() {
                 placeholder="Tell us what you like, what is not working, or what features you want to see next..."
                 rows={5}
                 required
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors resize-none"
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors resize-none"
               />
             </div>
 
             {/* Contact Details (Optional) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
-                  Your Name <span className="text-gray-600 font-normal">(Optional)</span>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                  Your Name <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Samuel Kargbo"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors"
+                  placeholder="e.g. Mohamed Kamara"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
                 />
               </div>
 
               <div className="space-y-2">
-                <label className="block text-xs font-black uppercase tracking-wider text-gray-400">
-                  Your Email <span className="text-gray-600 font-normal">(Optional)</span>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+                  Your Email <span className="text-slate-400 font-normal">(Optional)</span>
                 </label>
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. samuel@example.com"
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#040e40] transition-colors"
+                  placeholder="e.g. mohamed@example.com"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
                 />
               </div>
             </div>
@@ -323,7 +323,7 @@ export default function FeedbackPage() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full sm:flex-1 py-4 rounded-xl bg-[#040e40] hover:bg-[#020820] disabled:opacity-50 text-slate-950 font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#040e40]/20"
+                className="w-full sm:flex-1 py-4 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/25 active:scale-[0.98]"
               >
                 {submitting ? (
                   <>
@@ -340,7 +340,7 @@ export default function FeedbackPage() {
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto px-5 py-4 rounded-xl bg-green-600/20 hover:bg-green-600/30 text-green-400 border border-green-500/30 font-bold text-xs uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-5 py-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-bold text-xs uppercase tracking-wider transition-all text-center flex items-center justify-center gap-2 active:scale-[0.98]"
               >
                 💬 Chat on WhatsApp
               </a>
@@ -349,54 +349,54 @@ export default function FeedbackPage() {
         )}
 
         {/* Developer Contact Box */}
-        <section className="bg-white/5 border border-white/10 rounded-3xl p-6 md:p-8 space-y-4">
-          <h2 className="text-base font-black uppercase tracking-tight text-blue-400">
+        <section className="bg-slate-50 border border-slate-200 rounded-3xl p-6 md:p-8 space-y-4 shadow-sm scroll-reveal">
+          <h2 className="text-base font-black uppercase tracking-tight text-blue-600">
             Direct Developer & Support Contact
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-300">
-            <div className="flex items-center gap-3 bg-white/5 p-3.5 rounded-2xl border border-white/5">
-              <Mail className="w-5 h-5 text-blue-400 shrink-0" />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-slate-600">
+            <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+              <Mail className="w-5 h-5 text-blue-600 shrink-0" />
               <div>
-                <p className="text-[10px] text-gray-500 uppercase font-bold">Email Support</p>
-                <a href={`mailto:${contactEmail}`} className="text-xs text-white hover:text-blue-400 underline break-all">
+                <p className="text-[10px] text-slate-400 uppercase font-bold">Email Support</p>
+                <a href={`mailto:${contactEmail}`} className="text-xs text-slate-900 hover:text-blue-600 underline break-all">
                   {contactEmail}
                 </a>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 bg-white/5 p-3.5 rounded-2xl border border-white/5">
-              <Phone className="w-5 h-5 text-green-400 shrink-0" />
+            <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+              <Phone className="w-5 h-5 text-emerald-600 shrink-0" />
               <div>
-                <p className="text-[10px] text-gray-500 uppercase font-bold">Phone / WhatsApp</p>
-                <a href={`tel:${contactPhone}`} className="text-xs text-white hover:text-blue-400">
+                <p className="text-[10px] text-slate-400 uppercase font-bold">Phone / WhatsApp</p>
+                <a href={`tel:${contactPhone}`} className="text-xs text-slate-900 hover:text-blue-600">
                   {contactPhone}
                 </a>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 bg-white/5 p-3.5 rounded-2xl border border-white/5">
-              <MapPin className="w-5 h-5 text-red-400 shrink-0" />
+            <div className="flex items-center gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+              <MapPin className="w-5 h-5 text-rose-600 shrink-0" />
               <div>
-                <p className="text-[10px] text-gray-500 uppercase font-bold">Location</p>
-                <p className="text-xs text-white">BridgeTech IT Services, Freetown</p>
+                <p className="text-[10px] text-slate-400 uppercase font-bold">Location</p>
+                <p className="text-xs text-slate-900">BridgeTech IT Services, Freetown</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Legal & Support Links */}
-        <section className="border-t border-white/10 pt-8 space-y-3">
-          <p className="text-xs font-black uppercase tracking-widest text-gray-400">Related Legal & Support</p>
+        <section className="border-t border-slate-200 pt-8 space-y-3 scroll-reveal">
+          <p className="text-xs font-black uppercase tracking-widest text-slate-500">Related Legal & Support</p>
           <div className="flex flex-wrap gap-2.5">
-            <a href="https://edsa-power-tracker.vercel.app/privacy" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
+            <Link href="/privacy" className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-blue-600 font-semibold transition-colors">
               Privacy Policy
-            </a>
-            <a href="https://edsa-power-tracker.vercel.app/terms" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
+            </Link>
+            <Link href="/terms" className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-blue-600 font-semibold transition-colors">
               Terms & Conditions
-            </a>
-            <a href="https://edsa-power-tracker.vercel.app/data-deletion" className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-blue-400 font-semibold transition-colors">
+            </Link>
+            <Link href="/data-deletion" className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs text-blue-600 font-semibold transition-colors">
               Data Deletion
-            </a>
+            </Link>
           </div>
         </section>
 
