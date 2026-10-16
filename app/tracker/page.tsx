@@ -533,8 +533,13 @@ export default function Home() {
       return;
     }
 
+    if (hazardType === 'Stolen Meter' && (!meterNumber.trim() || !contactPhone.trim() || !hazardStreet.trim() || !hazardHouse.trim())) {
+      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Meter number, contact phone, street name, and house number are required for stolen meter reports.' });
+      return;
+    }
+
     if (!hazardDesc.trim() && !hazardImage) {
-      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Add a short description or a photo so the hazard can be verified.' });
+      setReportResult({ success: false, confirmed: false, reportsNeeded: 0, message: 'Add a short description or a photo so the report can be verified.' });
       return;
     }
 
@@ -1014,7 +1019,7 @@ export default function Home() {
                     <AlertTriangle className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-slate-900">Report Hazard</h2>
+                    <h2 className="text-lg font-bold text-slate-900">Report Hazard & Services</h2>
                     <p className="text-xs text-slate-500">{hazardModal.name}</p>
                   </div>
                 </div>
@@ -1026,13 +1031,13 @@ export default function Home() {
               <div className="p-5 sm:p-6 overflow-y-auto overscroll-contain flex-1 space-y-4">
                 {reportResult ? (
                   <div className={`p-4 rounded-2xl border ${reportResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
-                    <p className="font-bold">{reportResult.success ? 'Hazard Reported!' : 'Failed'}</p>
+                    <p className="font-bold">{reportResult.success ? 'Report Submitted!' : 'Failed'}</p>
                     <p className="text-sm mt-1">{reportResult.message}</p>
                   </div>
                 ) : (
                   <div className="space-y-4 pb-2">
                     <div className="space-y-1.5">
-                      <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Hazard Type</label>
+                      <label className="text-xs uppercase tracking-wider font-bold text-slate-700">Service / Hazard Type</label>
                       <select
                         value={hazardType}
                         onChange={e => setHazardType(e.target.value as HazardType)}
@@ -1054,10 +1059,12 @@ export default function Home() {
                       />
                     </div>
 
-                    {hazardType === 'Stolen Meter' && (
+                    {(hazardType === 'Stolen Meter' || hazardType === 'Billing and Account services') && (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
                         <div className="space-y-1.5">
-                          <label className="text-xs uppercase tracking-wider font-bold text-blue-600">Meter Number (11 digits) <span className="text-rose-600">*</span></label>
+                          <label className="text-xs uppercase tracking-wider font-bold text-blue-600">
+                            Meter Number (11 digits) {hazardType === 'Stolen Meter' ? <span className="text-rose-600">*</span> : <span className="text-slate-400 font-normal">(optional)</span>}
+                          </label>
                           <input
                             value={meterNumber}
                             maxLength={11}
@@ -1067,7 +1074,9 @@ export default function Home() {
                           />
                         </div>
                         <div className="space-y-1.5">
-                          <label className="text-xs uppercase tracking-wider font-bold text-blue-600">Contact Phone <span className="text-rose-600">*</span></label>
+                          <label className="text-xs uppercase tracking-wider font-bold text-blue-600">
+                            Contact Phone {hazardType === 'Stolen Meter' ? <span className="text-rose-600">*</span> : <span className="text-slate-400 font-normal">(optional)</span>}
+                          </label>
                           <input
                             value={contactPhone}
                             onChange={e => setContactPhone(e.target.value)}
@@ -1104,7 +1113,15 @@ export default function Home() {
                       <textarea
                         value={hazardDesc}
                         onChange={e => setHazardDesc(e.target.value)}
-                        placeholder="Briefly describe the danger..."
+                        placeholder={
+                          hazardType === 'Billing and Account services'
+                            ? 'Explain your billing or account issue (e.g. uncredited top-up, meter error code, tariff mismatch)...'
+                            : hazardType === 'Voltage Issues (Low or high)'
+                            ? 'Describe the voltage issue (e.g. very low voltage causing appliances to shut down, or high voltage surge)...'
+                            : hazardType === 'Cut or damaged Wires'
+                            ? 'Describe the wire condition (e.g. severed overhead wire across road/compound, damaged/exposed cable)...'
+                            : 'Briefly describe the danger or situation...'
+                        }
                         className="w-full h-24 bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500 resize-none text-slate-900 placeholder-slate-400"
                       />
                     </div>
@@ -1187,7 +1204,11 @@ export default function Home() {
                     className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-rose-500/25 active:scale-[0.98]"
                   >
                     {reporting || isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
-                    {isCompressingImage ? 'Optimizing Photo...' : 'Submit Danger Report'}
+                    {isCompressingImage
+                      ? 'Optimizing Photo...'
+                      : hazardType === 'Billing and Account services'
+                      ? 'Submit Service Request'
+                      : 'Submit Report'}
                   </button>
                 </div>
               )}

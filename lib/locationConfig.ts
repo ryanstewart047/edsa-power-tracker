@@ -6,7 +6,10 @@ export const MAX_REPORTING_ACCURACY_METERS = 500;
 export const HAZARD_TYPES = [
   'Falling Pole',
   'Sparking Cable',
+  'Cut or damaged Wires',
   'Transformer Issue',
+  'Voltage Issues (Low or high)',
+  'Billing and Account services',
   'Illegal Connection',
   'Stolen Meter',
   'Other Danger',

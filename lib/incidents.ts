@@ -11,8 +11,9 @@ export function createHazardReference() {
 }
 
 export function initialSeverity(type: string): IncidentSeverity {
-  if (type === 'Sparking Cable' || type === 'Falling Pole') return 'critical';
-  if (type === 'Illegal Connection') return 'high';
+  if (type === 'Sparking Cable' || type === 'Falling Pole' || type === 'Cut or damaged Wires') return 'critical';
+  if (type === 'Illegal Connection' || type === 'Voltage Issues (Low or high)') return 'high';
+  if (type === 'Billing and Account services') return 'medium';
   return 'medium';
 }
 
