@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Smartphone, KeyRound } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Smartphone, KeyRound, MapPin } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 import WorkSlider from '@/components/WorkSlider';
 import AdUnit from '@/components/AdUnit';
@@ -32,11 +32,11 @@ const highlights = [
 ];
 
 const featurePills = [
-  'GPS-Verified',
-  'Meter Top-Up',
-  'Token Vault',
-  'Hazard Evidence',
-  'Real-Time Status',
+  { label: 'GPS-Verified', href: '/tracker', icon: MapPin },
+  { label: 'Meter Top-Up', href: '/topup?tab=buy', icon: Smartphone },
+  { label: 'Token Vault', href: '/topup?tab=vault', icon: KeyRound },
+  { label: 'Hazard Evidence', href: '/tracker', icon: AlertTriangle },
+  { label: 'Real-Time Status', href: '/tracker', icon: Activity },
 ];
 
 export default function WelcomePage() {
@@ -84,12 +84,15 @@ export default function WelcomePage() {
 
               <div className="flex flex-wrap gap-2 items-center">
                 {featurePills.map((pill) => (
-                  <span
-                    key={pill}
-                    className="rounded-xl border border-slate-200/90 bg-slate-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm"
+                  <Link
+                    key={pill.label}
+                    href={pill.href}
+                    className="group inline-flex items-center gap-1.5 rounded-xl border border-slate-200/90 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm transition-all hover:scale-105 active:scale-95"
                   >
-                    {pill}
-                  </span>
+                    <pill.icon className="h-3 w-3 text-slate-400 group-hover:text-blue-600 transition-colors" />
+                    <span>{pill.label}</span>
+                    <ChevronRight className="h-2.5 w-2.5 text-slate-300 group-hover:text-blue-600 group-hover:translate-x-0.5 transition-all" />
+                  </Link>
                 ))}
               </div>
             </div>

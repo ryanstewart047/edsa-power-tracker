@@ -190,6 +190,14 @@ function TopUpContent() {
     }
   }, [meters]);
 
+  // Handle tab navigation via URL query parameter (e.g. ?tab=vault or ?tab=buy)
+  useEffect(() => {
+    const tabParam = searchParams?.get('tab');
+    if (tabParam && ['buy', 'vault', 'calc', 'meters'].includes(tabParam)) {
+      setActiveTab(tabParam as 'buy' | 'vault' | 'calc' | 'meters');
+    }
+  }, [searchParams]);
+
   // Option A: Handle incoming Web Share Target text (e.g. user shares SMS directly to app)
   useEffect(() => {
     const sharedText = searchParams?.get('text') || searchParams?.get('title') || '';
