@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft } from 'lucide-react';
+import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
 import type { AreaWithStatus } from '@/lib/areas';
 import { calculateDistanceKm, MAX_REPORTING_DISTANCE_KM } from '@/lib/locationMath';
 import LocationOnboarding from '@/components/LocationOnboarding';
@@ -126,6 +126,48 @@ function getDeviceId() {
   return id;
 }
 
+function compressImageFile(file: File, maxDimension = 1280, quality = 0.8): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Selected file is not an image'));
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read image file'));
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('Failed to load image for compression'));
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDimension || height > maxDimension) {
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(e.target?.result as string);
+          return;
+        }
+        ctx.drawImage(img, 0, 0, width, height);
+        const compressed = canvas.toDataURL('image/jpeg', quality);
+        resolve(compressed);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 export default function Home() {
   const [areas, setAreas] = useState<AreaWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -179,8 +221,28 @@ export default function Home() {
   const [hazardHouse, setHazardHouse] = useState('');
   const [hazardAreaName, setHazardAreaName] = useState('');
   const [hazardImage, setHazardImage] = useState<string | null>(null);
+  const [isCompressingImage, setIsCompressingImage] = useState(false);
   const [meterNumber, setMeterNumber] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+
+  const handleImageSelection = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsCompressingImage(true);
+      const compressedDataUrl = await compressImageFile(file);
+      setHazardImage(compressedDataUrl);
+    } catch (err) {
+      console.error('Error processing camera/gallery image:', err);
+      const fallbackReader = new FileReader();
+      fallbackReader.onloadend = () => setHazardImage(fallbackReader.result as string);
+      fallbackReader.readAsDataURL(file);
+    } finally {
+      setIsCompressingImage(false);
+      e.target.value = '';
+    }
+  }, []);
 
   const fetchStatus = useCallback(async (snapshot: LocationSnapshot | null = null, query = '') => {
     try {
@@ -333,6 +395,7 @@ export default function Home() {
     setHazardHouse('');
     setHazardAreaName('');
     setHazardImage(null);
+    setIsCompressingImage(false);
     setMeterNumber('');
     setContactPhone('');
   }, []);
@@ -897,7 +960,7 @@ export default function Home() {
 
         {/* Report Status Modal */}
         {reportModal && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-3 sm:p-4 pb-safe">
             <div className="w-full max-w-sm bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
               <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/10 shrink-0">
                 <h2 className="text-lg font-bold text-white">Report Status</h2>
@@ -947,8 +1010,8 @@ export default function Home() {
 
         {/* Hazard Report Modal with smooth scrolling to avoid bottom cutoff */}
         {hazardModal && (
-          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="w-full max-w-md bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden">
+          <div className="fixed inset-0 bg-black/85 backdrop-blur-md z-[70] flex items-center justify-center p-3 sm:p-4 pb-safe">
+            <div className="w-full max-w-md bg-slate-900 border border-white/15 rounded-3xl shadow-2xl flex flex-col max-h-[88vh] overflow-hidden">
               <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-white/10 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <div className="p-2 rounded-xl bg-red-500/15 border border-red-500/30 text-red-400">
@@ -1051,46 +1114,87 @@ export default function Home() {
                     </div>
 
                     <div className="space-y-1.5">
-                      <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Evidence (Photo)</label>
-                      <div className="relative group cursor-pointer h-28 rounded-xl border-2 border-dashed border-white/15 flex flex-col items-center justify-center hover:bg-white/5 transition-all bg-slate-950/60">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          capture="environment"
-                          className="absolute inset-0 opacity-0 cursor-pointer"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => setHazardImage(reader.result as string);
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                        />
-                        {hazardImage ? (
-                          <img src={hazardImage} alt="Preview" className="w-full h-full object-cover rounded-xl" />
-                        ) : (
-                          <>
-                            <Camera className="w-7 h-7 text-gray-400 group-hover:text-red-400 transition-colors" />
-                            <span className="text-[10px] mt-1.5 text-gray-400 font-bold uppercase tracking-wider">Snap or Upload Evidence</span>
-                          </>
-                        )}
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs uppercase tracking-wider font-bold text-gray-400">Evidence (Photo)</label>
+                        {isCompressingImage && <span className="text-[11px] text-blue-400 animate-pulse font-medium">Optimizing photo...</span>}
                       </div>
-                    </div>
 
-                    <div className="pt-2">
-                      <button
-                        onClick={handleHazardReport}
-                        disabled={reporting || !locationAccurateEnough}
-                        className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 active:scale-[0.98]"
-                      >
-                        {reporting ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
-                        Submit Danger Report
-                      </button>
+                      {hazardImage ? (
+                        <div className="relative rounded-2xl overflow-hidden border border-white/20 bg-slate-950">
+                          <img src={hazardImage} alt="Hazard preview" className="w-full h-36 object-cover" />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 flex items-between justify-between p-3 flex-col pointer-events-none">
+                            <div className="flex justify-between items-center w-full pointer-events-auto">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/80 text-white text-[11px] font-bold backdrop-blur-sm">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Photo Attached
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setHazardImage(null)}
+                                className="p-1.5 rounded-full bg-red-600/90 hover:bg-red-500 text-white shadow-lg transition-colors"
+                                title="Remove Photo"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <p className="text-[10px] text-gray-300 pointer-events-auto">
+                              Tap the remove button above to retake or pick another photo.
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2.5">
+                          {/* Direct Camera Button */}
+                          <label className="relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-dashed border-red-500/30 bg-red-500/5 hover:bg-red-500/10 cursor-pointer transition-all active:scale-[0.98] group">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              capture="environment"
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              onChange={handleImageSelection}
+                              disabled={isCompressingImage}
+                            />
+                            <div className="p-2.5 rounded-xl bg-red-500/20 text-red-400 group-hover:scale-110 transition-transform">
+                              {isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <Camera className="w-5 h-5" />}
+                            </div>
+                            <span className="text-xs font-bold text-white mt-1.5">Take Photo</span>
+                            <span className="text-[10px] text-gray-400 font-medium">Use Camera</span>
+                          </label>
+
+                          {/* Gallery / File Button */}
+                          <label className="relative flex flex-col items-center justify-center p-3.5 rounded-2xl border-2 border-dashed border-white/15 bg-white/5 hover:bg-white/10 cursor-pointer transition-all active:scale-[0.98] group">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                              onChange={handleImageSelection}
+                              disabled={isCompressingImage}
+                            />
+                            <div className="p-2.5 rounded-xl bg-white/10 text-gray-300 group-hover:scale-110 transition-transform">
+                              {isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <ImageIcon className="w-5 h-5" />}
+                            </div>
+                            <span className="text-xs font-bold text-white mt-1.5">Choose File</span>
+                            <span className="text-[10px] text-gray-400 font-medium">From Gallery</span>
+                          </label>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
               </div>
+
+              {/* Sticky Footer for action button — pinned above home/nav buttons */}
+              {!reportResult && (
+                <div className="p-4 sm:p-5 border-t border-white/10 bg-slate-900/95 backdrop-blur-md shrink-0 pb-6 sm:pb-5">
+                  <button
+                    onClick={handleHazardReport}
+                    disabled={reporting || !locationAccurateEnough || isCompressingImage}
+                    className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-bold transition-all disabled:opacity-30 flex items-center justify-center gap-2 shadow-lg shadow-red-600/30 active:scale-[0.98]"
+                  >
+                    {reporting || isCompressingImage ? <Loader2 className="w-5 h-5 animate-spin" /> : <MegaphoneIcon className="w-5 h-5" />}
+                    {isCompressingImage ? 'Optimizing Photo...' : 'Submit Danger Report'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}

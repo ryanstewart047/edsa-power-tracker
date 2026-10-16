@@ -27,7 +27,7 @@ export const DUPLICATE_WINDOW_HOURS = 2;
 export const HAZARD_DUPLICATE_WINDOW_MINUTES = 10;
 export const RECENT_REPORT_WINDOW_MINUTES = 30;
 
-const MAX_IMAGE_LENGTH = 2_000_000;
+const MAX_IMAGE_LENGTH = 5_000_000;
 
 export type ReporterLocationValidation =
   | {
