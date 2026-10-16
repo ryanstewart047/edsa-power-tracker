@@ -12,22 +12,22 @@ const highlights = [
     icon: Zap,
     title: 'Live Community Signals',
     description: 'Track power and hazards across Sierra Leone in real time with location-aware reporting.',
-    color: 'text-blue-400',
-    bg: 'bg-blue-500/10',
+    color: 'text-blue-600',
+    bg: 'bg-blue-50 border border-blue-200/60',
   },
   {
     icon: AlertTriangle,
     title: 'Hazard Escalation',
     description: 'Capture dangerous lines, poles, and illegal connections with evidence and exact local details.',
-    color: 'text-red-400',
-    bg: 'bg-red-400/10',
+    color: 'text-rose-600',
+    bg: 'bg-rose-50 border border-rose-200/60',
   },
   {
     icon: ShieldCheck,
     title: 'Admin Control Center',
     description: 'Review incidents, resolve them quickly, and export clean operational reports for stakeholders.',
-    color: 'text-blue-400',
-    bg: 'bg-blue-400/10',
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50 border border-indigo-200/60',
   },
 ];
 
@@ -41,58 +41,52 @@ const featurePills = [
 
 export default function WelcomePage() {
   return (
-    <main className="min-h-screen relative text-white selection:bg-[#040e40]/40 overflow-x-hidden bg-[#020305]">
-      {/* Background Image Layer */}
-      <div
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url("/assets/hero-bg.png")',
-          filter: 'brightness(0.3) saturate(1.2)',
-        }}
-      />
-      <div className="fixed inset-0 z-0 bg-gradient-to-b from-transparent via-[#020305]/80 to-[#020305]" />
+    <main className="min-h-screen relative text-slate-900 bg-white selection:bg-blue-600/20 selection:text-blue-900 overflow-x-hidden">
+      {/* Clean ambient radial gradient for light theme */}
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-15%,rgba(37,99,235,0.08),rgba(255,255,255,0))] pointer-events-none" />
+      <div className="fixed inset-0 z-0 bg-[radial-gradient(ellipse_60%_50%_at_85%_70%,rgba(99,102,241,0.05),rgba(255,255,255,0))] pointer-events-none" />
 
-      <section className="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-20 lg:py-32">
+      <section className="relative z-10 max-w-6xl mx-auto px-4 py-8 sm:py-16 lg:py-24">
         {/* Mobile-First Hero */}
         <div className="flex flex-col gap-12 lg:grid lg:grid-cols-2 lg:items-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
             className="space-y-8"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#040e40]/15 border border-[#040e40]/30 backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200/80 shadow-sm">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#040e40]"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-500 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
               </span>
-              <p className="text-[10px] font-black uppercase tracking-widest text-blue-300">EDSA Native Platform</p>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-blue-700">EDSA Native Platform</p>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-black leading-[1.1] tracking-tight">
-              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-300 via-blue-400 to-[#040e40]">Operations.</span>
+            <h1 className="text-4xl sm:text-6xl font-black leading-[1.1] tracking-tight text-slate-900">
+              Sierra Leone Power & Hazard <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800">Operations.</span>
             </h1>
 
-            <p className="text-lg sm:text-xl text-gray-300 leading-relaxed max-w-xl">
-              Professional mobile control surface for electricity status reporting, hazard escalation, and operational oversight.
+            <p className="text-lg sm:text-xl text-slate-600 leading-relaxed max-w-xl">
+              Professional mobile control surface for electricity status reporting, hazard escalation, and operational oversight across Sierra Leone.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/tracker"
-                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-[#040e40] hover:bg-[#020820] px-8 py-4 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-[#040e40]/30"
+                className="group relative inline-flex items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 px-8 py-4 text-sm font-bold text-white transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-blue-600/25"
               >
                 Launch Live Tracker
-                <div className="bg-white/10 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
+                <div className="bg-white/20 rounded-lg p-1 group-hover:translate-x-1 transition-transform">
                   <ArrowRight className="h-4 w-4" />
                 </div>
               </Link>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
                 {featurePills.map((pill) => (
                   <span
                     key={pill}
-                    className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-gray-400 backdrop-blur-md"
+                    className="rounded-xl border border-slate-200/90 bg-slate-50 px-3.5 py-2 text-[10px] font-bold uppercase tracking-wider text-slate-700 shadow-sm"
                   >
                     {pill}
                   </span>
@@ -103,119 +97,139 @@ export default function WelcomePage() {
 
           {/* Featured Visual Section */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 1, delay: 0.2 }}
+            transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
             className="relative"
           >
-            <div className="rounded-[2.5rem] overflow-hidden border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-2">
+            <div className="rounded-[2.5rem] overflow-hidden border border-slate-200/90 bg-white shadow-2xl p-2.5">
               <WorkSlider />
             </div>
             {/* Ambient Glow */}
-            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[#040e40]/25 blur-[100px] rounded-full" />
+            <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
           </motion.div>
         </div>
 
-        {/* Action Cards */}
+        {/* Action Cards with Scroll-Driven Reveal */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
           <motion.div
-            whileHover={{ y: -5 }}
-            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/40 transition-all flex flex-col justify-between"
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -6 }}
+            className="scroll-reveal group p-8 rounded-[2rem] border border-slate-200/90 bg-white shadow-sm hover:shadow-xl hover:border-blue-500/40 transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-[#040e40]/20 flex items-center justify-center">
-                  <Activity className="h-7 w-7 text-blue-400" />
+                <div className="h-14 w-14 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center">
+                  <Activity className="h-7 w-7 text-blue-600" />
                 </div>
-                <Zap className="h-5 w-5 text-blue-300/30" />
+                <Zap className="h-5 w-5 text-blue-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Live Tracker</h3>
-              <p className="text-gray-400 leading-relaxed mb-8">
+              <h3 className="text-2xl font-bold mb-3 text-slate-900">Live Tracker</h3>
+              <p className="text-slate-600 leading-relaxed mb-8 text-sm">
                 Designed for field agents and citizens to report outages and dangers with automatic GPS area detection.
               </p>
             </div>
-            <Link href="/tracker" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
+            <Link href="/tracker" className="inline-flex items-center gap-2 text-blue-600 font-bold group-hover:gap-3 transition-all text-sm">
               Access Tracker <ChevronRight className="h-4 w-4" />
             </Link>
           </motion.div>
 
           <motion.div
-            whileHover={{ y: -5 }}
-            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-emerald-400/30 transition-all flex flex-col justify-between"
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -6 }}
+            className="scroll-reveal group p-8 rounded-[2rem] border border-slate-200/90 bg-white shadow-sm hover:shadow-xl hover:border-emerald-500/40 transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
-                  <Smartphone className="h-7 w-7 text-emerald-400" />
+                <div className="h-14 w-14 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center justify-center">
+                  <Smartphone className="h-7 w-7 text-emerald-600" />
                 </div>
-                <KeyRound className="h-5 w-5 text-emerald-300/30" />
+                <KeyRound className="h-5 w-5 text-emerald-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Meter Top-Up & Vault</h3>
-              <p className="text-gray-400 leading-relaxed mb-8">
+              <h3 className="text-2xl font-bold mb-3 text-slate-900">Meter Top-Up & Vault</h3>
+              <p className="text-slate-600 leading-relaxed mb-8 text-sm">
                 Instant USSD quick-dial for Orange & Afrimoney, kWh units calculator, and offline 20-digit token storage.
               </p>
             </div>
-            <Link href="/topup" className="inline-flex items-center gap-2 text-emerald-400 font-bold group-hover:gap-3 transition-all">
+            <Link href="/topup" className="inline-flex items-center gap-2 text-emerald-600 font-bold group-hover:gap-3 transition-all text-sm">
               Meter Top-Up & Vault <ChevronRight className="h-4 w-4" />
             </Link>
           </motion.div>
 
           <motion.div
-            whileHover={{ y: -5 }}
-            className="group p-8 rounded-[2rem] border border-white/10 bg-gradient-to-br from-white/5 to-transparent backdrop-blur-xl hover:border-blue-400/30 transition-all flex flex-col justify-between"
+            initial={{ opacity: 0, y: 32 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+            whileHover={{ y: -6 }}
+            className="scroll-reveal group p-8 rounded-[2rem] border border-slate-200/90 bg-white shadow-sm hover:shadow-xl hover:border-indigo-500/40 transition-all flex flex-col justify-between"
           >
             <div>
               <div className="flex items-start justify-between mb-8">
-                <div className="h-14 w-14 rounded-2xl bg-blue-500/20 flex items-center justify-center">
-                  <BarChart3 className="h-7 w-7 text-blue-400" />
+                <div className="h-14 w-14 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center">
+                  <BarChart3 className="h-7 w-7 text-indigo-600" />
                 </div>
-                <ShieldCheck className="h-5 w-5 text-blue-300/30" />
+                <ShieldCheck className="h-5 w-5 text-indigo-300" />
               </div>
-              <h3 className="text-2xl font-bold mb-4">Admin Command</h3>
-              <p className="text-gray-400 leading-relaxed mb-8">
+              <h3 className="text-2xl font-bold mb-3 text-slate-900">Admin Command</h3>
+              <p className="text-slate-600 leading-relaxed mb-8 text-sm">
                 Operational dashboard for reviewing hazard reports, managing community status, and exporting data.
               </p>
             </div>
-            <Link href="/admin" className="inline-flex items-center gap-2 text-blue-400 font-bold group-hover:gap-3 transition-all">
+            <Link href="/admin" className="inline-flex items-center gap-2 text-indigo-600 font-bold group-hover:gap-3 transition-all text-sm">
               Admin Portal <ChevronRight className="h-4 w-4" />
             </Link>
           </motion.div>
         </div>
 
-        {/* Highlights Section */}
-        <section className="mt-20">
+        {/* Highlights Section with Scroll-Driven Reveal */}
+        <section className="mt-24 scroll-reveal">
           <div className="flex items-center gap-4 mb-10">
-            <div className="h-px flex-1 bg-white/10" />
-            <h2 className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-500">Key Capabilities</h2>
-            <div className="h-px flex-1 bg-white/10" />
+            <div className="h-px flex-1 bg-slate-200" />
+            <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-400">Key Capabilities</h2>
+            <div className="h-px flex-1 bg-slate-200" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {highlights.map((h, i) => (
               <motion.div
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 24 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                viewport={{ once: true, amount: 0.2 }}
+                transition={{ duration: 0.5, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
                 key={h.title}
-                className="p-6 rounded-[1.75rem] bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-colors"
+                className="scroll-reveal p-6 rounded-[1.75rem] bg-white border border-slate-200/90 hover:border-slate-300 hover:shadow-md transition-all shadow-sm"
               >
-                <div className={`h-12 w-12 rounded-xl ${h.bg} flex items-center justify-center mb-6`}>
+                <div className={`h-12 w-12 rounded-xl ${h.bg} flex items-center justify-center mb-5`}>
                   <h.icon className={`h-5 w-5 ${h.color}`} />
                 </div>
-                <h4 className="font-bold text-lg mb-2">{h.title}</h4>
-                <p className="text-sm text-gray-400 leading-relaxed">{h.description}</p>
+                <h4 className="font-bold text-lg mb-2 text-slate-900">{h.title}</h4>
+                <p className="text-sm text-slate-600 leading-relaxed">{h.description}</p>
               </motion.div>
             ))}
           </div>
         </section>
 
-        <div className="mt-20">
+        {/* Safety Guidelines with dynamic scroll reveal */}
+        <motion.div
+          initial={{ opacity: 0, y: 32 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          className="mt-20 scroll-reveal"
+        >
           <SafetyGuidelines />
+        </motion.div>
+
+        <div className="mt-12 scroll-reveal">
+          <AdUnit />
         </div>
-
-        <AdUnit />
       </section>
-
     </main>
   );
 }

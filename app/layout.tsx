@@ -4,7 +4,7 @@ import PWAInstallBanner from "@/components/PWAInstallBanner";
 import FloatingPrompts from "@/components/FloatingPrompts";
 
 export const viewport: Viewport = {
-  themeColor: "#040e40",
+  themeColor: "#ffffff",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -92,7 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className="font-sans bg-[#030712] text-slate-100 min-h-screen pb-24 md:pb-24 selection:bg-blue-600/30 selection:text-white antialiased">
+      <body className="font-sans bg-white text-slate-900 min-h-screen pb-24 md:pb-24 selection:bg-blue-600/20 selection:text-blue-900 antialiased">
         <SplashScreen />
         <AppOnboarding />
         <LocationGuard />
