@@ -109,33 +109,22 @@ export default function AppUpdateNotification() {
 
   return (
     <aside
-      className="fixed inset-x-4 top-4 z-[10020] mx-auto flex max-w-xl flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 rounded-2xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 p-4 text-slate-950 shadow-2xl shadow-amber-500/35 backdrop-blur-md animate-in slide-in-from-top-4 duration-300 ring-1 ring-amber-300"
+      className="fixed inset-x-4 top-4 z-[10020] mx-auto flex max-w-md items-center justify-between gap-3 rounded-2xl border-2 border-amber-500/80 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 p-3.5 text-slate-950 shadow-2xl shadow-amber-500/35 backdrop-blur-md animate-in slide-in-from-top-4 duration-300 ring-1 ring-amber-300"
       aria-live="polite"
     >
-      <div className="flex items-start gap-3 min-w-0">
+      <div className="flex items-center gap-2.5 min-w-0">
         <div className="rounded-xl bg-amber-950/15 p-2 text-slate-950 shrink-0">
-          <Sparkles className="h-5 w-5 animate-pulse text-slate-950" />
+          <Sparkles className="h-4 w-4 animate-pulse text-slate-950" />
         </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider bg-slate-950 text-amber-300">
-              New Release
-            </span>
-            <span className="text-xs font-black text-slate-950">v{release.version}</span>
-          </div>
-          <p className="mt-1 text-sm font-black text-slate-950 leading-tight">{release.title}</p>
-          <p className="mt-0.5 text-xs font-semibold leading-relaxed text-slate-900 line-clamp-2">
-            {release.notes}
-          </p>
-        </div>
+        <p className="text-sm font-black text-slate-950 truncate">Update available</p>
       </div>
 
-      <div className="flex items-center gap-2 w-full sm:w-auto shrink-0 justify-end pt-1 sm:pt-0">
+      <div className="flex items-center gap-2 shrink-0">
         <button
           type="button"
           onClick={handleUpdateApp}
           disabled={updating}
-          className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 px-4 py-2.5 text-xs font-black uppercase tracking-wider shadow-lg shadow-slate-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 px-3.5 py-2 text-xs font-black uppercase tracking-wider shadow-md shadow-slate-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
         >
           {updating ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -148,9 +137,9 @@ export default function AppUpdateNotification() {
         <button
           type="button"
           onClick={() => setSessionDismissed(true)}
-          className="p-2 rounded-xl text-slate-800 hover:text-slate-950 hover:bg-black/10 transition-colors shrink-0"
-          aria-label="Dismiss update notification for this session"
-          title="Remind me later"
+          className="p-1.5 rounded-xl text-slate-800 hover:text-slate-950 hover:bg-black/10 transition-colors shrink-0"
+          aria-label="Dismiss update notification"
+          title="Dismiss"
         >
           <X className="h-4 w-4" />
         </button>
