@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edsa-tracker-v6';
+const CACHE_NAME = 'edsa-tracker-v1.0.4';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [

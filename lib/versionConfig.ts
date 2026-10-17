@@ -1,5 +1,6 @@
 export interface AppRelease {
   version: string;
+  releaseNumber: number;
   releaseId: string;
   releasedAt: string;
   title: string;
@@ -7,14 +8,15 @@ export interface AppRelease {
   changelog?: string[];
 }
 
-// Update releaseId and version whenever a new production release is deployed.
-// The in-app update notification will only appear to users when releaseId is newer
-// than their acknowledged release in localStorage.
+// Configured to follow Google Play Console release sequence:
+// Previous active bundle: Version code 4 (1.0.3)
+// New release bundle: Version code 5 (1.0.4)
 export const CURRENT_RELEASE: AppRelease = {
-  version: '0.2.0',
-  releaseId: 'rel-2026-10-17-v0.2.0',
+  version: '1.0.4',
+  releaseNumber: 5,
+  releaseId: 'play-release-5-v1.0.4',
   releasedAt: '2026-10-17',
-  title: 'EDSA Power Tracker v0.2.0 Released',
+  title: 'EDSA Power Tracker v1.0.4 Update Available',
   notes: 'Direct camera evidence capture, new hazard & billing services, high-visibility alerts, clean white theme with smooth scrolling, and instant app updates.',
   changelog: [
     'Direct camera photo capture with instant client-side compression for hazard reports',
