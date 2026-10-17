@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { Sparkles, RefreshCw, X, Loader2 } from 'lucide-react';
+import { Sparkles, ExternalLink, X } from 'lucide-react';
 import { AppRelease } from '@/lib/versionConfig';
+
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker';
 
 export default function AppUpdateNotification() {
   const [release, setRelease] = useState<AppRelease | null>(null);
   const [showUpdate, setShowUpdate] = useState(false);
-  const [updating, setUpdating] = useState(false);
   const [sessionDismissed, setSessionDismissed] = useState(false);
 
   const checkVersion = useCallback(async () => {
@@ -68,39 +69,31 @@ export default function AppUpdateNotification() {
     };
   }, [showUpdate, release, sessionDismissed]);
 
-  const handleUpdateApp = async () => {
-    if (!release || updating) return;
-    setUpdating(true);
+  const handleUpdateApp = () => {
+    if (!release) return;
 
-    try {
-      // 1. Mark this release as acknowledged so the banner never pops up again for this release
-      localStorage.setItem('edsa_app_acknowledged_release', release.releaseId);
-      localStorage.setItem('edsa_app_version', release.version);
-      localStorage.setItem('edsa_app_last_updated_at', new Date().toISOString());
+    // 1. Mark this release as acknowledged so the banner never pops up again for this release
+    localStorage.setItem('edsa_app_acknowledged_release', release.releaseId);
+    localStorage.setItem('edsa_app_version', release.version);
+    localStorage.setItem('edsa_app_last_updated_at', new Date().toISOString());
 
-      // 2. Instruct Service Worker to skip waiting and activate immediately
-      const swReg = (window as unknown as { __swRegistration?: ServiceWorkerRegistration }).__swRegistration;
-      if (swReg?.waiting) {
-        swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      }
-
-      // 3. Purge cached assets so newest release files load
-      if ('caches' in window) {
-        try {
-          const keys = await caches.keys();
-          await Promise.all(keys.map((k) => caches.delete(k)));
-        } catch {
-          // Ignore cache deletion errors
-        }
-      }
-
-      // 4. Force reload to execute latest bundle
-      setTimeout(() => {
-        window.location.reload();
-      }, 400);
-    } catch {
-      window.location.reload();
+    // 2. Instruct Service Worker to skip waiting if waiting
+    const swReg = (window as unknown as { __swRegistration?: ServiceWorkerRegistration }).__swRegistration;
+    if (swReg?.waiting) {
+      swReg.waiting.postMessage({ type: 'SKIP_WAITING' });
     }
+
+    // 3. Clear cache
+    if ('caches' in window) {
+      try {
+        caches.keys().then((keys) => Promise.all(keys.map((k) => caches.delete(k)))).catch(() => undefined);
+      } catch {
+        // Ignore cache cleanup errors
+      }
+    }
+
+    // 4. Dismiss banner immediately
+    setShowUpdate(false);
   };
 
   if (!showUpdate || !release || sessionDismissed) {
@@ -120,19 +113,16 @@ export default function AppUpdateNotification() {
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <button
-          type="button"
+        <a
+          href={PLAY_STORE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
           onClick={handleUpdateApp}
-          disabled={updating}
-          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 px-3.5 py-2 text-xs font-black uppercase tracking-wider shadow-md shadow-slate-950/20 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
+          className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 px-3.5 py-2 text-xs font-black uppercase tracking-wider shadow-md shadow-slate-950/20 transition-all hover:scale-[1.02] active:scale-95"
         >
-          {updating ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <RefreshCw className="h-3.5 w-3.5" />
-          )}
-          <span>{updating ? 'Updating...' : 'Update App'}</span>
-        </button>
+          <ExternalLink className="h-3.5 w-3.5" />
+          <span>Update App</span>
+        </a>
 
         <button
           type="button"
