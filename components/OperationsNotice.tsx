@@ -8,6 +8,21 @@ type Announcement = { id: string; title: string; message: string };
 export default function OperationsNotice() {
   const [announcement, setAnnouncement] = useState<Announcement | null>(null);
   const [dismissed, setDismissed] = useState<string | null>(null);
+  const [updateBannerActive, setUpdateBannerActive] = useState(false);
+
+  useEffect(() => {
+    const check = () => {
+      if (typeof document !== 'undefined') {
+        setUpdateBannerActive(document.body.classList.contains('edsa-update-banner-active'));
+      }
+    };
+    check();
+    const observer = new MutationObserver(check);
+    if (typeof document !== 'undefined') {
+      observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    }
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const refreshAnnouncement = () => {
@@ -30,7 +45,7 @@ export default function OperationsNotice() {
 
   return (
     <aside
-      className="fixed inset-x-4 top-4 z-[10010] mx-auto flex max-w-xl items-start gap-3.5 rounded-2xl border-2 border-amber-500/70 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 p-4 text-slate-950 shadow-2xl shadow-amber-500/35 backdrop-blur-md animate-in slide-in-from-top-4 duration-300 ring-1 ring-amber-300"
+      className={`fixed inset-x-4 ${updateBannerActive ? 'top-32 sm:top-28' : 'top-4'} z-[10010] mx-auto flex max-w-xl items-start gap-3.5 rounded-2xl border-2 border-amber-500/70 bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 p-4 text-slate-950 shadow-2xl shadow-amber-500/35 backdrop-blur-md transition-all duration-300 ring-1 ring-amber-300`}
       aria-live="polite"
     >
       <div className="rounded-xl bg-amber-950/15 p-2 text-slate-950 shrink-0">

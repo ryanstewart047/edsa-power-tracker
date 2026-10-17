@@ -46,7 +46,22 @@ const swScript = `
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
       navigator.serviceWorker.register('/sw.js').then(function(reg) {
-        console.log('SW registered:', reg.scope);
+        window.__swRegistration = reg;
+
+        reg.addEventListener('updatefound', function() {
+          const installingWorker = reg.installing;
+          if (installingWorker) {
+            installingWorker.addEventListener('statechange', function() {
+              if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                window.dispatchEvent(new CustomEvent('app-update-ready', { detail: { registration: reg } }));
+              }
+            });
+          }
+        });
+
+        if (reg.waiting && navigator.serviceWorker.controller) {
+          window.dispatchEvent(new CustomEvent('app-update-ready', { detail: { registration: reg } }));
+        }
       }).catch(function(err) {
         console.log('SW failed:', err);
       });
@@ -61,6 +76,7 @@ import MobileBottomNav from "@/components/MobileBottomNav";
 import ChatBot from "@/components/ChatBot";
 import SiteFooter from "@/components/SiteFooter";
 import OperationsNotice from "@/components/OperationsNotice";
+import AppUpdateNotification from "@/components/AppUpdateNotification";
 import EmojiFeedbackModal from "@/components/EmojiFeedbackModal";
 
 const jsonLd = {
@@ -97,6 +113,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AppOnboarding />
         <LocationGuard />
         <OperationsNotice />
+        <AppUpdateNotification />
         {children}
         <SiteFooter />
         <EmojiFeedbackModal />
