@@ -169,13 +169,15 @@ export default function AreaAlertsPanel({ area }: { area: string | null }) {
   return (
     <section className="space-y-3">
       {/* Area Alerts Box */}
-      <div className="rounded-2xl border border-blue-200 bg-blue-50/70 p-4 shadow-sm backdrop-blur-sm">
+      <div className="rounded-2xl border-2 border-amber-400/80 bg-gradient-to-r from-amber-200/90 via-yellow-100 to-orange-200/90 p-4 shadow-md shadow-amber-500/10 backdrop-blur-sm">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-3">
-            <BellRing className="mt-0.5 h-5 w-5 text-blue-600" />
+            <div className="rounded-xl bg-amber-950/15 p-2 text-slate-950 shrink-0">
+              <BellRing className="h-5 w-5 text-slate-950" />
+            </div>
             <div>
-              <h2 className="font-bold text-slate-900 text-sm sm:text-base">Area Alerts</h2>
-              <p className="text-xs text-slate-600">
+              <h2 className="font-black text-slate-950 text-sm sm:text-base">Area Alerts</h2>
+              <p className="text-xs font-semibold text-slate-900">
                 Maintenance and restoration updates for {area || 'your saved community'}.
               </p>
             </div>
@@ -206,10 +208,10 @@ export default function AreaAlertsPanel({ area }: { area: string | null }) {
         {outages.length > 0 && (
           <div className="mt-3.5 space-y-2">
             {outages.map((item) => (
-              <div key={item.id} className="rounded-xl bg-white border border-blue-200/80 p-3 text-sm shadow-xs">
+              <div key={item.id} className="rounded-xl bg-white border border-amber-300/80 p-3 text-sm shadow-xs">
                 <b className="text-slate-900">{item.title}</b>
                 <p className="mt-1 text-xs text-slate-600 leading-relaxed">{item.message}</p>
-                <p className="mt-2 text-[10px] text-blue-700 font-medium">
+                <p className="mt-2 text-[10px] text-amber-800 font-bold">
                   {new Date(item.startsAt).toLocaleString()} — {new Date(item.endsAt).toLocaleString()}
                 </p>
               </div>

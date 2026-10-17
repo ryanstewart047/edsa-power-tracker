@@ -591,18 +591,18 @@ function TopUpContent() {
               initial={{ opacity: 0, y: -20, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              className="bg-blue-50/90 border-2 border-blue-200 rounded-2xl p-4 shadow-xl backdrop-blur-xl space-y-3 scroll-reveal"
+              className="bg-gradient-to-r from-amber-300 via-yellow-200 to-orange-300 border-2 border-amber-400 rounded-2xl p-4 shadow-xl shadow-amber-500/20 backdrop-blur-xl space-y-3 scroll-reveal"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="p-2 rounded-xl bg-blue-600 text-white font-black shrink-0 shadow-sm shadow-blue-500/20">
-                    <Sparkles className="w-4 h-4" />
+                  <span className="p-2 rounded-xl bg-amber-500 text-slate-950 font-black shrink-0 shadow-sm">
+                    <Sparkles className="w-4 h-4 text-slate-950" />
                   </span>
                   <div>
-                    <div className="text-xs font-black uppercase text-blue-700 tracking-wider">
+                    <div className="text-xs font-black uppercase text-amber-950 tracking-wider">
                       20-Digit Token Detected from Clipboard!
                     </div>
-                    <div className="text-[11px] text-slate-600">
+                    <div className="text-[11px] font-semibold text-amber-900">
                       {detectedClipboardToken.amount ? `Amount: NLe ${detectedClipboardToken.amount} • ` : ''}
                       {detectedClipboardToken.units ? `Units: ${detectedClipboardToken.units} kWh` : 'Ready to save'}
                     </div>
@@ -611,14 +611,14 @@ function TopUpContent() {
                 <button
                   type="button"
                   onClick={() => setDetectedClipboardToken(null)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
+                  className="p-1 rounded-lg text-slate-600 hover:text-slate-950 transition-colors"
                   aria-label="Dismiss banner"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <div className="font-mono text-base font-black text-slate-900 bg-white p-3 rounded-xl border border-blue-200 text-center tracking-widest selection:bg-blue-100 shadow-inner">
+              <div className="font-mono text-base font-black text-slate-900 bg-white p-3 rounded-xl border border-amber-300 text-center tracking-widest selection:bg-amber-100 shadow-inner">
                 {detectedClipboardToken.formattedToken}
               </div>
 
@@ -626,7 +626,7 @@ function TopUpContent() {
                 <button
                   type="button"
                   onClick={() => handleDirectSaveParsedToken(detectedClipboardToken)}
-                  className="flex-1 min-w-[170px] py-2.5 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-blue-500/20 active:scale-95"
+                  className="flex-1 min-w-[170px] py-2.5 px-3 rounded-xl bg-slate-950 hover:bg-slate-800 text-amber-300 font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-slate-950/20 active:scale-95"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Save This Token to Vault</span>
