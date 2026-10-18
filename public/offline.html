@@ -12,8 +12,8 @@
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     body {
-      background-color: #020617;
-      color: #f8fafc;
+      background-color: #ffffff;
+      color: #0f172a;
       min-height: 100vh;
       display: flex;
       align-items: center;
@@ -22,63 +22,120 @@
       text-align: center;
     }
     .card {
-      background: #0f172a;
-      border: 1px solid #1e293b;
-      border-radius: 1rem;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 2rem;
       padding: 2.5rem 2rem;
-      max-width: 440px;
+      max-width: 420px;
       width: 100%;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+      position: relative;
+      overflow: hidden;
+    }
+    .accent-strip {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #f59e0b, #f97316, #f59e0b);
     }
     .icon {
       width: 64px;
       height: 64px;
       margin: 0 auto 1.5rem;
-      background: rgba(234, 179, 8, 0.15);
-      border-radius: 50%;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      border-radius: 1.25rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: #eab308;
+      color: #d97706;
       font-size: 2rem;
     }
     h1 {
       font-size: 1.5rem;
-      font-weight: 700;
+      font-weight: 900;
       margin-bottom: 0.75rem;
-      color: #ffffff;
+      color: #0f172a;
+      letter-spacing: -0.02em;
     }
     p {
-      color: #94a3b8;
+      color: #64748b;
       font-size: 0.95rem;
       line-height: 1.5;
       margin-bottom: 2rem;
     }
-    .btn {
-      display: inline-block;
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
       width: 100%;
-      background-color: #eab308;
-      color: #020617;
-      font-weight: 600;
-      font-size: 1rem;
-      padding: 0.85rem 1.5rem;
-      border-radius: 0.5rem;
+      background: linear-gradient(135deg, #2563eb, #4f46e5);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.95rem 1.5rem;
+      border-radius: 0.85rem;
       border: none;
       cursor: pointer;
       text-decoration: none;
-      transition: background-color 0.2s;
+      transition: transform 0.15s, opacity 0.15s;
+      box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.25);
+      margin-bottom: 0.75rem;
     }
-    .btn:hover {
-      background-color: #ca8a04;
+    .btn-primary:active {
+      transform: scale(0.98);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+      font-weight: 700;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.85rem 1.5rem;
+      border-radius: 0.85rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.15s, transform 0.15s;
+    }
+    .btn-secondary:hover {
+      background: #f1f5f9;
+    }
+    .btn-secondary:active {
+      transform: scale(0.98);
     }
   </style>
 </head>
 <body>
   <div class="card">
+    <div class="accent-strip"></div>
     <div class="icon">⚡</div>
-    <h1>You are offline</h1>
-    <p>EDSA Power Tracker requires an active internet connection to retrieve live grid status and submit hazard reports.</p>
-    <button class="btn" onclick="window.location.reload()">Retry Connection</button>
+    <h1>No Internet Connection</h1>
+    <p>We couldn't connect to the network. Please check your mobile data or Wi-Fi. Your saved tokens and offline vault remain safe.</p>
+    <button class="btn-primary" onclick="window.location.reload()">
+      <span>Retry Connection</span>
+    </button>
+    <a href="/topup?tab=vault" class="btn-secondary">
+      <span>Open Token Vault</span>
+    </a>
   </div>
+
+  <script>
+    // Auto reload as soon as connection is re-established
+    window.addEventListener('online', function() {
+      window.location.reload();
+    });
+  </script>
 </body>
 </html>

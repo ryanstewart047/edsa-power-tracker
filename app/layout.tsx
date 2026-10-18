@@ -77,6 +77,7 @@ import ChatBot from "@/components/ChatBot";
 import SiteFooter from "@/components/SiteFooter";
 import OperationsNotice from "@/components/OperationsNotice";
 import AppUpdateNotification from "@/components/AppUpdateNotification";
+import ConnectionErrorModal from "@/components/ConnectionErrorModal";
 import EmojiFeedbackModal from "@/components/EmojiFeedbackModal";
 
 const jsonLd = {
@@ -114,6 +115,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <LocationGuard />
         <OperationsNotice />
         <AppUpdateNotification />
+        <ConnectionErrorModal />
         {children}
         <SiteFooter />
         <EmojiFeedbackModal />
