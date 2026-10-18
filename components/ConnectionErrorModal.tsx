@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { WifiOff, RefreshCw, KeyRound, AlertTriangle } from 'lucide-react';
+import { WifiOff, RefreshCw, KeyRound } from 'lucide-react';
 
 export default function ConnectionErrorModal() {
   const [isOffline, setIsOffline] = useState(false);
