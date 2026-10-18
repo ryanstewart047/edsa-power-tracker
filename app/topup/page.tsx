@@ -186,9 +186,20 @@ function TopUpContent() {
       const existing = meters.find(m => m.meterNumber === parsed.meterNumber);
       if (existing) {
         setSelectedMeterId(existing.id);
+      } else {
+        // Auto-create new meter profile — meter number is not yet saved
+        const newMeter: MeterProfile = {
+          id: `meter-${Date.now()}`,
+          name: `Meter – ${parsed.meterNumber}`,
+          meterNumber: parsed.meterNumber,
+          isDefault: meters.length === 0,
+        };
+        const updatedMeters = [...meters, newMeter];
+        saveMeters(updatedMeters);
+        setSelectedMeterId(newMeter.id);
       }
     }
-  }, [meters]);
+  }, [meters]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle tab navigation via URL query parameter (e.g. ?tab=vault or ?tab=buy)
   useEffect(() => {
@@ -451,9 +462,26 @@ function TopUpContent() {
     }
 
     let targetMeter = selectedMeter;
+    let meterAutoAdded = false;
     if (parsed.meterNumber) {
       const matched = meters.find((m) => m.meterNumber === parsed.meterNumber);
-      if (matched) targetMeter = matched;
+      if (matched) {
+        targetMeter = matched;
+        setSelectedMeterId(matched.id);
+      } else {
+        // Auto-create new meter profile — this meter number is not yet saved
+        const newMeter: MeterProfile = {
+          id: `meter-${Date.now()}`,
+          name: `Meter – ${parsed.meterNumber}`,
+          meterNumber: parsed.meterNumber,
+          isDefault: meters.length === 0,
+        };
+        const updatedMeters = [...meters, newMeter];
+        saveMeters(updatedMeters);
+        setSelectedMeterId(newMeter.id);
+        targetMeter = newMeter;
+        meterAutoAdded = true;
+      }
     }
 
     const newToken: StoredToken = {
@@ -471,7 +499,12 @@ function TopUpContent() {
     saveTokens(updated);
     setDetectedClipboardToken(null);
     setActiveTab('vault');
-    showClipboardStatus('Token permanently saved into your offline vault!', 4500);
+    showClipboardStatus(
+      meterAutoAdded
+        ? `Token saved! Meter ${parsed.meterNumber} was also added to your meters.`
+        : 'Token permanently saved into your offline vault!',
+      4500
+    );
   };
 
   // Add Token to Vault
