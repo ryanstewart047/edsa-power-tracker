@@ -27,8 +27,11 @@ import {
   AlertCircle,
   ScanLine,
   Loader2,
-  Edit3
+  Edit3,
+  VolumeX
 } from 'lucide-react';
+import TokenBurnRateCard from '@/components/TokenBurnRateCard';
+import MeterTroubleshooterModal from '@/components/MeterTroubleshooterModal';
 import { parseTokenSms, ParsedSmsToken, extractMeterNumber } from '@/lib/tokenParser';
 import {
   StoredToken,
@@ -82,6 +85,7 @@ function TopUpContent() {
   // Token Vault state
   const [tokens, setTokens] = useState<StoredToken[]>([]);
   const [showAddTokenModal, setShowAddTokenModal] = useState(false);
+  const [showMeterTroubleshooter, setShowMeterTroubleshooter] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const [tokenAmountInput, setTokenAmountInput] = useState('');
   const [tokenUnitsInput, setTokenUnitsInput] = useState('');
@@ -639,16 +643,27 @@ function TopUpContent() {
             </div>
           </div>
 
-          {/* Meter selector pill */}
-          {selectedMeter && (
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setActiveTab('meters')}
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs transition-colors"
+              onClick={() => setShowMeterTroubleshooter(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs text-amber-900 font-bold transition-all shadow-xs"
+              title="Silence meter beeping alarm and view CIU error codes"
             >
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-bold text-slate-800 truncate max-w-[100px]">{selectedMeter.name}</span>
+              <VolumeX className="w-3.5 h-3.5 text-amber-600" />
+              <span className="hidden sm:inline">Mute Beeper</span>
             </button>
-          )}
+
+            {/* Meter selector pill */}
+            {selectedMeter && (
+              <button
+                onClick={() => setActiveTab('meters')}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs transition-colors"
+              >
+                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold text-slate-800 truncate max-w-[100px]">{selectedMeter.name}</span>
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -1083,6 +1098,15 @@ function TopUpContent() {
         {/* TAB 2: TOKEN HISTORY VAULT */}
         {activeTab === 'vault' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+            {/* Burn Rate & Spending Analytics */}
+            <div className="scroll-reveal">
+              <TokenBurnRateCard
+                tokens={tokens}
+                onOpenMeterAssistant={() => setShowMeterTroubleshooter(true)}
+                onOpenTopUp={() => setActiveTab('buy')}
+              />
+            </div>
+
             {/* Header & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 scroll-reveal">
               <div>
@@ -1856,6 +1880,12 @@ function TopUpContent() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Meter Assistant & Silence Beeper Modal */}
+      <MeterTroubleshooterModal
+        isOpen={showMeterTroubleshooter}
+        onClose={() => setShowMeterTroubleshooter(false)}
+      />
     </main>
   );
 }

@@ -3,13 +3,33 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { Zap, ZapOff, HelpCircle, RefreshCw, MapPin, Loader2, Camera, AlertTriangle, X, ChevronDown, ArrowLeft, Image as ImageIcon, CheckCircle2 } from 'lucide-react';
+import {
+  Zap,
+  ZapOff,
+  HelpCircle,
+  RefreshCw,
+  MapPin,
+  Loader2,
+  Camera,
+  AlertTriangle,
+  X,
+  ChevronDown,
+  ArrowLeft,
+  Image as ImageIcon,
+  CheckCircle2,
+  VolumeX,
+  ShieldAlert
+} from 'lucide-react';
 import type { AreaWithStatus } from '@/lib/areas';
 import { calculateDistanceKm, MAX_REPORTING_DISTANCE_KM } from '@/lib/locationMath';
 import LocationOnboarding from '@/components/LocationOnboarding';
 import AdUnit from '@/components/AdUnit';
 import AreaAlertsPanel from '@/components/AreaAlertsPanel';
 import EmergencySafetyCard from '@/components/EmergencySafetyCard';
+import IsItJustMeModal from '@/components/IsItJustMeModal';
+import MeterTroubleshooterModal from '@/components/MeterTroubleshooterModal';
+import ApplianceSurgeWarning from '@/components/ApplianceSurgeWarning';
+import AreaCommunityBulletin from '@/components/AreaCommunityBulletin';
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
@@ -224,6 +244,11 @@ export default function Home() {
   const [isCompressingImage, setIsCompressingImage] = useState(false);
   const [meterNumber, setMeterNumber] = useState('');
   const [contactPhone, setContactPhone] = useState('');
+
+  // Diagnostic, Meter Assistant & Surge Protection features
+  const [showIsItJustMe, setShowIsItJustMe] = useState(false);
+  const [showMeterTroubleshooter, setShowMeterTroubleshooter] = useState(false);
+  const [showSurgeWarning, setShowSurgeWarning] = useState(false);
 
   const handleImageSelection = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -897,6 +922,77 @@ export default function Home() {
             </div>
           )}
 
+          {/* Quick Utility Tools Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 scroll-reveal">
+            <button
+              type="button"
+              onClick={() => setShowIsItJustMe(true)}
+              className="p-4 rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50/80 via-white to-blue-50/50 hover:border-indigo-300 text-left transition-all active:scale-[0.98] shadow-xs group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800">
+                  Diagnostic
+                </span>
+              </div>
+              <p className="font-bold text-slate-900 text-sm">Is It Just Me?</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Check if power loss is only your house or the entire neighborhood.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowMeterTroubleshooter(true)}
+              className="p-4 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50/80 via-white to-orange-50/50 hover:border-amber-300 text-left transition-all active:scale-[0.98] shadow-xs group"
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-9 h-9 rounded-xl bg-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
+                  <VolumeX className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                  Silence Alarm
+                </span>
+              </div>
+              <p className="font-bold text-slate-900 text-sm">Meter Assistant</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Mute beeping alarms (#037#, 812#) & fix Con_FAIL, Loc, E07 errors.
+              </p>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowSurgeWarning(!showSurgeWarning)}
+              className={`p-4 rounded-2xl border transition-all active:scale-[0.98] text-left shadow-xs group ${
+                showSurgeWarning
+                  ? 'border-emerald-300 bg-emerald-50/70 ring-2 ring-emerald-500/20'
+                  : 'border-orange-200 bg-gradient-to-br from-orange-50/80 via-white to-amber-50/50 hover:border-orange-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <div className="w-9 h-9 rounded-xl bg-orange-600 text-white flex items-center justify-center shadow-md shadow-orange-500/20 group-hover:scale-105 transition-transform">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                  {showSurgeWarning ? 'Active' : 'Surge Guard'}
+                </span>
+              </div>
+              <p className="font-bold text-slate-900 text-sm">Surge Protection</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                3-min voltage countdown timer to save fridge and TV when power returns.
+              </p>
+            </button>
+          </div>
+
+          {/* Conditional Appliance Surge Warning Card */}
+          {showSurgeWarning && (
+            <div className="scroll-reveal">
+              <ApplianceSurgeWarning onDismiss={() => setShowSurgeWarning(false)} initialActive={true} />
+            </div>
+          )}
+
           <div className="grid grid-cols-3 gap-3 scroll-reveal">
             {[
               { label: 'Have Power', count: counts.on, color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
@@ -912,6 +1008,7 @@ export default function Home() {
 
           <AreaAlertsPanel area={subscribedAreaName} />
           <EmergencySafetyCard onReportHazard={handleOpenHazardFromCard} />
+          <AreaCommunityBulletin areaName={subscribedAreaName || nearbyAreas[0]?.name || 'Freetown'} />
 
           <div className="flex flex-col sm:flex-row gap-3 scroll-reveal">
             <input
@@ -1268,6 +1365,37 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Is It Just Me Diagnostic Modal */}
+        <IsItJustMeModal
+          isOpen={showIsItJustMe}
+          onClose={() => setShowIsItJustMe(false)}
+          currentArea={nearbyAreas[0] || null}
+          onOpenMeterTroubleshooter={() => {
+            setShowIsItJustMe(false);
+            setShowMeterTroubleshooter(true);
+          }}
+          onReportOutage={() => {
+            setShowIsItJustMe(false);
+            if (nearbyAreas[0]) {
+              setReportModal(nearbyAreas[0]);
+              setReportResult(null);
+            }
+          }}
+          onReportHazard={() => {
+            setShowIsItJustMe(false);
+            if (nearbyAreas[0]) {
+              setHazardModal(nearbyAreas[0]);
+              setReportResult(null);
+            }
+          }}
+        />
+
+        {/* Prepaid Meter Assistant & Beeper Silencer Modal */}
+        <MeterTroubleshooterModal
+          isOpen={showMeterTroubleshooter}
+          onClose={() => setShowMeterTroubleshooter(false)}
+        />
       </div>
 
     </main>
