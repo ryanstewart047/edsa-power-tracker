@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import Link from 'next/link';
@@ -29,8 +30,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   MoveUp,
-  MoveDown,
-  Image as ImageIcon
+  MoveDown
 } from 'lucide-react';
 import { DEFAULT_SAFETY_SLIDES, type SafetySlideData, type BadgeTone } from '@/lib/safetyCards';
 import { HAZARD_TYPES } from '@/lib/locationConfig';
@@ -66,14 +66,6 @@ const PRESET_ICONS = [
   { name: 'ShieldCheck', label: 'Verified Shield', icon: ShieldCheck }
 ];
 
-const PRESET_GRADIENTS = [
-  { label: 'EDSA Blue', value: 'from-blue-600 to-indigo-700' },
-  { label: 'High Danger Rose', value: 'from-rose-600 to-amber-600' },
-  { label: 'Warning Amber', value: 'from-amber-500 to-orange-600' },
-  { label: 'Weather Teal', value: 'from-blue-500 to-cyan-600' },
-  { label: 'Compliance Purple', value: 'from-purple-600 to-indigo-600' },
-  { label: 'First Aid Emerald', value: 'from-emerald-600 to-teal-600' }
-];
 
 /**
  * Resizes and crops any uploaded photo into an optimized square thumbnail
