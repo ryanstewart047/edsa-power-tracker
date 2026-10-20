@@ -29,7 +29,7 @@ import {
   Loader2,
   Edit3
 } from 'lucide-react';
-import { parseTokenSms, ParsedSmsToken } from '@/lib/tokenParser';
+import { parseTokenSms, ParsedSmsToken, extractMeterNumber } from '@/lib/tokenParser';
 import {
   StoredToken,
   MeterProfile,
@@ -132,16 +132,45 @@ function TopUpContent() {
     loadMetersMultiTier().then((reconciledMeters) => {
       if (reconciledMeters && reconciledMeters.length > 0) {
         setMeters(reconciledMeters);
+        metersRef.current = reconciledMeters;
         setSelectedMeterId((prev) => prev || reconciledMeters[0].id);
       }
     });
   }, []);
 
+  const metersRef = useRef<MeterProfile[]>(meters);
+  useEffect(() => {
+    metersRef.current = meters;
+  }, [meters]);
+
   // Save meters permanently across all storage tiers
   const saveMeters = (updated: MeterProfile[]) => {
+    metersRef.current = updated;
     setMeters(updated);
     persistMetersMultiTier(updated);
   };
+
+  // Helper to ensure a meter is registered and selected without creating duplicates
+  const ensureMeterSaved = useCallback((meterNum: string): { meter: MeterProfile; added: boolean } => {
+    const cleanNum = meterNum.replace(/\D/g, '');
+    const matched = metersRef.current.find((m) => m.meterNumber === cleanNum || m.meterNumber === meterNum);
+    if (matched) {
+      setSelectedMeterId(matched.id);
+      return { meter: matched, added: false };
+    }
+    const newMeter: MeterProfile = {
+      id: `meter-${Date.now()}`,
+      name: `Meter – ${cleanNum || meterNum}`,
+      meterNumber: cleanNum || meterNum,
+      isDefault: metersRef.current.length === 0,
+    };
+    const updated = [...metersRef.current, newMeter];
+    metersRef.current = updated;
+    setMeters(updated);
+    persistMetersMultiTier(updated);
+    setSelectedMeterId(newMeter.id);
+    return { meter: newMeter, added: true };
+  }, []);
 
   // Save tokens permanently across all storage tiers (localStorage, backup, IndexedDB)
   const saveTokens = (updated: StoredToken[]) => {
@@ -183,23 +212,9 @@ function TopUpContent() {
       setTokenUnitsInput(String(parsed.units));
     }
     if (parsed.meterNumber) {
-      const existing = meters.find(m => m.meterNumber === parsed.meterNumber);
-      if (existing) {
-        setSelectedMeterId(existing.id);
-      } else {
-        // Auto-create new meter profile — meter number is not yet saved
-        const newMeter: MeterProfile = {
-          id: `meter-${Date.now()}`,
-          name: `Meter – ${parsed.meterNumber}`,
-          meterNumber: parsed.meterNumber,
-          isDefault: meters.length === 0,
-        };
-        const updatedMeters = [...meters, newMeter];
-        saveMeters(updatedMeters);
-        setSelectedMeterId(newMeter.id);
-      }
+      ensureMeterSaved(parsed.meterNumber);
     }
-  }, [meters]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [ensureMeterSaved]);
 
   // Handle tab navigation via URL query parameter (e.g. ?tab=vault or ?tab=buy)
   useEffect(() => {
@@ -222,11 +237,11 @@ function TopUpContent() {
     }
   }, [searchParams, applyParsedToken]);
 
-  // Option B: Check clipboard for 20-digit tokens
+  // Option B: Check clipboard for 20-digit tokens or meter numbers
   const checkClipboardForToken = useCallback(async (manual = false) => {
     if (manual) {
       setCheckingClipboard(true);
-      showClipboardStatus('Checking your clipboard for a 20-digit token...', 10_000);
+      showClipboardStatus('Checking your clipboard for a 20-digit token or meter...', 10_000);
     }
 
     try {
@@ -244,20 +259,48 @@ function TopUpContent() {
 
       const parsed = parseTokenSms(clipText);
       if (parsed.token) {
+        // Auto-save meter number immediately if present, without creating duplicates
+        let meterAdded = false;
+        if (parsed.meterNumber) {
+          const res = ensureMeterSaved(parsed.meterNumber);
+          meterAdded = res.added;
+        }
+
         // Check if token is already in vault
         const alreadySaved = tokens.some(t => t.token === parsed.token);
         if (alreadySaved) {
           if (manual) {
-            showClipboardStatus('A token was found, but it is already saved in your vault.');
+            showClipboardStatus(
+              meterAdded
+                ? `Meter ${parsed.meterNumber} was saved to your meters, but this token is already in your vault.`
+                : 'A token was found, but it is already saved in your vault.',
+              5000
+            );
           }
         } else {
           setDetectedClipboardToken(parsed);
-          if (manual) {
-            showClipboardStatus('New 20-digit token detected. Review the token banner to save it.', 5000);
-          }
+          showClipboardStatus(
+            meterAdded
+              ? `New token detected! Meter ${parsed.meterNumber} was automatically added to your meters.`
+              : (parsed.meterNumber
+                  ? `New 20-digit token detected for Meter ${parsed.meterNumber}.`
+                  : 'New 20-digit token detected. Review the token banner to save it.'),
+            6000
+          );
         }
-      } else if (manual) {
-        showClipboardStatus('No 20-digit token was found. Copy the complete token SMS, then scan again.');
+      } else {
+        // Check if user copied just a meter number (without token)
+        const singleMeter = extractMeterNumber(clipText);
+        if (singleMeter) {
+          const res = ensureMeterSaved(singleMeter);
+          if (res.added) {
+            showClipboardStatus(`Meter ${singleMeter} detected from clipboard and added to your meters!`, 5000);
+          } else if (manual) {
+            showClipboardStatus(`Meter ${singleMeter} is already in your meters.`, 4000);
+          }
+        } else if (manual) {
+          showClipboardStatus('No 20-digit token or meter number found. Copy the complete SMS, then scan again.');
+        }
       }
     } catch {
       if (manual) {
@@ -266,7 +309,7 @@ function TopUpContent() {
     } finally {
       if (manual) setCheckingClipboard(false);
     }
-  }, [showClipboardStatus, tokens]);
+  }, [showClipboardStatus, tokens, ensureMeterSaved]);
 
   // Listen to focus and visibilitychange to detect new copied tokens when returning from SMS app
   useEffect(() => {
@@ -297,6 +340,8 @@ function TopUpContent() {
     setParsedPreview(parsed);
     if (parsed.token) {
       applyParsedToken(parsed);
+    } else if (parsed.meterNumber) {
+      ensureMeterSaved(parsed.meterNumber);
     }
   };
 
@@ -464,24 +509,9 @@ function TopUpContent() {
     let targetMeter = selectedMeter;
     let meterAutoAdded = false;
     if (parsed.meterNumber) {
-      const matched = meters.find((m) => m.meterNumber === parsed.meterNumber);
-      if (matched) {
-        targetMeter = matched;
-        setSelectedMeterId(matched.id);
-      } else {
-        // Auto-create new meter profile — this meter number is not yet saved
-        const newMeter: MeterProfile = {
-          id: `meter-${Date.now()}`,
-          name: `Meter – ${parsed.meterNumber}`,
-          meterNumber: parsed.meterNumber,
-          isDefault: meters.length === 0,
-        };
-        const updatedMeters = [...meters, newMeter];
-        saveMeters(updatedMeters);
-        setSelectedMeterId(newMeter.id);
-        targetMeter = newMeter;
-        meterAutoAdded = true;
-      }
+      const res = ensureMeterSaved(parsed.meterNumber);
+      targetMeter = res.meter;
+      meterAutoAdded = res.added;
     }
 
     const newToken: StoredToken = {
@@ -513,11 +543,17 @@ function TopUpContent() {
     const cleanDigits = tokenInput.replace(/\D/g, '');
     if (cleanDigits.length < 20) return;
 
+    let targetMeter = selectedMeter;
+    if (parsedPreview?.meterNumber) {
+      const res = ensureMeterSaved(parsedPreview.meterNumber);
+      targetMeter = res.meter;
+    }
+
     const newToken: StoredToken = {
       id: `token-${Date.now()}`,
       token: cleanDigits,
-      meterNumber: selectedMeter ? selectedMeter.meterNumber : 'Unknown',
-      meterName: selectedMeter ? selectedMeter.name : undefined,
+      meterNumber: targetMeter ? targetMeter.meterNumber : (selectedMeter ? selectedMeter.meterNumber : 'Unknown'),
+      meterName: targetMeter ? targetMeter.name : (selectedMeter ? selectedMeter.name : undefined),
       amountNle: Number(tokenAmountInput) || 0,
       kwhUnits: Number(tokenUnitsInput) || undefined,
       date: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }),
@@ -635,9 +671,19 @@ function TopUpContent() {
                     <div className="text-xs font-black uppercase text-amber-950 tracking-wider">
                       20-Digit Token Detected from Clipboard!
                     </div>
-                    <div className="text-[11px] font-semibold text-amber-900">
-                      {detectedClipboardToken.amount ? `Amount: NLe ${detectedClipboardToken.amount} • ` : ''}
-                      {detectedClipboardToken.units ? `Units: ${detectedClipboardToken.units} kWh` : 'Ready to save'}
+                    <div className="text-[11px] font-semibold text-amber-900 flex flex-wrap items-center gap-x-2 gap-y-1 mt-0.5">
+                      {detectedClipboardToken.meterNumber && (
+                        <span className="inline-flex items-center gap-1 font-bold text-slate-900 bg-white/85 px-2 py-0.5 rounded-md border border-amber-400/60 shadow-xs">
+                          <span className="text-amber-800 font-normal">Meter:</span>
+                          <span className="font-mono">{detectedClipboardToken.meterNumber}</span>
+                        </span>
+                      )}
+                      {detectedClipboardToken.amount ? (
+                        <span>Amount: <strong className="text-slate-900">NLe {detectedClipboardToken.amount}</strong></span>
+                      ) : null}
+                      {detectedClipboardToken.units ? (
+                        <span>Units: <strong className="text-slate-900">{detectedClipboardToken.units} kWh</strong></span>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -664,6 +710,17 @@ function TopUpContent() {
                   <Plus className="w-4 h-4" />
                   <span>Save This Token to Vault</span>
                 </button>
+                {detectedClipboardToken.meterNumber && (
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(detectedClipboardToken.meterNumber!, 'clipboard-banner-meter')}
+                    className="py-2.5 px-3 rounded-xl bg-white hover:bg-amber-50 text-slate-900 border border-amber-400/80 text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs active:scale-95"
+                    title="Copy meter number"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-amber-700" />
+                    <span>{copiedKey === 'clipboard-banner-meter' ? 'Meter Copied!' : 'Copy Meter'}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

@@ -714,8 +714,15 @@ export default function Home() {
                 {locationLoading ? 'Refreshing GPS...' : locationChipLabel}
               </div>
               <button
-                onClick={() => fetchStatus(location, search)}
-                className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg hover:bg-slate-100"
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.reload();
+                  }
+                }}
+                className="flex items-center gap-1.5 text-xs text-slate-600 hover:text-slate-900 transition-colors px-3 py-2 rounded-lg hover:bg-slate-100 active:scale-95 cursor-pointer"
+                title="Reload and refresh entire page"
+                aria-label="Refresh entire page"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Updated {timeAgo(lastRefresh.toISOString())}</span>

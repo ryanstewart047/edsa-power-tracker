@@ -9,6 +9,62 @@ export interface ParsedSmsToken {
 }
 
 /**
+ * Extracts a meter number from text or SMS.
+ * Supports:
+ * - Common prefixes: meter, mtr, mno, acc, account, m/c, device, sn, etc.
+ * - Suffixes: no, num, number, #, id, sn, s/n, ., :, etc.
+ * - Formats: contiguous (02123456789), dashed (02-1234-5678-9), spaced (02 1234 56789)
+ * - Lengths: 8 to 14 digits (standard Sierra Leone EDSA / Conlog / Cashpower meters are 10-12 digits)
+ * - Standalone 10-12 digit fallbacks that do not collide with token digits
+ */
+export function extractMeterNumber(rawText: string, tokenDigits?: string | null): string | null {
+  if (!rawText || typeof rawText !== 'string') return null;
+  const clean = rawText.trim();
+
+  // Pattern 1: Keywords like Meter, MTR, Mtr No, MTR NO, Acc, Account, M/C, Meter#, Meter ID, etc.
+  const keywordPattern = /(?:(?:meter|mtr|mno|acc(?:ount)?|m\/c|device)[\s/]*(?:no|num|number|#|\.|id|sn|s\/n)?|for\s+meter|meter\s+acc(?:ount)?)[\s:=#.-]*([0-9][0-9\s-]{6,16}[0-9])\b/i;
+  const match = clean.match(keywordPattern);
+  if (match) {
+    const rawMeter = match[1].replace(/[\s-]/g, '');
+    if (rawMeter.length >= 8 && rawMeter.length <= 14 && (!tokenDigits || !tokenDigits.includes(rawMeter))) {
+      return rawMeter;
+    }
+  }
+
+  // Pattern 2: "token for <digits>" or "for <meter>" or "to <meter>"
+  const forPattern = /(?:for|to)\s+(?:meter\s+)?([0-9][0-9\s-]{6,16}[0-9])\b/i;
+  const forMatch = clean.match(forPattern);
+  if (forMatch) {
+    const rawMeter = forMatch[1].replace(/[\s-]/g, '');
+    if (rawMeter.length >= 8 && rawMeter.length <= 14 && (!tokenDigits || !tokenDigits.includes(rawMeter))) {
+      return rawMeter;
+    }
+  }
+
+  // Pattern 3: Standalone 10-12 digit sequence not overlapping with token
+  const standalone = clean.match(/\b([0-9]{10,12})\b/g);
+  if (standalone) {
+    for (const m of standalone) {
+      if (!tokenDigits || !tokenDigits.includes(m)) {
+        return m;
+      }
+    }
+  }
+
+  // Pattern 4: Broad standalone 8-13 digit sequence not overlapping with token
+  const standaloneBroad = clean.match(/\b([0-9]{8,13})\b/g);
+  if (standaloneBroad) {
+    for (const m of standaloneBroad) {
+      if (!tokenDigits || !tokenDigits.includes(m)) {
+        return m;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
  * Extracts 20-digit EDSA prepaid token and metadata from SMS text or clipboard content.
  * Handles Orange Money, Afrimoney, direct EDSA SMS, and third-party vendor formats.
  */
@@ -82,24 +138,8 @@ export function parseTokenSms(rawText: string): ParsedSmsToken {
     token = null; // Invalidate if not strictly 20 digits
   }
 
-  // 2. Extract Meter Number (strictly 11 digits, not overlapping with token)
-  let meterNumber: string | null = null;
-  const meterKeywordPattern = /(?:meter|mno|acc|account)[\s:=#.-]*([0-9]{11})\b/i;
-  const meterMatch = cleanText.match(meterKeywordPattern);
-  if (meterMatch && meterMatch[1] !== token?.slice(0, 11)) {
-    meterNumber = meterMatch[1];
-  } else {
-    // Search for any 11 digit standalone sequence that is not the token
-    const standalone11 = cleanText.match(/\b([0-9]{11})\b/g);
-    if (standalone11) {
-      for (const m of standalone11) {
-        if (!token || !token.includes(m)) {
-          meterNumber = m;
-          break;
-        }
-      }
-    }
-  }
+  // 2. Extract Meter Number
+  const meterNumber: string | null = extractMeterNumber(cleanText, token);
 
   // 3. Extract Amount in NLe
   let amount: number | null = null;
