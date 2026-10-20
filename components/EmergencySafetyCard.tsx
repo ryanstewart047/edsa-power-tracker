@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import {
   AlertTriangle,
   HardHat,
@@ -209,7 +209,7 @@ export default function EmergencySafetyCard() {
     };
   }, [isPaused, nextSlide]);
 
-  const slideVariants = {
+  const slideVariants: Variants = {
     enter: (dir: number) => ({
       x: dir > 0 ? 80 : -80,
       opacity: 0,
@@ -220,7 +220,7 @@ export default function EmergencySafetyCard() {
       opacity: 1,
       scale: 1,
       transition: {
-        x: { type: 'spring', stiffness: 280, damping: 28 },
+        x: { type: 'spring' as const, stiffness: 280, damping: 28 },
         opacity: { duration: 0.25 }
       }
     },
@@ -229,7 +229,7 @@ export default function EmergencySafetyCard() {
       opacity: 0,
       scale: 0.98,
       transition: {
-        x: { type: 'spring', stiffness: 280, damping: 28 },
+        x: { type: 'spring' as const, stiffness: 280, damping: 28 },
         opacity: { duration: 0.2 }
       }
     })
