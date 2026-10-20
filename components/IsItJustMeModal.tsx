@@ -53,7 +53,7 @@ export default function IsItJustMeModal({
               </h2>
               <p className="text-xs text-slate-500 font-medium flex items-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3 text-blue-600" />
-                <span>Checking local grid signals for <strong>{areaName}</strong></span>
+                <span>Checking local grid signals for <strong>{areaName}</strong>{reportCount > 0 ? ` (${reportCount} recent report${reportCount > 1 ? 's' : ''})` : ''}</span>
               </p>
             </div>
           </div>

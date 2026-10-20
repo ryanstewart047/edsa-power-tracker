@@ -64,6 +64,11 @@ export default function ApplianceSurgeWarning({
     }
   };
 
+  const playCompletionChimeRef = useRef(playCompletionChime);
+  useEffect(() => {
+    playCompletionChimeRef.current = playCompletionChime;
+  });
+
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
     if (isRunning && secondsRemaining > 0) {
@@ -72,7 +77,7 @@ export default function ApplianceSurgeWarning({
           if (prev <= 1) {
             setIsRunning(false);
             setIsCompleted(true);
-            playCompletionChime();
+            playCompletionChimeRef.current();
             return 0;
           }
           return prev - 1;

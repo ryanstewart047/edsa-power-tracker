@@ -10,9 +10,10 @@ import {
   Copy,
   Check,
   X,
-  Lightbulb,
-  Plug
+  Lightbulb
 } from 'lucide-react';
+
+export type MeterCategory = 'all' | 'beeper' | 'diagnostic' | 'error' | 'token';
 
 export interface MeterCodeItem {
   code: string;
@@ -275,17 +276,17 @@ export default function MeterTroubleshooterModal({
 
         {/* Filter Bar: Categories */}
         <div className="flex flex-wrap gap-1.5 border-b border-slate-100 pb-3">
-          {[
+          {([
             { id: 'all', label: 'All Codes' },
             { id: 'beeper', label: '🔇 Silence Beeper' },
             { id: 'diagnostic', label: '📊 Status & Check Codes' },
             { id: 'error', label: '⚠️ Error Decrypter (Con_FAIL, Loc)' },
             { id: 'token', label: '🔢 Rejected Token Help' }
-          ].map((cat) => (
+          ] as const).map((cat) => (
             <button
               key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(cat.id as any)}
+              onClick={() => setSelectedCategory(cat.id)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-blue-600 text-white shadow-xs'
