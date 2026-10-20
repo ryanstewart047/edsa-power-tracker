@@ -10,203 +10,68 @@ import {
   Copy,
   Check,
   X,
-  Lightbulb
+  Lightbulb,
+  CornerDownLeft,
+  Info,
+  SlidersHorizontal
 } from 'lucide-react';
-
-export type MeterCategory = 'all' | 'beeper' | 'diagnostic' | 'error' | 'token';
-
-export interface MeterCodeItem {
-  code: string;
-  meterBrand: 'Conlog' | 'Hexing' | 'Inhemeter' | 'Universal';
-  title: string;
-  description: string;
-  action: string;
-  category: 'beeper' | 'diagnostic' | 'error' | 'token';
-}
-
-const METER_CODES_DATA: MeterCodeItem[] = [
-  // --- Beeper Silence Codes ---
-  {
-    code: 'Press & hold 0 for 3 sec',
-    meterBrand: 'Conlog',
-    title: 'Silence Low-Credit Alarm Beeper (Conlog)',
-    description: 'Stops the continuous annoying high-pitched beep when your meter credit is below 10 kWh.',
-    action: 'Press and hold down the 0 key on your Customer Interface Unit (CIU) for 3 to 5 seconds until it beeps once and stops.',
-    category: 'beeper'
-  },
-  {
-    code: '#037#',
-    meterBrand: 'Conlog',
-    title: 'Mute Audio Alarm Tone via Shortcode (Conlog)',
-    description: 'Alternative shortcode for modern wireless and plug-in Conlog keypad monitors.',
-    action: 'Type #037# and press the Enter (hash / blue) button. The display will show "bEEp OFF" or confirm mute.',
-    category: 'beeper'
-  },
-  {
-    code: '812#',
-    meterBrand: 'Hexing',
-    title: 'Silence Low Credit Beeper (Hexing Meters)',
-    description: 'Mutes the low-power alarm beep on Hexing single-phase and three-phase meters.',
-    action: 'Type 812 followed by the hash (#) or Enter key. The alarm buzzer will silence.',
-    category: 'beeper'
-  },
-  {
-    code: '01#',
-    meterBrand: 'Inhemeter',
-    title: 'Mute Beeper Sound (Inhemeter Keypads)',
-    description: 'Silences the audio alarm buzzer on Inhemeter split prepaid keypads.',
-    action: 'Type 01 and press #. If the alarm turns on again after 24 hours, repeat code to silence.',
-    category: 'beeper'
-  },
-  {
-    code: '#103#',
-    meterBrand: 'Universal',
-    title: 'Alternative Beeper Mute Code (General CIU)',
-    description: 'Works on multiple EDSA-compatible split prepaid keypad units.',
-    action: 'Type #103# and press Enter to disable the buzzer until next credit recharge.',
-    category: 'beeper'
-  },
-
-  // --- Diagnostic Shortcodes ---
-  {
-    code: '#100#',
-    meterBrand: 'Conlog',
-    title: 'Check 11-Digit Meter Serial Number (MSN)',
-    description: 'Displays the exact 11-digit meter number needed to buy EDSA electricity tokens.',
-    action: 'Type #100# (or #4#) into the keypad. The 11 digits will scroll across the screen.',
-    category: 'diagnostic'
-  },
-  {
-    code: '#073#',
-    meterBrand: 'Conlog',
-    title: 'Check Meter Trip Reason / Cut-Off Status',
-    description: 'Explains why your electricity went off (overload, tamper, earth fault, or low balance).',
-    action: 'Type #073# on keypad. If it says "tA-01" = tamper cover opened; "oL-02" = excessive power draw.',
-    category: 'diagnostic'
-  },
-  {
-    code: '#1#',
-    meterBrand: 'Conlog',
-    title: 'Live Electricity Consumption (Kilowatts)',
-    description: 'Shows exactly how much electrical power your house is using right this second.',
-    action: 'Type #1# on keypad. Turn off appliances one by one to find which one is burning power fastest.',
-    category: 'diagnostic'
-  },
-  {
-    code: '#005#',
-    meterBrand: 'Conlog',
-    title: 'Key Revision Number (KRN Check)',
-    description: 'Checks whether your meter has been updated to KRN2 (TID Rollover standard).',
-    action: 'Type #005# on keypad. If screen shows "02", your meter is fully updated.',
-    category: 'diagnostic'
-  },
-  {
-    code: '#036# [Meter Number] #',
-    meterBrand: 'Conlog',
-    title: 'Re-Sync Wireless CIU with Outdoor Pole Meter',
-    description: 'Fixes communication timeout when the indoor keypad is not talking to the pole.',
-    action: 'Type #036# followed by your 11-digit meter number then #. Stand within 10 meters of the pole.',
-    category: 'diagnostic'
-  },
-  {
-    code: '#000#',
-    meterBrand: 'Conlog',
-    title: 'Internal Meter Trip Switch Test',
-    description: 'Tests if the meter breaker contactor is mechanically functioning.',
-    action: 'Type #000# and press # to trigger a brief test reset.',
-    category: 'diagnostic'
-  },
-
-  // --- Error Codes & Fixes ---
-  {
-    code: 'Con_FAIL / E07',
-    meterBrand: 'Conlog',
-    title: 'Communication Failure with Meter Base',
-    description: 'Keypad is unable to connect to the outdoor electrical pole box.',
-    action: '1. Plug the CIU directly into a fixed wall socket (NEVER through extension cords or multi-plugs). 2. Make sure main pole breaker is ON. 3. Re-pair by typing your 11-digit meter number.',
-    category: 'error'
-  },
-  {
-    code: 'Loc (Lockout)',
-    meterBrand: 'Conlog',
-    title: 'Overload Load Cut-Off Lockout',
-    description: 'Meter cut power because current exceeded safety threshold repeatedly in 45 seconds.',
-    action: 'Immediately switch off high-draw appliances (air conditioners, electric kettles, water heaters). The meter will automatically reconnect after 45 to 60 seconds.',
-    category: 'error'
-  },
-  {
-    code: 'tOPEN',
-    meterBrand: 'Conlog',
-    title: 'Terminal Cover Open / Tamper Triggered',
-    description: 'The protective wire terminal box was disturbed or opened, triggering tamper safety lockout.',
-    action: 'Do not attempt to bypass wiring. Call EDSA support (112 or 076 892 222) to request an authorized field technician tamper reset token.',
-    category: 'error'
-  },
-  {
-    code: 'E04',
-    meterBrand: 'Conlog',
-    title: 'No Supply Voltage / Extreme Low Voltage',
-    description: 'Grid voltage has dropped severely below operating limit or phase line is dead.',
-    action: 'Check neighboring houses. If their lights are dim, EDSA transformer phase has low voltage. Unplug refrigerators immediately to prevent compressor burnout.',
-    category: 'error'
-  },
-  {
-    code: 'AAAAAA / EEEEE',
-    meterBrand: 'Universal',
-    title: 'Invalid Token / Rejection',
-    description: 'The 20-digit electricity token was rejected by the keypad.',
-    action: '1. Verify the meter number on your SMS receipt matches your meter exactly. 2. Ensure you have not entered the 20 digits out of order. 3. Enter #005# to ensure meter is not awaiting KRN update.',
-    category: 'token'
-  },
-  {
-    code: 'OLd / Used',
-    meterBrand: 'Universal',
-    title: 'Token Already Used / Expired',
-    description: 'This 20-digit token has already been successfully loaded into the meter previously.',
-    action: 'Check your Token Vault history. Once a token is loaded into a meter base, it cannot be re-used.',
-    category: 'token'
-  },
-  {
-    code: 'SEr / E12',
-    meterBrand: 'Conlog',
-    title: 'CIU Unpaired or Replacement Mode',
-    description: 'Keypad was reset or replaced and needs to bind to the meter serial.',
-    action: 'Type your 11-digit Meter Serial Number into the keypad and press Enter. The screen will display "PLC CON" with a checkmark once paired.',
-    category: 'error'
-  }
-];
+import {
+  METER_CODES_DATA,
+  METER_BRANDS,
+  SIERRA_LEONE_KEYPAD_TYPES,
+  type MeterBrand,
+  type KeypadType,
+  type MeterCategory,
+  type MeterCodeItem
+} from '@/lib/meterCodes';
 
 interface MeterTroubleshooterModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultCategory?: 'beeper' | 'diagnostic' | 'error' | 'token';
+  defaultCategory?: MeterCategory;
+  defaultBrand?: MeterBrand | 'All';
 }
 
 export default function MeterTroubleshooterModal({
   isOpen,
   onClose,
-  defaultCategory = 'beeper'
+  defaultCategory = 'beeper',
+  defaultBrand = 'All'
 }: MeterTroubleshooterModalProps) {
-  const [selectedBrand, setSelectedBrand] = useState<'All' | 'Conlog' | 'Hexing' | 'Inhemeter'>('All');
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'beeper' | 'diagnostic' | 'error' | 'token'>(defaultCategory);
+  const [selectedBrand, setSelectedBrand] = useState<MeterBrand | 'All'>(defaultBrand);
+  const [selectedKeypadType, setSelectedKeypadType] = useState<KeypadType | 'all'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<MeterCategory>(defaultCategory);
   const [searchQuery, setSearchQuery] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [showKeypadGuide, setShowKeypadGuide] = useState(true);
 
   const filteredCodes = useMemo(() => {
-    return METER_CODES_DATA.filter((item) => {
-      const matchBrand = selectedBrand === 'All' || item.meterBrand === selectedBrand || item.meterBrand === 'Universal';
-      const matchCategory = selectedCategory === 'all' || item.category === selectedCategory;
+    return METER_CODES_DATA.filter((item: MeterCodeItem) => {
+      const matchBrand =
+        selectedBrand === 'All' ||
+        item.meterBrand === selectedBrand ||
+        item.meterBrand === 'Universal';
+
+      const matchKeypad =
+        selectedKeypadType === 'all' || item.keypadType === selectedKeypadType;
+
+      const matchCategory =
+        selectedCategory === 'all' || item.category === selectedCategory;
+
       const q = searchQuery.trim().toLowerCase();
       const matchSearch =
         !q ||
         item.code.toLowerCase().includes(q) ||
+        (item.rawDigits && item.rawDigits.toLowerCase().includes(q)) ||
+        (item.alternativeStarHashCode && item.alternativeStarHashCode.toLowerCase().includes(q)) ||
         item.title.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q) ||
-        item.action.toLowerCase().includes(q);
+        item.action.toLowerCase().includes(q) ||
+        item.meterBrand.toLowerCase().includes(q);
 
-      return matchBrand && matchCategory && matchSearch;
+      return matchBrand && matchKeypad && matchCategory && matchSearch;
     });
-  }, [selectedBrand, selectedCategory, searchQuery]);
+  }, [selectedBrand, selectedKeypadType, selectedCategory, searchQuery]);
 
   const handleCopy = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -217,8 +82,9 @@ export default function MeterTroubleshooterModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-[2rem] border border-slate-200 shadow-2xl p-6 sm:p-8 space-y-6 max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+      <div className="relative w-full max-w-3xl bg-white rounded-3xl sm:rounded-[2rem] border border-slate-200 shadow-2xl p-5 sm:p-8 space-y-6 max-h-[92vh] overflow-y-auto animate-in fade-in zoom-in-95 duration-200">
+        
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
@@ -226,39 +92,104 @@ export default function MeterTroubleshooterModal({
               <Wrench className="w-6 h-6 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
-                Prepaid Meter Assistant & Codes
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2 flex-wrap">
+                <span>Sierra Leone Meter Keypad Assistant</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  No * / # Required
+                </span>
               </h2>
               <p className="text-xs text-slate-500 font-medium">
-                Shortcodes to silence beeping alarms, decode error screens, and troubleshoot Conlog & Hexing meters.
+                Verified shortcodes for Conlog, Hexing, Inhemeter, Chint &amp; Landis+Gyr meters using standard <strong>0-9 &amp; ↵ Enter</strong>.
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all shrink-0"
             aria-label="Close meter assistant"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Highlighted Beeper Mute Card */}
+        {/* Sierra Leone Keypad Fact & Visual Guide Card */}
+        {showKeypadGuide && (
+          <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-br from-blue-50/90 to-indigo-50/50 p-4 sm:p-5 relative overflow-hidden">
+            <button
+              type="button"
+              onClick={() => setShowKeypadGuide(false)}
+              className="absolute top-3 right-3 text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+              title="Dismiss guide"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-xl bg-blue-600 text-white shrink-0 mt-0.5">
+                <Info className="w-4 h-4" />
+              </div>
+              <div className="space-y-2 pr-6">
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-1.5">
+                    <span>Why do most meters in Sierra Leone have NO * or #?</span>
+                  </h3>
+                  <p className="text-xs text-slate-600 leading-relaxed mt-0.5">
+                    EDSA meters (Conlog, Hexing, Inhemeter, Chint) use the international <strong>STS Standard (IEC 62055)</strong>. 
+                    Their keypads have only numbers <strong>0 to 9</strong>, an <strong>Enter button (↵ / Blue key)</strong>, and a <strong>Backspace (⌫ / C)</strong>. You do NOT need * or #!
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 text-slate-800 text-xs font-medium">
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-white/80 border border-blue-200/60 shadow-2xs">
+                    <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-800 flex items-center justify-center font-black text-sm shrink-0">
+                      ↵
+                    </span>
+                    <div>
+                      <strong className="block text-[11px] font-black text-slate-900">Enter / Blue Key</strong>
+                      <span className="text-[10px] text-slate-500">Press to confirm code</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-white/80 border border-blue-200/60 shadow-2xs">
+                    <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-800 flex items-center justify-center font-black text-sm shrink-0">
+                      ⌫
+                    </span>
+                    <div>
+                      <strong className="block text-[11px] font-black text-slate-900">Backspace / C Key</strong>
+                      <span className="text-[10px] text-slate-500">Erases mistake or hold to mute</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 p-2 rounded-xl bg-white/80 border border-blue-200/60 shadow-2xs">
+                    <span className="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-black text-sm shrink-0">
+                      0-9
+                    </span>
+                    <div>
+                      <strong className="block text-[11px] font-black text-slate-900">Digits + ↵</strong>
+                      <span className="text-[10px] text-slate-500">e.g. Type 812 then press ↵</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Quick-Action: Mute Alarm Banner */}
         <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-start gap-3">
             <div className="p-2.5 rounded-xl bg-rose-600 text-white shrink-0 shadow-sm shadow-rose-600/30">
               <VolumeX className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5">
-                <span>Mute Annoying Meter Beeper / Alarm</span>
+              <h3 className="text-sm font-black text-slate-900 flex items-center gap-1.5 flex-wrap">
+                <span>Stop Beeping Meter Alarm</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-100 text-rose-800">
-                  Most Requested
+                  Top Shortcut
                 </span>
               </h3>
               <p className="text-xs text-slate-600 leading-relaxed mt-0.5">
-                Is your keypad beeping non-stop due to low units? Press and hold <strong className="text-slate-900">0 for 3 seconds</strong>, or enter <strong className="text-slate-900">#037#</strong> (Conlog) or <strong className="text-slate-900">812#</strong> (Hexing).
+                On <strong className="text-slate-900">Conlog</strong>: Press &amp; hold <strong>0 for 3 seconds</strong> or type <strong>030 + ↵</strong>. On <strong className="text-slate-900">Hexing</strong>: Type <strong>812 + ↵</strong>. On <strong className="text-slate-900">Inhemeter</strong>: Type <strong>803 + ↵</strong>.
               </p>
             </div>
           </div>
@@ -268,25 +199,84 @@ export default function MeterTroubleshooterModal({
               setSelectedCategory('beeper');
               setSearchQuery('');
             }}
-            className="shrink-0 px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95"
+            className="shrink-0 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
           >
-            View Beeper Codes
+            <VolumeX className="w-3.5 h-3.5" />
+            <span>Mute Beeper Codes</span>
           </button>
         </div>
 
-        {/* Filter Bar: Categories */}
+        {/* Keypad Type Filters (No * / # focus) */}
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-black uppercase tracking-wider text-slate-500 flex items-center gap-1">
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Keypad Configuration:</span>
+            </label>
+            <span className="text-[11px] text-slate-400 font-medium">Filter by how your physical keypad behaves</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => setSelectedKeypadType('all')}
+              className={`p-2.5 rounded-xl border text-left transition-all ${
+                selectedKeypadType === 'all'
+                  ? 'border-blue-600 bg-blue-50/80 text-blue-900 shadow-2xs ring-1 ring-blue-500'
+                  : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black">All Keypad Styles</span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-bold">All</span>
+              </div>
+              <p className="text-[10px] text-slate-500 mt-0.5">Show all standard and legacy codes</p>
+            </button>
+
+            {SIERRA_LEONE_KEYPAD_TYPES.map((type) => (
+              <button
+                key={type.id}
+                type="button"
+                onClick={() => setSelectedKeypadType(type.id)}
+                className={`p-2.5 rounded-xl border text-left transition-all ${
+                  selectedKeypadType === type.id
+                    ? 'border-blue-600 bg-blue-50/80 text-blue-900 shadow-2xs ring-1 ring-blue-500'
+                    : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black flex items-center gap-1">
+                    <span>{type.icon}</span>
+                    <span>{type.name}</span>
+                  </span>
+                  <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${
+                    type.id === 'no_star_hash'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}>
+                    {type.badge}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">{type.description}</p>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Categories Bar */}
         <div className="flex flex-wrap gap-1.5 border-b border-slate-100 pb-3">
           {([
-            { id: 'all', label: 'All Codes' },
+            { id: 'all', label: 'All Shortcodes' },
             { id: 'beeper', label: '🔇 Silence Beeper' },
-            { id: 'diagnostic', label: '📊 Status & Check Codes' },
-            { id: 'error', label: '⚠️ Error Decrypter (Con_FAIL, Loc)' },
+            { id: 'balance', label: '⚡ Check Balance (kWh)' },
+            { id: 'diagnostic', label: '📊 Live Load & Voltage (kW/V)' },
+            { id: 'error', label: '⚠️ Error Decoder (Con_FAIL, Loc)' },
             { id: 'token', label: '🔢 Rejected Token Help' }
           ] as const).map((cat) => (
             <button
               key={cat.id}
               type="button"
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => setSelectedCategory(cat.id as MeterCategory)}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${
                 selectedCategory === cat.id
                   ? 'bg-blue-600 text-white shadow-xs'
@@ -298,7 +288,7 @@ export default function MeterTroubleshooterModal({
           ))}
         </div>
 
-        {/* Search & Brand Selector */}
+        {/* Search & Brand Filter */}
         <div className="flex flex-col sm:flex-row gap-2.5">
           <div className="relative flex-1">
             <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -306,25 +296,25 @@ export default function MeterTroubleshooterModal({
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search code or error (e.g. Con_FAIL, #100#, beep, lockout)..."
+              placeholder="Search code or error (e.g. 812, 008, 030, Con_FAIL, lockout)..."
               className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
             />
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 shrink-0">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Brand:</span>
-            {(['All', 'Conlog', 'Hexing', 'Inhemeter'] as const).map((brand) => (
+            {METER_BRANDS.slice(0, 5).map((brand) => (
               <button
-                key={brand}
+                key={brand.id}
                 type="button"
-                onClick={() => setSelectedBrand(brand)}
-                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border ${
-                  selectedBrand === brand
+                onClick={() => setSelectedBrand(brand.id)}
+                className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all border shrink-0 ${
+                  selectedBrand === brand.id
                     ? 'border-blue-600 bg-blue-50 text-blue-700'
                     : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                 }`}
               >
-                {brand}
+                {brand.id}
               </button>
             ))}
           </div>
@@ -333,31 +323,50 @@ export default function MeterTroubleshooterModal({
         {/* Results List */}
         <div className="space-y-3">
           {filteredCodes.length > 0 ? (
-            filteredCodes.map((item, idx) => (
+            filteredCodes.map((item) => (
               <div
-                key={idx}
-                className="p-4 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-2 shadow-2xs"
+                key={item.id}
+                className="p-4 rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 transition-all space-y-2.5 shadow-2xs"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-0.5">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-black text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-lg">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {/* Primary Code Display */}
+                      <span className="font-mono text-sm sm:text-base font-black text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-xl shadow-2xs flex items-center gap-1.5">
                         {item.code}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200/60">
+
+                      {/* Keypad Type Badge */}
+                      <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                        item.keypadType === 'no_star_hash'
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                          : item.keypadType === 'press_and_hold'
+                          ? 'bg-amber-50 text-amber-800 border-amber-200'
+                          : 'bg-slate-100 text-slate-600 border-slate-200'
+                      }`}>
+                        {item.keypadType === 'no_star_hash'
+                          ? 'Uses ↵ (No * / #)'
+                          : item.keypadType === 'press_and_hold'
+                          ? 'Hold 3-5 Sec'
+                          : 'Keypad with #'}
+                      </span>
+
+                      {/* Brand Badge */}
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200/60">
                         {item.meterBrand}
                       </span>
                     </div>
-                    <h4 className="text-sm font-bold text-slate-900 pt-1">{item.title}</h4>
+
+                    <h4 className="text-sm font-bold text-slate-900 pt-0.5">{item.title}</h4>
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => handleCopy(item.code)}
+                    onClick={() => handleCopy(item.rawDigits || item.code)}
                     className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold transition-all active:scale-95 shrink-0"
-                    title="Copy code"
+                    title="Copy code to clipboard"
                   >
-                    {copiedCode === item.code ? (
+                    {copiedCode === (item.rawDigits || item.code) ? (
                       <>
                         <Check className="w-3.5 h-3.5 text-emerald-600" />
                         <span className="text-emerald-700">Copied</span>
@@ -365,7 +374,7 @@ export default function MeterTroubleshooterModal({
                     ) : (
                       <>
                         <Copy className="w-3.5 h-3.5" />
-                        <span>Copy</span>
+                        <span>Copy Digits</span>
                       </>
                     )}
                   </button>
@@ -373,16 +382,30 @@ export default function MeterTroubleshooterModal({
 
                 <p className="text-xs text-slate-600 leading-relaxed">{item.description}</p>
 
-                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700 space-y-1">
-                  <span className="font-bold text-slate-900 block text-[11px] uppercase tracking-wider">
-                    How to fix / enter:
-                  </span>
-                  <p className="leading-relaxed font-normal">{item.action}</p>
+                {/* Step-by-Step Keypad Instruction */}
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70 text-xs text-slate-700 space-y-1.5">
+                  <div className="flex items-center justify-between text-[11px] font-bold text-slate-900">
+                    <span className="uppercase tracking-wider">How to enter on keypad:</span>
+                    <span className="text-blue-600 font-semibold flex items-center gap-1">
+                      <CornerDownLeft className="w-3 h-3" />
+                      <span>{item.enterKeyEquivalent}</span>
+                    </span>
+                  </div>
+                  <p className="leading-relaxed font-normal text-slate-800">{item.action}</p>
+
+                  {item.alternativeStarHashCode && (
+                    <div className="pt-1 border-t border-slate-200/60 text-[11px] text-slate-500">
+                      <span>If your keypad has a hash key, you can also type: </span>
+                      <strong className="text-slate-800 font-mono font-bold bg-white px-1.5 py-0.5 rounded border border-slate-200">
+                        {item.alternativeStarHashCode}
+                      </strong>
+                    </div>
+                  )}
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-8 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+            <div className="text-center py-10 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
               <HelpCircle className="w-8 h-8 text-slate-400 mx-auto" />
               <p className="text-xs text-slate-600 font-medium">No matching codes found for &quot;{searchQuery}&quot;</p>
               <button
@@ -391,10 +414,11 @@ export default function MeterTroubleshooterModal({
                   setSearchQuery('');
                   setSelectedCategory('all');
                   setSelectedBrand('All');
+                  setSelectedKeypadType('all');
                 }}
                 className="text-xs text-blue-600 font-bold hover:underline"
               >
-                Clear all filters
+                Reset all filters
               </button>
             </div>
           )}
@@ -404,7 +428,7 @@ export default function MeterTroubleshooterModal({
         <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <div className="flex items-center gap-1.5">
             <Lightbulb className="w-4 h-4 text-amber-500 shrink-0" />
-            <span>Always plug your CIU directly into a wall socket rather than an extension cable.</span>
+            <span>Standard Sierra Leone meters: Just type the numbers and press the blue or arrow (↵) Enter key.</span>
           </div>
           <button
             type="button"
