@@ -225,6 +225,47 @@ export default function Home() {
   const [meterNumber, setMeterNumber] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
+  const handleOpenHazardFromCard = useCallback((suggestedType?: string) => {
+    const targetArea: AreaWithStatus = nearbyAreas[0] || areas.find(a => a.isSavedArea) || areas[0] || {
+      id: 'ft-central',
+      name: 'Freetown Central',
+      region: 'Central Freetown',
+      status: 'unknown',
+      distance: 0,
+      isNearby: true,
+      isCandidate: true,
+      isClosest: true
+    };
+
+    if (suggestedType) {
+      if ((HAZARD_TYPES as readonly string[]).includes(suggestedType)) {
+        setHazardType(suggestedType as HazardType);
+      } else if (suggestedType.toLowerCase().includes('transformer')) {
+        setHazardType('Transformer Issue');
+      } else if (suggestedType.toLowerCase().includes('wire') || suggestedType.toLowerCase().includes('cable')) {
+        setHazardType('Cut or damaged Wires');
+      } else if (suggestedType.toLowerCase().includes('illegal')) {
+        setHazardType('Illegal Connection');
+      } else if (suggestedType.toLowerCase().includes('pole')) {
+        setHazardType('Falling Pole');
+      }
+    }
+
+    setHazardModal(targetArea);
+    setReportResult(null);
+  }, [nearbyAreas, areas]);
+
+  useEffect(() => {
+    const handleCustomHazardEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ hazardType?: string }>;
+      handleOpenHazardFromCard(customEvent.detail?.hazardType);
+    };
+    window.addEventListener('edsa:open-hazard-modal', handleCustomHazardEvent);
+    return () => {
+      window.removeEventListener('edsa:open-hazard-modal', handleCustomHazardEvent);
+    };
+  }, [handleOpenHazardFromCard]);
+
   const handleImageSelection = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -865,7 +906,7 @@ export default function Home() {
           </div>
 
           <AreaAlertsPanel area={subscribedAreaName} />
-          <EmergencySafetyCard />
+          <EmergencySafetyCard onReportHazard={handleOpenHazardFromCard} />
 
           <div className="flex flex-col sm:flex-row gap-3 scroll-reveal">
             <input
