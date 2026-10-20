@@ -66,6 +66,14 @@ const PRESET_ICONS = [
   { name: 'ShieldCheck', label: 'Verified Shield', icon: ShieldCheck }
 ];
 
+const OFFICIAL_PHOTO_PRESETS = [
+  { name: 'Eng. Osman Kamara', role: 'EDSA Grid Safety Specialist', url: '/assets/avatars/osman-kamara.jpg' },
+  { name: 'Mariama Sesay', role: 'Disaster Prevention Officer', url: '/assets/avatars/mariama-sesay.jpg' },
+  { name: 'Technician Foday Bangura', role: 'Substation Inspector', url: '/assets/avatars/foday-bangura.jpg' },
+  { name: 'Insp. Aminata Koroma', role: 'Grid Safety Enforcement', url: '/assets/avatars/aminata-koroma.jpg' },
+  { name: 'Dr. Alie Mansaray', role: 'Emergency First Response', url: '/assets/avatars/alie-mansaray.jpg' },
+];
+
 
 /**
  * Resizes and crops any uploaded photo into an optimized square thumbnail
@@ -645,6 +653,47 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                         )}
                       </div>
                       {avatarError && <p className="text-xs text-rose-400 font-semibold">{avatarError}</p>}
+
+                      {/* Quick-Select Official Personnel Real Photos */}
+                      <div className="pt-3 border-t border-white/10 text-left">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">
+                          Or Choose from Official Real Human Portraits:
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
+                          {OFFICIAL_PHOTO_PRESETS.map((preset) => {
+                            const isSelected = editingCard.avatarImage === preset.url;
+                            return (
+                              <button
+                                key={preset.url}
+                                type="button"
+                                onClick={() =>
+                                  setEditingCard({
+                                    ...editingCard,
+                                    avatarImage: preset.url,
+                                    speaker: preset.name,
+                                    speakerRole: preset.role
+                                  })
+                                }
+                                className={`flex items-center gap-2 p-1.5 rounded-xl border transition-all text-left ${
+                                  isSelected
+                                    ? 'border-blue-400 bg-blue-600/30 text-white ring-1 ring-blue-400'
+                                    : 'border-white/10 bg-white/5 hover:bg-white/10 text-gray-300'
+                                }`}
+                              >
+                                <img
+                                  src={preset.url}
+                                  alt={preset.name}
+                                  className="w-8 h-8 rounded-lg object-cover shrink-0 bg-white"
+                                />
+                                <div className="min-w-0">
+                                  <p className="text-[10px] font-bold truncate leading-tight">{preset.name}</p>
+                                  <p className="text-[9px] text-gray-400 truncate leading-tight">{preset.role}</p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

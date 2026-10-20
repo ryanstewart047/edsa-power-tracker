@@ -29,6 +29,7 @@ export const DEFAULT_SAFETY_SLIDES: SafetySlideData[] = [
     badgeTone: 'rose',
     speaker: 'Eng. Osman Kamara',
     speakerRole: 'EDSA Grid Safety Specialist',
+    avatarImage: '/assets/avatars/osman-kamara.jpg',
     avatarIconName: 'HardHat',
     avatarBg: 'from-blue-600 to-indigo-700',
     title: 'Fallen Cables & Ground Voltage Shock',
@@ -50,6 +51,7 @@ export const DEFAULT_SAFETY_SLIDES: SafetySlideData[] = [
     badgeTone: 'blue',
     speaker: 'Mariama Sesay',
     speakerRole: 'Disaster Prevention Officer',
+    avatarImage: '/assets/avatars/mariama-sesay.jpg',
     avatarIconName: 'CloudRain',
     avatarBg: 'from-blue-500 to-cyan-600',
     title: 'Water Conductance & Flooded Utility Poles',
@@ -71,6 +73,7 @@ export const DEFAULT_SAFETY_SLIDES: SafetySlideData[] = [
     badgeTone: 'amber',
     speaker: 'Technician Foday Bangura',
     speakerRole: 'Substation Inspector',
+    avatarImage: '/assets/avatars/foday-bangura.jpg',
     avatarIconName: 'Flame',
     avatarBg: 'from-amber-500 to-orange-600',
     title: 'Smoking Transformers & Arcing Poles',
@@ -92,6 +95,7 @@ export const DEFAULT_SAFETY_SLIDES: SafetySlideData[] = [
     badgeTone: 'purple',
     speaker: 'Insp. Aminata Koroma',
     speakerRole: 'Grid Safety Enforcement',
+    avatarImage: '/assets/avatars/aminata-koroma.jpg',
     avatarIconName: 'ShieldAlert',
     avatarBg: 'from-purple-600 to-indigo-600',
     title: 'Spider-Web Illegal Taps & Exposed Joints',
@@ -113,6 +117,7 @@ export const DEFAULT_SAFETY_SLIDES: SafetySlideData[] = [
     badgeTone: 'emerald',
     speaker: 'Dr. Alie Mansaray',
     speakerRole: 'Emergency First Response',
+    avatarImage: '/assets/avatars/alie-mansaray.jpg',
     avatarIconName: 'HeartPulse',
     avatarBg: 'from-emerald-600 to-teal-600',
     title: 'Electric Shock Rescue & CPR Protocol',
@@ -140,7 +145,15 @@ export async function getSafetyCardsFromDb(): Promise<SafetySlideData[]> {
     }
     const parsed = JSON.parse(setting.value);
     if (Array.isArray(parsed) && parsed.length > 0) {
-      return (parsed as SafetySlideData[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+      return (parsed as SafetySlideData[])
+        .map((c) => {
+          const defaultMatch = DEFAULT_SAFETY_SLIDES.find((d) => d.id === c.id);
+          return {
+            ...c,
+            avatarImage: c.avatarImage || defaultMatch?.avatarImage || null,
+          };
+        })
+        .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     }
     return DEFAULT_SAFETY_SLIDES;
   } catch (err) {
