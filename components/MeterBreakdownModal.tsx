@@ -40,7 +40,7 @@ export default function MeterBreakdownModal({
 }: MeterBreakdownModalProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [activeChartTab, setActiveChartTab] = useState<'weeks' | 'months'>('weeks');
-  const [dailyKwhRate, setDailyKwhRate] = useState<number>(6.5);
+  const dailyKwhRate = 6.5;
 
   const copyToClipboard = (text: string, key: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
