@@ -176,7 +176,7 @@ export default function MeterBreakdownModal({
     const now = new Date();
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-    const months = [];
+    const months: { monthIndex: number; year: number; label: string; nle: number; units: number }[] = [];
     for (let i = 2; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       months.push({
