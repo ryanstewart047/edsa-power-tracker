@@ -13,13 +13,9 @@ import {
   Upload,
   Check,
   X,
-  Calendar,
-  MapPin,
-  Clock,
   Sparkles,
   ToggleLeft,
   ToggleRight,
-  ShieldCheck,
   ImageIcon
 } from 'lucide-react';
 import type { NewsEventItem } from '@/lib/newsEvents';

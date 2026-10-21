@@ -112,7 +112,7 @@ export async function GET(req: NextRequest) {
     }
 
     // 2. Fetch scheduled maintenance outages targeted to this area or all areas
-    let maintenanceNotices: BulletinItem[] = [];
+    const maintenanceNotices: BulletinItem[] = [];
     try {
       const scheduled = await prisma.scheduledOutage.findMany({
         where: {
