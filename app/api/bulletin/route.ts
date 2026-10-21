@@ -18,7 +18,7 @@ export interface BulletinItem {
  * Normalizes a community name for exact matching and storage partition.
  * e.g. "Lumley" -> "lumley", "Aberdeen Creek" -> "aberdeen_creek"
  */
-export function normalizeCommunity(areaName: string): string {
+function normalizeCommunity(areaName: string): string {
   if (!areaName || !areaName.trim()) return 'general';
   return areaName
     .trim()
