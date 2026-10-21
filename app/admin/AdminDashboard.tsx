@@ -3,7 +3,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Zap, ZapOff, AlertTriangle, Clock, MapPin, Search, CheckCircle, RefreshCw, BarChart3, LucideIcon, X, Eye, Download, LogOut, MessageCircleMore, Users, Settings2 } from 'lucide-react';
+import { Zap, ZapOff, AlertTriangle, Clock, MapPin, Search, CheckCircle, RefreshCw, BarChart3, LucideIcon, X, Eye, Download, LogOut, MessageCircleMore, Users, Settings2, Newspaper } from 'lucide-react';
 
 interface Stats {
   totalReports: number;
@@ -392,6 +392,10 @@ export default function AdminDashboard({ adminEmail, isSuperAdmin }: { adminEmai
           <SidebarItem label="Dangers" icon={AlertTriangle} active={activeTab === 'hazards'} onClick={() => setActiveTab('hazards')} badge={stats.totalHazards} />
           <SidebarItem label="Report Feed" icon={Clock} active={activeTab === 'feed'} onClick={() => setActiveTab('feed')} />
           <button onClick={() => router.push('/admin/operations')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-400 hover:bg-white/5"><Settings2 className="w-5 h-5" /><span className="font-bold text-sm">Operations Console</span></button>
+          <button onClick={() => router.push('/admin/news')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-400 hover:bg-white/5">
+            <Newspaper className="w-5 h-5" />
+            <span className="font-bold text-sm">News &amp; Events</span>
+          </button>
           <button onClick={() => router.push('/admin/waitlist')} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-gray-400 hover:bg-white/5">
             <MessageCircleMore className="w-5 h-5" />
             <span className="font-bold text-sm">Email Waitlist</span>

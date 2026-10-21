@@ -30,7 +30,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   MoveUp,
-  MoveDown
+  MoveDown,
+  Newspaper
 } from 'lucide-react';
 import { DEFAULT_SAFETY_SLIDES, type SafetySlideData, type BadgeTone } from '@/lib/safetyCards';
 import { HAZARD_TYPES } from '@/lib/locationConfig';
@@ -376,6 +377,9 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
           <div className="flex gap-2">
             <Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">
               <ArrowLeft className="h-4 w-4" /> Dashboard
+            </Link>
+            <Link href="/admin/news" className="inline-flex items-center gap-1.5 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-200 hover:bg-blue-500/20 transition-all font-semibold">
+              <Newspaper className="h-4 w-4 text-blue-400" /> News &amp; Events
             </Link>
             <Link href="/admin/incidents" className="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">
               Incident queue

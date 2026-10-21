@@ -121,19 +121,19 @@ function TopUpContent() {
 
     const initialMeters = getInitialMetersFromLocalStorage();
     if (initialMeters.length > 0) {
-      setMeters(initialMeters);
-      setSelectedMeterId(initialMeters[0].id);
-    } else {
-      const defaultMeter: MeterProfile = {
-        id: 'meter-1',
-        name: 'Home Meter',
-        meterNumber: '01423859201',
-        isDefault: true,
-      };
-      setMeters([defaultMeter]);
-      setSelectedMeterId(defaultMeter.id);
-      persistMetersMultiTier([defaultMeter]);
+      // Filter out any leftover default demo meter that was seeded by older app versions
+      const filtered = initialMeters.filter(
+        (m) => !(m.id === 'meter-1' && m.meterNumber === '01423859201' && m.isDefault)
+      );
+      const activeMeters = filtered.length > 0 ? filtered : [];
+      setMeters(activeMeters);
+      if (activeMeters.length > 0) setSelectedMeterId(activeMeters[0].id);
+      if (filtered.length !== initialMeters.length) {
+        // Persist the cleaned list back to storage
+        persistMetersMultiTier(activeMeters);
+      }
     }
+    // No default meter seeded — user must add their own meter
 
     // 3. Asynchronous multi-tier reconciliation (IndexedDB + localStorage backup)
     loadTokensMultiTier().then((reconciledTokens) => {
@@ -143,10 +143,13 @@ function TopUpContent() {
     });
 
     loadMetersMultiTier().then((reconciledMeters) => {
-      if (reconciledMeters && reconciledMeters.length > 0) {
-        setMeters(reconciledMeters);
-        metersRef.current = reconciledMeters;
-        setSelectedMeterId((prev) => prev || reconciledMeters[0].id);
+      const validMeters = (reconciledMeters || []).filter(
+        (m) => !(m && (m.id === 'meter-1' || m.meterNumber === '01423859201'))
+      );
+      if (validMeters.length > 0) {
+        setMeters(validMeters);
+        metersRef.current = validMeters;
+        setSelectedMeterId((prev) => prev || validMeters[0].id);
       }
     });
   }, []);
@@ -489,8 +492,8 @@ function TopUpContent() {
   const handleDeleteMeter = (id: string) => {
     const updated = meters.filter((m) => m.id !== id);
     saveMeters(updated);
-    if (selectedMeterId === id && updated.length > 0) {
-      setSelectedMeterId(updated[0].id);
+    if (selectedMeterId === id) {
+      setSelectedMeterId(updated.length > 0 ? updated[0].id : '');
     }
   };
 
@@ -1498,7 +1501,28 @@ function TopUpContent() {
             </div>
 
             <div className="space-y-3">
-              {meters.map((meter) => {
+              {meters.length === 0 ? (
+                <div className="p-8 text-center bg-white border border-dashed border-slate-300 rounded-3xl space-y-3 shadow-2xs">
+                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto">
+                    <Zap className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-slate-900 text-sm">No Meters Saved Yet</h3>
+                    <p className="text-xs text-slate-500 max-w-xs mx-auto">
+                      Add your EDSA prepaid meter number once to enable 1-tap recharges, token tracking, and financial breakdown.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddMeterModal(true)}
+                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
+                  >
+                    <Plus className="w-4 h-4" />
+                    <span>Add Your Meter</span>
+                  </button>
+                </div>
+              ) : (
+                meters.map((meter) => {
                 const isSelected = meter.id === selectedMeterId;
                 const meterCleanNum = meter.meterNumber.replace(/\D/g, '');
                 const meterTokens = tokens.filter((t) => (t.meterNumber || '').replace(/\D/g, '') === meterCleanNum);
@@ -1603,7 +1627,7 @@ function TopUpContent() {
                           )}
                         </button>
 
-                        {meters.length > 1 && (
+                        {meters.length > 0 && (
                           <button
                             type="button"
                             onClick={() => handleDeleteMeter(meter.id)}
@@ -1618,7 +1642,7 @@ function TopUpContent() {
                     </div>
                   </div>
                 );
-              })}
+              }))}
             </div>
           </motion.div>
         )}

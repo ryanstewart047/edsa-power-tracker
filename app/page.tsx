@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { ArrowRight, ShieldCheck, Zap, BarChart3, AlertTriangle, ChevronRight, Activity, Smartphone, KeyRound, MapPin } from 'lucide-react';
 import SafetyGuidelines from '@/app/components/SafetyGuidelines';
 import WorkSlider from '@/components/WorkSlider';
+import NewsEventsSlider from '@/components/NewsEventsSlider';
 import AdUnit from '@/components/AdUnit';
 
 const highlights = [
@@ -189,6 +190,11 @@ export default function WelcomePage() {
               Admin Portal <ChevronRight className="h-4 w-4" />
             </Link>
           </motion.div>
+        </div>
+
+        {/* EDSA News & Events Section (Sliding Cards with Pop-Up) */}
+        <div className="mt-20 scroll-reveal">
+          <NewsEventsSlider />
         </div>
 
         {/* Highlights Section with Scroll-Driven Reveal */}
