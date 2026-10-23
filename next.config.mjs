@@ -3,6 +3,14 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: '/.well-known/assetlinks.json',
+        destination: '/api/assetlinks',
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
         // Ensure installed Android PWAs always revalidate the worker that
         // controls their cached application shell.
         source: '/sw.js',
@@ -13,14 +21,6 @@ const nextConfig = {
           },
         ],
       },
-      {
-        source: '/.well-known/assetlinks.json',
-        destination: '/api/assetlinks',
-      },
-    ];
-  },
-  async headers() {
-    return [
       {
         source: '/.well-known/assetlinks.json',
         headers: [
