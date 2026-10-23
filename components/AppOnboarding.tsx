@@ -73,11 +73,9 @@ export default function AppOnboarding() {
     // Check if user has already completed onboarding and accepted terms
     const completed = localStorage.getItem('edsa_welcome_onboarding_v1');
     const termsAcceptedStorage = localStorage.getItem('edsa_terms_accepted_v1');
-    const desktop = isDesktopEnvironment();
-    const locSkipped = desktop && (
+    const locSkipped =
       localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
-      localStorage.getItem('edsa_location_skipped_v1') === 'true'
-    );
+      localStorage.getItem('edsa_location_skipped_v1') === 'true';
     if (locSkipped) {
       setLocationSkipped(true);
     }
@@ -193,7 +191,7 @@ export default function AppOnboarding() {
     navigator.geolocation.getCurrentPosition(
       succeed,
       fail,
-      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: GEOLOCATION_TIMEOUT_MS, maximumAge: GEOLOCATION_MAXIMUM_AGE_MS },
     );
   }, [handleLocationFailure, handleLocationSuccess]);
 
@@ -274,7 +272,6 @@ export default function AppOnboarding() {
   };
 
   const handleSkipLocation = () => {
-    if (!isDesktop) return;
     localStorage.setItem('edsa_location_skipped_v1', 'true');
     localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
     setLocationSkipped(true);
@@ -285,10 +282,8 @@ export default function AppOnboarding() {
   };
 
   const handleSkipAllAndEnter = () => {
-    if (isDesktop) {
-      localStorage.setItem('edsa_location_skipped_v1', 'true');
-      localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
-    }
+    localStorage.setItem('edsa_location_skipped_v1', 'true');
+    localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
     localStorage.setItem('edsa_welcome_onboarding_v1', 'true');
     localStorage.setItem('edsa_terms_accepted_v1', 'true');
     window.dispatchEvent(new Event(LOCATION_ONBOARDING_COMPLETE_EVENT));
@@ -442,7 +437,7 @@ export default function AppOnboarding() {
                   </>
                 )}
               </button>
-              {isDesktop && (((stepAttempts[1] || 0) >= 2) || !locationGranted) && !locationGranted && (
+              {!locationGranted && (((stepAttempts[1] || 0) >= 1) || Boolean(locationIssue) || Boolean(locationError) || isDesktop) && (
                 <button
                   type="button"
                   onClick={handleSkipLocation}
@@ -568,9 +563,8 @@ export default function AppOnboarding() {
   const isLastStep = currentStep === steps.length - 1;
   const isTermsStep = currentStep === 0;
   const isLocationStep = currentStep === 1;
-  const canSkipLocation = isDesktop && (
-    locationSkippedOnDesktop || locationSkipped || (stepAttempts[1] || 0) >= 2
-  );
+  const canSkipLocation =
+    locationSkippedOnDesktop || locationSkipped || (stepAttempts[1] || 0) >= 1 || Boolean(locationIssue) || isDesktop;
   const canSkipTerms = (stepAttempts[0] || 0) >= 2;
   const isNextDisabled =
     (isTermsStep && !termsAccepted && !canSkipTerms) ||
@@ -633,7 +627,7 @@ export default function AppOnboarding() {
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
               Step {currentStep + 1} of {steps.length}
             </div>
-            {((stepAttempts[currentStep] || 0) >= 2 && (!isLocationStep || isDesktop)) && (
+            {(((stepAttempts[currentStep] || 0) >= 1) || (isLocationStep && locationIssue !== null) || isDesktop) && (
               <button
                 type="button"
                 onClick={handleSkipAllAndEnter}

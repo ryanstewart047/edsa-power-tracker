@@ -376,7 +376,7 @@ export default function Home() {
       {
         enableHighAccuracy: true,
         timeout: GEOLOCATION_TIMEOUT_MS,
-        maximumAge: 0,
+        maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
       },
     );
   }, [handleLocationError, handleLocationSuccess]);
