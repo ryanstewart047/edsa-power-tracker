@@ -20,7 +20,11 @@ import {
   AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
-import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/reporting';
+import {
+  GEOLOCATION_MAXIMUM_AGE_MS,
+  GEOLOCATION_TIMEOUT_MS,
+  MAX_LOCATION_ACCESS_ACCURACY_METERS,
+} from '@/lib/locationConfig';
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
@@ -69,7 +73,11 @@ export default function AppOnboarding() {
     // Check if user has already completed onboarding and accepted terms
     const completed = localStorage.getItem('edsa_welcome_onboarding_v1');
     const termsAcceptedStorage = localStorage.getItem('edsa_terms_accepted_v1');
-    const locSkipped = localStorage.getItem('edsa_location_skipped_v1') === 'true';
+    const desktop = isDesktopEnvironment();
+    const locSkipped = desktop && (
+      localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
+      localStorage.getItem('edsa_location_skipped_v1') === 'true'
+    );
     if (locSkipped) {
       setLocationSkipped(true);
     }
@@ -90,7 +98,7 @@ export default function AppOnboarding() {
 
   const handleLocationSuccess = useCallback((pos: GeolocationPosition) => {
     const accuracy = pos.coords.accuracy;
-    if (!Number.isFinite(accuracy) || accuracy > MAX_REPORTING_ACCURACY_METERS) {
+    if (!Number.isFinite(accuracy) || accuracy > MAX_LOCATION_ACCESS_ACCURACY_METERS) {
       const roundedAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
       setLocationAccuracy(roundedAccuracy);
       setLocationGranted(false);
@@ -118,13 +126,13 @@ export default function AppOnboarding() {
     if (err.code === err.PERMISSION_DENIED) {
       setLocationIssue('denied');
       setLocationError('Permission was denied. Allow location access in browser or app settings to continue.');
-    } else if (err.code === err.POSITION_UNAVAILABLE) {
+    } else if (err.code === err.POSITION_UNAVAILABLE || err.code === err.TIMEOUT) {
       setLocationIssue('unavailable');
       const isDesktop = !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
       setLocationError(
         isDesktop
           ? 'Your browser could not get a location from this computer. Allow Location Services for your browser in system settings, then try again.'
-          : 'Location services are unavailable. Turn on device Location, then try again.',
+          : 'No coordinate was returned. Check Location permission for this app or browser, turn off Battery Saver, then try again outdoors.',
       );
     } else {
       setLocationIssue('accuracy');
@@ -139,23 +147,45 @@ export default function AppOnboarding() {
     }
 
     if (showLoading) setLocationLoading(true);
-    const succeed = (position: GeolocationPosition) => {
+    let settled = false;
+    const finish = () => {
+      settled = true;
       setLocationLoading(false);
+    };
+    const requestTimeout = window.setTimeout(() => {
+      if (settled) return;
+      finish();
+      setLocationGranted(false);
+      setLocationIssue('unavailable');
+      setLocationError('Location did not return a coordinate. Check Location permission for the installed app, turn off Battery Saver, then try again outdoors.');
+    }, GEOLOCATION_TIMEOUT_MS * 3);
+    const succeed = (position: GeolocationPosition) => {
+      if (settled) return;
+      window.clearTimeout(requestTimeout);
+      finish();
       handleLocationSuccess(position);
     };
     const fail = (error: GeolocationPositionError) => {
+      if (settled) return;
       if (error.code !== error.POSITION_UNAVAILABLE && error.code !== error.TIMEOUT) {
+        window.clearTimeout(requestTimeout);
+        finish();
         handleLocationFailure(error);
         return;
       }
 
       navigator.geolocation.getCurrentPosition(
         succeed,
-        handleLocationFailure,
+        (fallbackError) => {
+          if (settled) return;
+          window.clearTimeout(requestTimeout);
+          finish();
+          handleLocationFailure(fallbackError);
+        },
         {
           enableHighAccuracy: false,
           timeout: GEOLOCATION_TIMEOUT_MS * 2,
-          maximumAge: GEOLOCATION_TIMEOUT_MS,
+          maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
         },
       );
     };
@@ -224,6 +254,7 @@ export default function AppOnboarding() {
 
   const openLocationSettings = () => {
     registerAttempt(1);
+    setShowLocationHelp(true);
     if (isAndroid) {
       const action = locationIssue === 'denied'
         ? 'android.settings.APPLICATION_DETAILS_SETTINGS'
@@ -243,6 +274,7 @@ export default function AppOnboarding() {
   };
 
   const handleSkipLocation = () => {
+    if (!isDesktop) return;
     localStorage.setItem('edsa_location_skipped_v1', 'true');
     localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
     setLocationSkipped(true);
@@ -253,8 +285,10 @@ export default function AppOnboarding() {
   };
 
   const handleSkipAllAndEnter = () => {
-    localStorage.setItem('edsa_location_skipped_v1', 'true');
-    localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+    if (isDesktop) {
+      localStorage.setItem('edsa_location_skipped_v1', 'true');
+      localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
+    }
     localStorage.setItem('edsa_welcome_onboarding_v1', 'true');
     localStorage.setItem('edsa_terms_accepted_v1', 'true');
     window.dispatchEvent(new Event(LOCATION_ONBOARDING_COMPLETE_EVENT));
@@ -408,7 +442,7 @@ export default function AppOnboarding() {
                   </>
                 )}
               </button>
-              {(((stepAttempts[1] || 0) >= 2) || (isDesktop && !locationGranted)) && !locationGranted && (
+              {isDesktop && (((stepAttempts[1] || 0) >= 2) || !locationGranted) && !locationGranted && (
                 <button
                   type="button"
                   onClick={handleSkipLocation}
@@ -534,7 +568,9 @@ export default function AppOnboarding() {
   const isLastStep = currentStep === steps.length - 1;
   const isTermsStep = currentStep === 0;
   const isLocationStep = currentStep === 1;
-  const canSkipLocation = (isDesktop && locationSkippedOnDesktop) || locationSkipped || (stepAttempts[1] || 0) >= 2;
+  const canSkipLocation = isDesktop && (
+    locationSkippedOnDesktop || locationSkipped || (stepAttempts[1] || 0) >= 2
+  );
   const canSkipTerms = (stepAttempts[0] || 0) >= 2;
   const isNextDisabled =
     (isTermsStep && !termsAccepted && !canSkipTerms) ||
@@ -597,7 +633,7 @@ export default function AppOnboarding() {
             <div className="text-[10px] font-black uppercase tracking-widest text-gray-500">
               Step {currentStep + 1} of {steps.length}
             </div>
-            {((stepAttempts[currentStep] || 0) >= 2 || (!isLastStep && !isTermsStep && !isLocationStep)) && (
+            {((stepAttempts[currentStep] || 0) >= 2 && (!isLocationStep || isDesktop)) && (
               <button
                 type="button"
                 onClick={handleSkipAllAndEnter}

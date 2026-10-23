@@ -16,7 +16,7 @@ import {
 import {
   GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
-  MAX_REPORTING_ACCURACY_METERS,
+  MAX_LOCATION_ACCESS_ACCURACY_METERS,
 } from '@/lib/locationConfig';
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
@@ -131,9 +131,24 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       setIsRequesting(true);
     }
 
+    let settled = false;
+    const finishRequest = () => {
+      settled = true;
+      setIsRequesting(false);
+    };
+
+    const requestTimeout = window.setTimeout(() => {
+      if (settled) return;
+      finishRequest();
+      setState('GPS_UNAVAILABLE');
+      setErrorMessage('Location did not return a coordinate. Check that Location is allowed for the installed EDSA app, turn off Battery Saver, then try again outdoors.');
+    }, GEOLOCATION_TIMEOUT_MS * 3);
+
     const acceptPosition = (position: GeolocationPosition) => {
+      if (settled) return;
+      window.clearTimeout(requestTimeout);
       const accuracy = position.coords.accuracy;
-      if (!Number.isFinite(accuracy) || accuracy > MAX_REPORTING_ACCURACY_METERS) {
+      if (!Number.isFinite(accuracy) || accuracy > MAX_LOCATION_ACCESS_ACCURACY_METERS) {
         const roundedAccuracy = Number.isFinite(accuracy) ? Math.round(accuracy) : null;
         const isDesktop = !/android|iphone|ipad|ipod|mobile/i.test(navigator.userAgent);
         setState('LOW_ACCURACY');
@@ -141,22 +156,24 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           roundedAccuracy === null
             ? 'Your browser did not provide a location accuracy radius. Check browser and operating-system Location Services, then try again.'
             : isDesktop
-              ? `Your browser location is about ${roundedAccuracy}m accurate. Improve your computer's Location Services to reach the required ${MAX_REPORTING_ACCURACY_METERS}m accuracy.`
-              : `Your current GPS accuracy is about ${roundedAccuracy}m. Move outdoors or turn on Precise Location to reach the required ${MAX_REPORTING_ACCURACY_METERS}m accuracy.`,
+              ? `Your browser location is about ${roundedAccuracy}m accurate. Improve your computer's Location Services to reach the required ${MAX_LOCATION_ACCESS_ACCURACY_METERS}m accuracy.`
+              : `Your current GPS accuracy is about ${roundedAccuracy}m. Move outdoors or turn on Precise Location to reach the required ${MAX_LOCATION_ACCESS_ACCURACY_METERS}m accuracy.`,
         );
-        setIsRequesting(false);
+        finishRequest();
         return;
       }
       setState('READY');
       setErrorMessage(null);
-      setIsRequesting(false);
+      finishRequest();
       if (onLocationReady) {
         onLocationReady(position);
       }
     };
 
     const reportFailure = (error: GeolocationPositionError) => {
-      setIsRequesting(false);
+      if (settled) return;
+      window.clearTimeout(requestTimeout);
+      finishRequest();
       if (error.code === error.PERMISSION_DENIED) {
         setState('PERMISSION_DENIED');
         setErrorMessage('Location permission was denied. EDSA Tracker requires access to your GPS to operate.');
@@ -422,7 +439,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
                   : state === 'GPS_UNAVAILABLE'
                   ? 'Your location signal is currently unavailable. An open area and Precise Location help the app verify your exact community.'
                   : state === 'LOW_ACCURACY'
-                  ? `A GPS radius of ${MAX_REPORTING_ACCURACY_METERS}m or better is required to match your Sierra Leone community accurately.`
+                  ? `A GPS radius of ${MAX_LOCATION_ACCESS_ACCURACY_METERS}m or better is required to match your Sierra Leone community accurately.`
                   : state === 'PERMISSION_DENIED'
                   ? 'Permission to access location was denied. To protect grid integrity, you must enable location permissions for this app to proceed.'
                   : 'EDSA Power Tracker requires real-time GPS location to match your community, verify power reports, and dispatch emergency hazard crews.'
