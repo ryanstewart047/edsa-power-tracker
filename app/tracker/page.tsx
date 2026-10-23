@@ -31,6 +31,7 @@ import MeterTroubleshooterModal from '@/components/MeterTroubleshooterModal';
 import ApplianceSurgeWarning from '@/components/ApplianceSurgeWarning';
 import AreaCommunityBulletin from '@/components/AreaCommunityBulletin';
 import {
+  GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
   GPS_WARNING_ACCURACY_METERS,
   HAZARD_TYPES,
