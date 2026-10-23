@@ -1,4 +1,4 @@
-const CACHE_NAME = 'edsa-tracker-v1.0.5';
+const CACHE_NAME = 'edsa-tracker-gps-rules-v1';
 const OFFLINE_URL = '/offline.html';
 
 const STATIC_ASSETS = [
