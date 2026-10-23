@@ -13,7 +13,11 @@ import {
   AlertTriangle,
   ChevronRight
 } from 'lucide-react';
-import { GEOLOCATION_TIMEOUT_MS, MAX_REPORTING_ACCURACY_METERS } from '@/lib/locationConfig';
+import {
+  GEOLOCATION_MAXIMUM_AGE_MS,
+  GEOLOCATION_TIMEOUT_MS,
+  MAX_REPORTING_ACCURACY_METERS,
+} from '@/lib/locationConfig';
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
