@@ -101,8 +101,8 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   }, []);
 
   const handleSkipLocation = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('edsa_location_skipped_v1', 'true');
+    if (typeof window !== 'undefined' && isDesktopEnvironment()) {
+      localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
       setDesktopLocationSkipped(true);
       setState('READY');
     }
@@ -175,7 +175,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
           // location through the operating system, Wi-Fi, or network provider.
           enableHighAccuracy: false,
           timeout: GEOLOCATION_TIMEOUT_MS * 2,
-          maximumAge: GEOLOCATION_TIMEOUT_MS,
+          maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
         },
       );
     };
@@ -526,7 +526,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               </>
             )}
 
-            {attemptCount >= 2 && (
+            {isDesktop && attemptCount >= 2 && (
               <button
                 type="button"
                 onClick={handleSkipLocation}

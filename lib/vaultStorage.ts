@@ -222,10 +222,7 @@ export function getInitialMetersFromLocalStorage(): MeterProfile[] {
     const raw = localStorage.getItem(STORAGE_KEYS.METERS) || localStorage.getItem(STORAGE_KEYS.METERS_BACKUP);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        // Strip out any legacy hardcoded demo meter (meter-1 / 01423859201)
-        return parsed.filter((m) => !(m && (m.id === 'meter-1' || m.meterNumber === '01423859201')));
-      }
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
     }
   } catch {
     // fallback
@@ -282,9 +279,7 @@ export async function loadMetersMultiTier(): Promise<MeterProfile[]> {
     if (m && m.id) meterMap.set(m.id, m);
   });
 
-  const merged = Array.from(meterMap.values()).filter(
-    (m) => !(m && (m.id === 'meter-1' || m.meterNumber === '01423859201'))
-  );
+  const merged = Array.from(meterMap.values());
   if (merged.length > 0 && (merged.length !== localMeters.length || merged.length !== idbMeters.length)) {
     persistMetersMultiTier(merged);
   }

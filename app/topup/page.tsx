@@ -27,13 +27,8 @@ import {
   AlertCircle,
   ScanLine,
   Loader2,
-  Edit3,
-  VolumeX,
-  BarChart2
+  Edit3
 } from 'lucide-react';
-import TokenBurnRateCard from '@/components/TokenBurnRateCard';
-import MeterTroubleshooterModal from '@/components/MeterTroubleshooterModal';
-import MeterBreakdownModal from '@/components/MeterBreakdownModal';
 import { parseTokenSms, ParsedSmsToken, extractMeterNumber } from '@/lib/tokenParser';
 import {
   StoredToken,
@@ -87,18 +82,10 @@ function TopUpContent() {
   // Token Vault state
   const [tokens, setTokens] = useState<StoredToken[]>([]);
   const [showAddTokenModal, setShowAddTokenModal] = useState(false);
-  const [showMeterTroubleshooter, setShowMeterTroubleshooter] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const [tokenAmountInput, setTokenAmountInput] = useState('');
   const [tokenUnitsInput, setTokenUnitsInput] = useState('');
   const [keypadModalToken, setKeypadModalToken] = useState<StoredToken | null>(null);
-
-  // Meter Breakdown & Nickname Editing state
-  const [selectedBreakdownMeter, setSelectedBreakdownMeter] = useState<MeterProfile | null>(null);
-  const [editingMeter, setEditingMeter] = useState<MeterProfile | null>(null);
-  const [editMeterNameInput, setEditMeterNameInput] = useState('');
-  const [showEditMeterModal, setShowEditMeterModal] = useState(false);
-  const [vaultFilterMeterId, setVaultFilterMeterId] = useState<string>('all');
 
   // SMS & Clipboard Parsing state (Options A, B, C)
   const [rawSmsInput, setRawSmsInput] = useState('');
@@ -121,19 +108,19 @@ function TopUpContent() {
 
     const initialMeters = getInitialMetersFromLocalStorage();
     if (initialMeters.length > 0) {
-      // Filter out any leftover default demo meter that was seeded by older app versions
-      const filtered = initialMeters.filter(
-        (m) => !(m.id === 'meter-1' && m.meterNumber === '01423859201' && m.isDefault)
-      );
-      const activeMeters = filtered.length > 0 ? filtered : [];
-      setMeters(activeMeters);
-      if (activeMeters.length > 0) setSelectedMeterId(activeMeters[0].id);
-      if (filtered.length !== initialMeters.length) {
-        // Persist the cleaned list back to storage
-        persistMetersMultiTier(activeMeters);
-      }
+      setMeters(initialMeters);
+      setSelectedMeterId(initialMeters[0].id);
+    } else {
+      const defaultMeter: MeterProfile = {
+        id: 'meter-1',
+        name: 'Home Meter',
+        meterNumber: '01423859201',
+        isDefault: true,
+      };
+      setMeters([defaultMeter]);
+      setSelectedMeterId(defaultMeter.id);
+      persistMetersMultiTier([defaultMeter]);
     }
-    // No default meter seeded — user must add their own meter
 
     // 3. Asynchronous multi-tier reconciliation (IndexedDB + localStorage backup)
     loadTokensMultiTier().then((reconciledTokens) => {
@@ -143,13 +130,10 @@ function TopUpContent() {
     });
 
     loadMetersMultiTier().then((reconciledMeters) => {
-      const validMeters = (reconciledMeters || []).filter(
-        (m) => !(m && (m.id === 'meter-1' || m.meterNumber === '01423859201'))
-      );
-      if (validMeters.length > 0) {
-        setMeters(validMeters);
-        metersRef.current = validMeters;
-        setSelectedMeterId((prev) => prev || validMeters[0].id);
+      if (reconciledMeters && reconciledMeters.length > 0) {
+        setMeters(reconciledMeters);
+        metersRef.current = reconciledMeters;
+        setSelectedMeterId((prev) => prev || reconciledMeters[0].id);
       }
     });
   }, []);
@@ -492,53 +476,10 @@ function TopUpContent() {
   const handleDeleteMeter = (id: string) => {
     const updated = meters.filter((m) => m.id !== id);
     saveMeters(updated);
-    if (selectedMeterId === id) {
-      setSelectedMeterId(updated.length > 0 ? updated[0].id : '');
+    if (selectedMeterId === id && updated.length > 0) {
+      setSelectedMeterId(updated[0].id);
     }
   };
-
-  // Edit and update meter nickname across both meters and saved tokens
-  const handleSaveMeterNickname = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingMeter || !editMeterNameInput.trim()) return;
-
-    const newName = editMeterNameInput.trim();
-    const cleanNum = editingMeter.meterNumber.replace(/\D/g, '');
-
-    // 1. Update meters list
-    const updatedMeters = meters.map((m) =>
-      m.id === editingMeter.id ? { ...m, name: newName } : m
-    );
-    saveMeters(updatedMeters);
-
-    // 2. Update all matching tokens' meterName in the vault
-    const updatedTokens = tokens.map((t) => {
-      const tClean = (t.meterNumber || '').replace(/\D/g, '');
-      if (tClean === cleanNum) {
-        return { ...t, meterName: newName };
-      }
-      return t;
-    });
-    saveTokens(updatedTokens);
-
-    // 3. Update breakdown modal target if open
-    if (selectedBreakdownMeter && selectedBreakdownMeter.id === editingMeter.id) {
-      setSelectedBreakdownMeter({ ...selectedBreakdownMeter, name: newName });
-    }
-
-    setClipboardStatusMessage(`Meter nickname updated to "${newName}"`);
-    setTimeout(() => setClipboardStatusMessage(null), 3500);
-    setShowEditMeterModal(false);
-  };
-
-  // Filter vault tokens based on active meter selection
-  const filteredVaultTokens = useMemo(() => {
-    if (vaultFilterMeterId === 'all') return tokens;
-    const targetMeter = meters.find((m) => m.id === vaultFilterMeterId);
-    if (!targetMeter) return tokens;
-    const cleanTarget = targetMeter.meterNumber.replace(/\D/g, '');
-    return tokens.filter((t) => (t.meterNumber || '').replace(/\D/g, '') === cleanTarget);
-  }, [tokens, vaultFilterMeterId, meters]);
 
   // Format 20 digit token string
   const formatTokenDisplay = (raw: string) => {
@@ -698,27 +639,16 @@ function TopUpContent() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* Meter selector pill */}
+          {selectedMeter && (
             <button
-              onClick={() => setShowMeterTroubleshooter(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 hover:bg-amber-100 border border-amber-200 text-xs text-amber-900 font-bold transition-all shadow-xs"
-              title="Silence meter beeping alarm and view CIU error codes"
+              onClick={() => setActiveTab('meters')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs transition-colors"
             >
-              <VolumeX className="w-3.5 h-3.5 text-amber-600" />
-              <span className="hidden sm:inline">Mute Beeper</span>
+              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-bold text-slate-800 truncate max-w-[100px]">{selectedMeter.name}</span>
             </button>
-
-            {/* Meter selector pill */}
-            {selectedMeter && (
-              <button
-                onClick={() => setActiveTab('meters')}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs transition-colors"
-              >
-                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="font-bold text-slate-800 truncate max-w-[100px]">{selectedMeter.name}</span>
-              </button>
-            )}
-          </div>
+          )}
         </div>
       </header>
 
@@ -1153,24 +1083,6 @@ function TopUpContent() {
         {/* TAB 2: TOKEN HISTORY VAULT */}
         {activeTab === 'vault' && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-            {/* Burn Rate & Spending Analytics with Per-Meter Breakdown */}
-            <div className="scroll-reveal">
-              <TokenBurnRateCard
-                tokens={tokens}
-                meters={meters}
-                selectedMeterId={vaultFilterMeterId}
-                onSelectMeterId={setVaultFilterMeterId}
-                onOpenMeterAssistant={() => setShowMeterTroubleshooter(true)}
-                onOpenTopUp={() => setActiveTab('buy')}
-                onEditMeterNickname={(meter) => {
-                  setEditingMeter(meter);
-                  setEditMeterNameInput(meter.name);
-                  setShowEditMeterModal(true);
-                }}
-                onOpenMeterBreakdown={(meter) => setSelectedBreakdownMeter(meter)}
-              />
-            </div>
-
             {/* Header & Action Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 scroll-reveal">
               <div>
@@ -1209,38 +1121,15 @@ function TopUpContent() {
               </div>
             </div>
 
-            {/* Filter Indicator when a specific meter is selected */}
-            {vaultFilterMeterId !== 'all' && (
-              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200 text-xs scroll-reveal shadow-xs">
-                <div className="flex items-center gap-2">
-                  <Zap className="w-4 h-4 text-blue-600 fill-blue-600" />
-                  <span className="text-slate-800 font-medium">
-                    Filtered for: <strong className="text-slate-900">{meters.find((m) => m.id === vaultFilterMeterId)?.name}</strong> ({filteredVaultTokens.length} token{filteredVaultTokens.length !== 1 ? 's' : ''})
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setVaultFilterMeterId('all')}
-                  className="text-blue-700 font-bold hover:underline text-xs"
-                >
-                  Show All Meters
-                </button>
-              </div>
-            )}
-
             {/* Token List */}
-            {filteredVaultTokens.length === 0 ? (
+            {tokens.length === 0 ? (
               <div className="bg-white border border-slate-200 rounded-2xl p-8 text-center space-y-3 shadow-sm scroll-reveal">
                 <div className="w-12 h-12 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center mx-auto text-slate-500">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <div className="text-sm font-bold text-slate-900">
-                  {vaultFilterMeterId !== 'all' ? 'No Tokens Saved for this Meter' : 'No Tokens Stored Yet'}
-                </div>
+                <div className="text-sm font-bold text-slate-900">No Tokens Stored Yet</div>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  {vaultFilterMeterId !== 'all'
-                    ? 'You have not saved any electricity top-ups for this meter yet. Tap Quick-Pay or Save Token to add one.'
-                    : 'When you buy electricity via mobile money or scratch card, copy the SMS and save it here. The app will auto-extract the 20 digits so you never lose them.'}
+                  When you buy electricity via mobile money or scratch card, copy the SMS and save it here. The app will auto-extract the 20 digits so you never lose them.
                 </p>
                 <div className="flex justify-center gap-2 pt-2">
                   <button
@@ -1263,7 +1152,7 @@ function TopUpContent() {
               </div>
             ) : (
               <div className="space-y-3">
-                {filteredVaultTokens.map((token) => (
+                {tokens.map((token) => (
                   <div
                     key={token.id}
                     className={`p-4 rounded-2xl border transition-all scroll-reveal ${
@@ -1501,48 +1390,8 @@ function TopUpContent() {
             </div>
 
             <div className="space-y-3">
-              {meters.length === 0 ? (
-                <div className="p-8 text-center bg-white border border-dashed border-slate-300 rounded-3xl space-y-3 shadow-2xs">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center mx-auto">
-                    <Zap className="w-6 h-6" />
-                  </div>
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-slate-900 text-sm">No Meters Saved Yet</h3>
-                    <p className="text-xs text-slate-500 max-w-xs mx-auto">
-                      Add your EDSA prepaid meter number once to enable 1-tap recharges, token tracking, and financial breakdown.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowAddMeterModal(true)}
-                    className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider inline-flex items-center gap-1.5 shadow-sm active:scale-95 transition-all"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>Add Your Meter</span>
-                  </button>
-                </div>
-              ) : (
-                meters.map((meter) => {
+              {meters.map((meter) => {
                 const isSelected = meter.id === selectedMeterId;
-                const meterCleanNum = meter.meterNumber.replace(/\D/g, '');
-                const meterTokens = tokens.filter((t) => (t.meterNumber || '').replace(/\D/g, '') === meterCleanNum);
-                const now = new Date();
-                const currentMonth = now.getMonth();
-                const currentYear = now.getFullYear();
-                const thisMonthSpend = meterTokens
-                  .filter((t) => {
-                    const d = new Date(t.date);
-                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-                  })
-                  .reduce((sum, t) => sum + (t.amountNle || 0), 0);
-
-                const dayOfWeek = (now.getDay() + 6) % 7;
-                const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
-                startOfWeek.setHours(0, 0, 0, 0);
-                const thisWeekSpend = meterTokens
-                  .filter((t) => new Date(t.date) >= startOfWeek)
-                  .reduce((sum, t) => sum + (t.amountNle || 0), 0);
-
                 return (
                   <div
                     key={meter.id}
@@ -1552,57 +1401,22 @@ function TopUpContent() {
                         : 'bg-white border-slate-200 hover:border-slate-300 shadow-sm'
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center justify-between">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-base text-slate-900">{meter.name}</span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setEditingMeter(meter);
-                              setEditMeterNameInput(meter.name);
-                              setShowEditMeterModal(true);
-                            }}
-                            className="p-1 rounded-md text-slate-400 hover:text-blue-600 hover:bg-slate-100 transition-colors"
-                            title="Edit meter nickname"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
+                          <span className="font-bold text-sm text-slate-900">{meter.name}</span>
                           {isSelected && (
                             <span className="text-[9px] bg-blue-600 text-white font-black px-2 py-0.5 rounded-full uppercase">
                               Active Target
                             </span>
                           )}
                         </div>
-                        <div className="font-mono text-sm font-bold text-emerald-600 tracking-wider">
+                        <div className="font-mono text-base font-bold text-emerald-600 tracking-wider">
                           {meter.meterNumber}
-                        </div>
-
-                        {/* Financial summary snippet */}
-                        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-slate-600">
-                          <span className="inline-flex items-center gap-1 font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md border border-blue-200">
-                            This Month: NLe {thisMonthSpend.toLocaleString()}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-slate-600 bg-slate-50 px-2 py-0.5 rounded-md border border-slate-200">
-                            This Week: NLe {thisWeekSpend.toLocaleString()}
-                          </span>
-                          <span className="text-[11px] text-slate-400">
-                            • {meterTokens.length} saved token{meterTokens.length !== 1 ? 's' : ''}
-                          </span>
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap items-center gap-2 self-start sm:self-center">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedBreakdownMeter(meter)}
-                          className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm shadow-blue-500/20 active:scale-95"
-                        >
-                          <BarChart2 className="w-3.5 h-3.5" />
-                          <span>Financial Graph</span>
-                        </button>
-
+                      <div className="flex items-center gap-2">
                         {!isSelected && (
                           <button
                             type="button"
@@ -1627,7 +1441,7 @@ function TopUpContent() {
                           )}
                         </button>
 
-                        {meters.length > 0 && (
+                        {meters.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleDeleteMeter(meter.id)}
@@ -1642,7 +1456,7 @@ function TopUpContent() {
                     </div>
                   </div>
                 );
-              }))}
+              })}
             </div>
           </motion.div>
         )}
@@ -2042,100 +1856,6 @@ function TopUpContent() {
           </div>
         )}
       </AnimatePresence>
-
-      {/* MODAL 4: EDIT METER NICKNAME */}
-      <AnimatePresence>
-        {showEditMeterModal && editingMeter && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md">
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="bg-white border border-slate-200 rounded-[2rem] p-6 w-full max-w-md shadow-2xl space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-black text-slate-900">Edit Meter Nickname</h3>
-                <button
-                  type="button"
-                  onClick={() => setShowEditMeterModal(false)}
-                  className="p-1.5 rounded-lg bg-slate-100 text-slate-500 hover:text-slate-900 transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveMeterNickname} className="space-y-4 text-left">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">Meter Number</label>
-                  <div className="font-mono text-sm font-bold text-slate-600 bg-slate-50 border border-slate-200 px-3.5 py-2.5 rounded-xl">
-                    {editingMeter.meterNumber}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700">New Nickname</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Home, Shop, Aberdeen Flat"
-                    value={editMeterNameInput}
-                    onChange={(e) => setEditMeterNameInput(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 text-sm focus:outline-none focus:border-blue-500 focus:bg-white transition-colors"
-                    autoFocus
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowEditMeterModal(false)}
-                    className="flex-1 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={!editMeterNameInput.trim()}
-                    className="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-black uppercase tracking-wider transition-all disabled:opacity-50 shadow-md shadow-blue-500/20 active:scale-95"
-                  >
-                    Save Nickname
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* MODAL 5: METER FINANCIAL BREAKDOWN & GRAPH */}
-      <MeterBreakdownModal
-        isOpen={Boolean(selectedBreakdownMeter)}
-        onClose={() => setSelectedBreakdownMeter(null)}
-        meter={selectedBreakdownMeter}
-        tokens={tokens}
-        isActive={selectedBreakdownMeter?.id === selectedMeterId}
-        onSetActive={(id) => setSelectedMeterId(id)}
-        onEditNickname={(meter) => {
-          setEditingMeter(meter);
-          setEditMeterNameInput(meter.name);
-          setShowEditMeterModal(true);
-        }}
-        onRechargeMeter={(meter) => {
-          setSelectedMeterId(meter.id);
-          setSelectedBreakdownMeter(null);
-          setActiveTab('buy');
-        }}
-        onOpenMeterAssistant={() => {
-          setSelectedBreakdownMeter(null);
-          setShowMeterTroubleshooter(true);
-        }}
-      />
-
-      {/* Meter Assistant & Silence Beeper Modal */}
-      <MeterTroubleshooterModal
-        isOpen={showMeterTroubleshooter}
-        onClose={() => setShowMeterTroubleshooter(false)}
-      />
     </main>
   );
 }

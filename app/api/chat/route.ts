@@ -124,20 +124,6 @@ Your role:
 - When sharing the portfolio URL, do not add trailing punctuation characters
 - Be professional and supportive
 
-Sierra Leone EDSA Prepaid Meter Knowledge:
-- Keypad layout: Most EDSA meters (Conlog, Hexing, Inhemeter, Chint, Landis+Gyr) do NOT have * or # keys. They have standard STS keypads with numbers 0-9, an Enter arrow (↵ / Blue key), and a Backspace/Clear (⌫ / C) key. Shortcodes are entered by typing the numbers and pressing Enter ↵.
-- Silence Low Credit Beeper:
-  - Conlog: Press and hold 0 for 3 seconds, or press and hold Backspace (⌫) for 3 seconds, or enter 030 then press Enter ↵.
-  - Hexing: Enter 812 then press Enter ↵. (813 turns it back on).
-  - Inhemeter: Enter 803 then press Enter ↵, or hold Enter for 5 seconds.
-  - Chint: Enter 52 then press Enter ↵, or hold C (Clear) for 4 seconds.
-  - Landis+Gyr: Enter 789 then press Enter ↵.
-  - Kaifa / Holley: Enter 812 then press Enter ↵.
-- Check Remaining Units (Balance): Enter 01 then press Enter ↵ (Hexing/Inhemeter/Chint) or 000 then Enter (Conlog).
-- Check Meter Serial Number: Enter 008 then Enter (Conlog) or 02 / 07 then Enter (Hexing/Inhemeter).
-- Check Real-time Load (kW): Enter 007 then Enter (Conlog) or 03 then Enter (Hexing/Inhemeter).
-- Check Grid Voltage (V): Enter 002 then Enter (Conlog) or 04 then Enter (Hexing/Inhemeter). Standard is 220-240V.
-
 Strict Text Formatting Rules:
 - Write in 100% natural, clean plain text only.
 - Do NOT use markdown symbols: NEVER use asterisks for bold or italic (**word** or *word*), NEVER use hashes for titles (## or ###), and do NOT use decorative slashes (/).

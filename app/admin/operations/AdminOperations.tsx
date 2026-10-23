@@ -1,120 +1,18 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState, useRef } from 'react';
-import {
-  ArrowLeft,
-  Bell,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  ChevronUp,
-  MessageSquare,
-  Pencil,
-  RefreshCw,
-  Settings2,
-  ToggleLeft,
-  ToggleRight,
-  Trash2,
-  Plus,
-  Upload,
-  X,
-  Check,
-  AlertTriangle,
-  HardHat,
-  Flame,
-  CloudRain,
-  HeartPulse,
-  Zap,
-  ShieldAlert,
-  ShieldCheck,
-  MoveUp,
-  MoveDown,
-  Newspaper
-} from 'lucide-react';
-import { DEFAULT_SAFETY_SLIDES, type SafetySlideData, type BadgeTone } from '@/lib/safetyCards';
-import { HAZARD_TYPES } from '@/lib/locationConfig';
+import { useCallback, useEffect, useState } from 'react';
+import { ArrowLeft, Bell, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, MessageSquare, Pencil, RefreshCw, Settings2, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react';
 
 type Data = {
   flags: Record<string, boolean>;
   definitions: Record<string, { label: string }>;
   feedbackCount: number;
-  feedback: Array<{
-    id: string;
-    name: string | null;
-    email: string | null;
-    category: string;
-    rating: number;
-    area: string | null;
-    message: string;
-    createdAt: string;
-  }>;
+  feedback: Array<{ id: string; name: string | null; email: string | null; category: string; rating: number; area: string | null; message: string; createdAt: string }>;
   announcements: Array<{ id: string; title: string; message: string; active: boolean; createdAt: string }>;
   logs: Array<{ id: string; action: string; detail: string | null; adminEmail: string; createdAt: string }>;
-  safetyCards?: SafetySlideData[];
   directVending: { enabled: boolean; approved: boolean; credentialsConfigured: boolean; message: string };
 };
-
-const PRESET_ICONS = [
-  { name: 'HardHat', label: 'Engineer Hard Hat', icon: HardHat },
-  { name: 'CloudRain', label: 'Rain / Storm', icon: CloudRain },
-  { name: 'Flame', label: 'Fire / Transformer', icon: Flame },
-  { name: 'ShieldAlert', label: 'Safety Warning', icon: ShieldAlert },
-  { name: 'HeartPulse', label: 'First Aid / Medic', icon: HeartPulse },
-  { name: 'Zap', label: 'High Voltage', icon: Zap },
-  { name: 'AlertTriangle', label: 'Danger Triangle', icon: AlertTriangle },
-  { name: 'ShieldCheck', label: 'Verified Shield', icon: ShieldCheck }
-];
-
-const OFFICIAL_PHOTO_PRESETS = [
-  { name: 'Eng. Osman Kamara', role: 'EDSA Grid Safety Specialist', url: '/assets/avatars/osman-kamara.jpg' },
-  { name: 'Mariama Sesay', role: 'Disaster Prevention Officer', url: '/assets/avatars/mariama-sesay.jpg' },
-  { name: 'Technician Foday Bangura', role: 'Substation Inspector', url: '/assets/avatars/foday-bangura.jpg' },
-  { name: 'Insp. Aminata Koroma', role: 'Grid Safety Enforcement', url: '/assets/avatars/aminata-koroma.jpg' },
-  { name: 'Dr. Alie Mansaray', role: 'Emergency First Response', url: '/assets/avatars/alie-mansaray.jpg' },
-];
-
-
-/**
- * Resizes and crops any uploaded photo into an optimized square thumbnail
- * (140x140px, webp/jpeg, typically 3KB - 9KB) for fast app loading.
- */
-async function resizeAvatarImage(file: File, size = 140, quality = 0.82): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const minDim = Math.min(img.width, img.height);
-        const startX = (img.width - minDim) / 2;
-        const startY = (img.height - minDim) / 2;
-
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(e.target?.result as string);
-          return;
-        }
-
-        ctx.drawImage(img, startX, startY, minDim, minDim, 0, 0, size, size);
-
-        try {
-          const dataUrl = canvas.toDataURL('image/webp', quality);
-          resolve(dataUrl);
-        } catch {
-          resolve(canvas.toDataURL('image/jpeg', quality));
-        }
-      };
-      img.onerror = reject;
-      img.src = e.target?.result as string;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEmail: string; isSuperAdmin: boolean }) {
   const [data, setData] = useState<Data | null>(null);
@@ -131,74 +29,30 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
   const [feedbackPage, setFeedbackPage] = useState(1);
   const [feedbackPageSize, setFeedbackPageSize] = useState(6);
 
-  // Safety Cards State
-  const [safetyCards, setSafetyCards] = useState<SafetySlideData[]>(DEFAULT_SAFETY_SLIDES);
-  const [editingCard, setEditingCard] = useState<SafetySlideData | null>(null);
-  const [isCreatingCard, setIsCreatingCard] = useState(false);
-  const [isResizingAvatar, setIsResizingAvatar] = useState(false);
-  const [avatarError, setAvatarError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   const load = useCallback(async () => {
     const response = await fetch('/api/admin/operations', { cache: 'no-store', credentials: 'same-origin' });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Could not load operations data.');
     setData(result);
-    if (Array.isArray(result.safetyCards) && result.safetyCards.length > 0) {
-      setSafetyCards(result.safetyCards);
-    }
   }, []);
 
-  useEffect(() => {
-    void load().catch((err) => setError(err.message));
-  }, [load]);
+  useEffect(() => { void load().catch((err) => setError(err.message)); }, [load]);
 
   const perform = async (body: Record<string, unknown>, key: string) => {
-    setBusy(key);
-    setError(null);
-    setSuccess(null);
+    setBusy(key); setError(null); setSuccess(null);
     try {
-      const response = await fetch('/api/admin/operations', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(body)
-      });
+      const response = await fetch('/api/admin/operations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(body) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || 'Operation failed.');
-      if (body.action === 'create-announcement') {
-        setTitle('');
-        setMessage('');
-      }
+      if (body.action === 'create-announcement') { setTitle(''); setMessage(''); }
       if (body.action === 'update-announcement') setEditingAnnouncementId(null);
       if (body.action === 'set-flag' && result.flags) {
-        setData((current) => (current ? { ...current, flags: result.flags } : current));
+        setData((current) => current ? { ...current, flags: result.flags } : current);
       }
-      if (body.action === 'save-safety-cards' && Array.isArray(result.safetyCards)) {
-        setSafetyCards(result.safetyCards);
-        setEditingCard(null);
-        setIsCreatingCard(false);
-      }
-      if (body.action === 'reset-safety-cards' && Array.isArray(result.safetyCards)) {
-        setSafetyCards(result.safetyCards);
-        setEditingCard(null);
-        setIsCreatingCard(false);
-      }
-      setSuccess(
-        body.action === 'create-announcement'
-          ? 'Announcement is now live in the app.'
-          : body.action === 'save-safety-cards'
-          ? 'Safety cards updated and published live.'
-          : body.action === 'reset-safety-cards'
-          ? 'Safety cards restored to official EDSA defaults.'
-          : 'Operations control updated.'
-      );
+      setSuccess(body.action === 'create-announcement' ? 'Announcement is now live in the app.' : 'Operations control updated.');
       void load().catch(() => undefined);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Operation failed.');
-    } finally {
-      setBusy(null);
-    }
+    } catch (err) { setError(err instanceof Error ? err.message : 'Operation failed.'); }
+    finally { setBusy(null); }
   };
 
   const beginEditingAnnouncement = (announcement: Data['announcements'][number]) => {
@@ -225,116 +79,7 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
     }
   };
 
-  // --- Safety Card Handlers ---
-
-  const handleAvatarFileSelection = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !editingCard) return;
-
-    try {
-      setIsResizingAvatar(true);
-      setAvatarError(null);
-      const optimizedDataUrl = await resizeAvatarImage(file, 140, 0.82);
-      setEditingCard((prev) => (prev ? { ...prev, avatarImage: optimizedDataUrl } : null));
-    } catch (err) {
-      console.error('Failed to resize avatar photo:', err);
-      setAvatarError('Could not process this image. Please try a different PNG/JPG photo.');
-    } finally {
-      setIsResizingAvatar(false);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-    }
-  };
-
-  const handleRemoveAvatar = () => {
-    if (!editingCard) return;
-    setEditingCard({ ...editingCard, avatarImage: null });
-  };
-
-  const handleAddNewCard = () => {
-    const newCard: SafetySlideData = {
-      id: `card-${Date.now()}`,
-      badge: 'Safety Alert',
-      badgeTone: 'blue',
-      speaker: 'EDSA Field Officer',
-      speakerRole: 'Public Safety Directorate',
-      avatarIconName: 'HardHat',
-      avatarBg: 'from-blue-600 to-indigo-700',
-      title: 'New Electrical Safety Guidance',
-      guidance: 'Explain the specific hazard, distance requirements, and steps to keep the community safe.',
-      keyPoints: [
-        'Keep safe distance from exposed electrical components',
-        'Do not touch or attempt DIY repairs on utility poles',
-        'Report incident immediately via this mobile platform'
-      ],
-      actionLabel: 'Report Hazard Now',
-      hazardType: 'Cut or damaged Wires',
-      active: true,
-      order: safetyCards.length
-    };
-    setEditingCard(newCard);
-    setIsCreatingCard(true);
-  };
-
-  const handleSaveEditedCard = () => {
-    if (!editingCard) return;
-    if (!editingCard.title.trim()) {
-      setError('Card title is required.');
-      return;
-    }
-    if (!editingCard.speaker.trim()) {
-      setError('Speaker / Authority name is required.');
-      return;
-    }
-
-    let updatedList: SafetySlideData[];
-    if (isCreatingCard) {
-      updatedList = [...safetyCards, { ...editingCard, order: safetyCards.length }];
-    } else {
-      updatedList = safetyCards.map((c) => (c.id === editingCard.id ? editingCard : c));
-    }
-
-    // Re-index orders
-    updatedList = updatedList.map((c, idx) => ({ ...c, order: idx }));
-    void perform({ action: 'save-safety-cards', cards: updatedList }, 'save-card');
-  };
-
-  const handleDeleteCard = (cardId: string, cardTitle: string) => {
-    if (!window.confirm(`Delete safety card "${cardTitle}"?`)) return;
-    const remaining = safetyCards.filter((c) => c.id !== cardId).map((c, idx) => ({ ...c, order: idx }));
-    void perform({ action: 'save-safety-cards', cards: remaining }, `del-card-${cardId}`);
-  };
-
-  const handleToggleCardActive = (cardId: string) => {
-    const updated = safetyCards.map((c) => (c.id === cardId ? { ...c, active: !c.active } : c));
-    void perform({ action: 'save-safety-cards', cards: updated }, `toggle-card-${cardId}`);
-  };
-
-  const handleMoveCard = (index: number, direction: 'up' | 'down') => {
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= safetyCards.length) return;
-
-    const copy = [...safetyCards];
-    const temp = copy[index];
-    copy[index] = copy[targetIndex];
-    copy[targetIndex] = temp;
-
-    const reordered = copy.map((c, idx) => ({ ...c, order: idx }));
-    void perform({ action: 'save-safety-cards', cards: reordered }, 'reorder-cards');
-  };
-
-  const handleResetToDefaults = () => {
-    if (window.confirm('Reset all safety cards back to the 5 official EDSA guidelines? Custom cards will be replaced.')) {
-      void perform({ action: 'reset-safety-cards' }, 'reset-safety-cards');
-    }
-  };
-
-  if (!data) {
-    return (
-      <main className="min-h-screen bg-slate-950 p-8 text-white">
-        <p>{error || 'Loading operations console...'}</p>
-      </main>
-    );
-  }
+  if (!data) return <main className="min-h-screen bg-slate-950 p-8 text-white"><p>{error || 'Loading operations console...'}</p></main>;
 
   const getFeedbackSentiment = (item: Data['feedback'][number]) => {
     const cat = (item.category || '').toLowerCase();
@@ -350,8 +95,9 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
   const happyCount = data.feedback.filter((i) => getFeedbackSentiment(i) === 'happy').length;
   const sadCount = data.feedback.filter((i) => getFeedbackSentiment(i) === 'sad').length;
 
-  const filteredFeedback =
-    feedbackFilter === 'all' ? data.feedback : data.feedback.filter((i) => getFeedbackSentiment(i) === feedbackFilter);
+  const filteredFeedback = feedbackFilter === 'all'
+    ? data.feedback
+    : data.feedback.filter((i) => getFeedbackSentiment(i) === feedbackFilter);
 
   const totalFilteredCount = filteredFeedback.length;
   const totalPages = Math.max(1, Math.ceil(totalFilteredCount / feedbackPageSize));
@@ -369,649 +115,52 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
     <main className="min-h-screen bg-slate-950 px-4 py-8 text-white md:px-8">
       <div className="mx-auto max-w-6xl space-y-8">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-6">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider text-blue-400">Operations Command Center</p>
-            <h1 className="mt-1 text-2xl font-black">App Controls & Education Management</h1>
-            <p className="mt-1 text-sm text-gray-400">Signed in as {adminEmail}</p>
-          </div>
-          <div className="flex gap-2">
-            <Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">
-              <ArrowLeft className="h-4 w-4" /> Dashboard
-            </Link>
-            <Link href="/admin/news" className="inline-flex items-center gap-1.5 rounded-lg border border-blue-400/30 bg-blue-500/10 px-3 py-2 text-sm text-blue-200 hover:bg-blue-500/20 transition-all font-semibold">
-              <Newspaper className="h-4 w-4 text-blue-400" /> News &amp; Events
-            </Link>
-            <Link href="/admin/incidents" className="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">
-              Incident queue
-            </Link>
-            <button onClick={() => void load()} className="rounded-lg border border-white/10 p-2 hover:bg-white/5" aria-label="Refresh">
-              <RefreshCw className="h-4 w-4" />
-            </button>
-          </div>
+          <div><p className="text-xs font-bold uppercase tracking-wider text-blue-400">Separate Operations Console</p><h1 className="mt-1 text-2xl font-black">App controls & intelligence</h1><p className="mt-1 text-sm text-gray-400">Signed in as {adminEmail}</p></div>
+          <div className="flex gap-2"><Link href="/admin" className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5"><ArrowLeft className="h-4 w-4" /> Dashboard</Link><Link href="/admin/incidents" className="rounded-lg border border-white/10 px-3 py-2 text-sm hover:bg-white/5">Incident queue</Link><button onClick={() => void load()} className="rounded-lg border border-white/10 p-2 hover:bg-white/5" aria-label="Refresh"><RefreshCw className="h-4 w-4" /></button></div>
         </header>
-
         {error && <p className="rounded-lg border border-red-400/30 bg-red-500/10 p-3 text-sm text-red-200">{error}</p>}
         {success && <p className="rounded-lg border border-emerald-400/30 bg-emerald-500/10 p-3 text-sm text-emerald-200">{success}</p>}
-
-        {/* Feature Flags */}
         <section className="grid gap-4 md:grid-cols-3">
-          {Object.entries(data.definitions).map(([key, definition]) => (
-            <button
-              key={key}
-              onClick={() => void perform({ action: 'set-flag', key, enabled: !data.flags[key] }, key)}
-              disabled={busy === key}
-              className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left hover:bg-white/[0.06] disabled:opacity-60"
-            >
-              <span>
-                <Settings2 className="mb-3 h-5 w-5 text-blue-400" />
-                <span className="block font-bold">{definition.label}</span>
-                <span className="text-xs text-gray-400">
-                  {data.flags[key] ? 'Enabled in the app' : 'Temporarily disabled'}
-                </span>
-              </span>
-              {data.flags[key] ? <ToggleRight className="h-8 w-8 text-emerald-400" /> : <ToggleLeft className="h-8 w-8 text-gray-500" />}
-            </button>
-          ))}
+          {Object.entries(data.definitions).map(([key, definition]) => <button key={key} onClick={() => void perform({ action: 'set-flag', key, enabled: !data.flags[key] }, key)} disabled={busy === key} className="flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.03] p-5 text-left hover:bg-white/[0.06] disabled:opacity-60"><span><Settings2 className="mb-3 h-5 w-5 text-blue-400" /><span className="block font-bold">{definition.label}</span><span className="text-xs text-gray-400">{data.flags[key] ? 'Enabled in the app' : 'Temporarily disabled'}</span></span>{data.flags[key] ? <ToggleRight className="h-8 w-8 text-emerald-400" /> : <ToggleLeft className="h-8 w-8 text-gray-500" />}</button>)}
         </section>
-
-        {/* ========================================================================= */}
-        {/* EDUCATIONAL SAFETY CARDS MANAGEMENT PANEL */}
-        {/* ========================================================================= */}
-        <section className="rounded-2xl border border-blue-500/20 bg-blue-950/[0.12] p-6 space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-blue-400" />
-                <h2 className="text-xl font-bold text-white">Educational Safety Cards ({safetyCards.length})</h2>
-              </div>
-              <p className="mt-1 text-xs text-gray-400">
-                Control the sliding danger education card on the live tracker: upload avatars, edit lessons, reorder, or delete cards.
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleAddNewCard}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition-all active:scale-95"
-              >
-                <Plus className="h-3.5 w-3.5" /> Add New Card
-              </button>
-              <button
-                type="button"
-                onClick={handleResetToDefaults}
-                disabled={busy === 'reset-safety-cards'}
-                className="px-3 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs transition-all disabled:opacity-50"
-                title="Restore original 5 EDSA lessons"
-              >
-                Reset to Defaults
-              </button>
-            </div>
-          </div>
-
-          {/* Cards List */}
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {safetyCards.map((card, idx) => {
-              const tone = card.badgeTone || 'blue';
-              const isFirst = idx === 0;
-              const isLast = idx === safetyCards.length - 1;
-
-              return (
-                <div
-                  key={card.id}
-                  className={`rounded-2xl border p-4 space-y-3 transition-all ${
-                    card.active
-                      ? 'border-white/10 bg-white/[0.03] hover:border-blue-400/30'
-                      : 'border-white/5 bg-black/40 opacity-60'
-                  }`}
-                >
-                  {/* Top Bar: Avatar, Speaker & Status */}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-700 p-0.5 overflow-hidden shrink-0 shadow-sm">
-                        {card.avatarImage ? (
-                          <img src={card.avatarImage} alt={card.speaker} className="w-full h-full object-cover rounded-[0.625rem] bg-white" />
-                        ) : (
-                          <div className="w-full h-full bg-slate-900 rounded-[0.625rem] flex items-center justify-center">
-                            <HardHat className="w-5 h-5 text-blue-400" />
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-xs font-black text-white leading-tight">{card.speaker}</p>
-                        <p className="text-[10px] text-gray-400 leading-tight mt-0.5">{card.speakerRole}</p>
-                      </div>
-                    </div>
-
-                    <span
-                      className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full border ${
-                        card.active
-                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                          : 'bg-gray-800 text-gray-400 border-gray-700'
-                      }`}
-                    >
-                      {card.active ? 'Live' : 'Hidden'}
-                    </span>
-                  </div>
-
-                  {/* Card Title & Badge */}
-                  <div>
-                    <span
-                      className={`inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border mb-1.5 ${
-                        tone === 'rose'
-                          ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
-                          : tone === 'amber'
-                          ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
-                          : tone === 'emerald'
-                          ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
-                          : tone === 'purple'
-                          ? 'bg-purple-500/10 text-purple-300 border-purple-500/30'
-                          : 'bg-blue-500/10 text-blue-300 border-blue-500/30'
-                      }`}
-                    >
-                      {card.badge}
-                    </span>
-                    <h3 className="text-sm font-bold text-white line-clamp-1">{card.title}</h3>
-                    <p className="mt-1 text-xs text-gray-400 line-clamp-2 leading-relaxed">{card.guidance}</p>
-                  </div>
-
-                  {/* Hazard Link Pill */}
-                  <div className="flex items-center justify-between text-[11px] text-gray-400 pt-1 border-t border-white/5">
-                    <span className="truncate">🎯 {card.hazardType || 'General Hazard'}</span>
-                    <span className="text-[10px] text-gray-500 font-mono">#{idx + 1}</span>
-                  </div>
-
-                  {/* Action Controls */}
-                  <div className="flex items-center justify-between gap-1 pt-1">
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleMoveCard(idx, 'up')}
-                        disabled={isFirst}
-                        className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Move slide up"
-                      >
-                        <MoveUp className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveCard(idx, 'down')}
-                        disabled={isLast}
-                        className="p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 disabled:opacity-30 disabled:cursor-not-allowed"
-                        title="Move slide down"
-                      >
-                        <MoveDown className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleCardActive(card.id)}
-                        className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-[11px] text-gray-300 font-medium"
-                      >
-                        {card.active ? 'Hide' : 'Show'}
-                      </button>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingCard({ ...card });
-                          setIsCreatingCard(false);
-                        }}
-                        className="p-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30"
-                        title="Edit Card"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCard(card.id, card.title)}
-                        className="p-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30"
-                        title="Delete Card"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* ========================================================================= */}
-          {/* CARD EDITOR MODAL / FORM */}
-          {/* ========================================================================= */}
-          {editingCard && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-              <div className="w-full max-w-2xl rounded-2xl border border-white/15 bg-slate-900 p-6 space-y-5 text-white shadow-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-blue-400" />
-                    <h3 className="font-bold text-lg">
-                      {isCreatingCard ? 'Create Educational Safety Card' : 'Edit Educational Safety Card'}
-                    </h3>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCard(null);
-                      setIsCreatingCard(false);
-                    }}
-                    className="p-1.5 rounded-lg hover:bg-white/10 text-gray-400 hover:text-white"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Avatar Upload & Resizing Section */}
-                <div className="rounded-xl border border-blue-500/30 bg-blue-950/20 p-4 space-y-3">
-                  <label className="block text-xs font-bold uppercase tracking-wider text-blue-300">
-                    Avatar Photo & Profile Image (Auto-Resized for Low Bandwidth)
-                  </label>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-4">
-                    {/* Square Preview */}
-                    <div className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 p-0.5 shadow-md shrink-0 overflow-hidden">
-                      {editingCard.avatarImage ? (
-                        <img
-                          src={editingCard.avatarImage}
-                          alt="Avatar preview"
-                          className="w-full h-full object-cover rounded-[0.875rem] bg-white"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-slate-900 rounded-[0.875rem] flex items-center justify-center">
-                          <HardHat className="w-9 h-9 text-blue-400" />
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 flex-1 text-center sm:text-left">
-                      <p className="text-xs text-gray-300">
-                        Upload any speaker or technician photo. Our engine automatically crops and compresses it to a lightweight 140x140 square thumbnail (&lt;10KB) to ensure high-speed mobile loading.
-                      </p>
-
-                      <div className="flex flex-wrap items-center gap-2 justify-center sm:justify-start">
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleAvatarFileSelection}
-                          className="hidden"
-                          id="avatar-photo-upload"
-                        />
-                        <label
-                          htmlFor="avatar-photo-upload"
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs cursor-pointer shadow-sm active:scale-95"
-                        >
-                          <Upload className="w-3.5 h-3.5" />
-                          {isResizingAvatar ? 'Resizing...' : 'Upload & Resize Photo'}
-                        </label>
-
-                        {editingCard.avatarImage && (
-                          <button
-                            type="button"
-                            onClick={handleRemoveAvatar}
-                            className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-medium text-gray-300"
-                          >
-                            Remove Photo
-                          </button>
-                        )}
-                      </div>
-                      {avatarError && <p className="text-xs text-rose-400 font-semibold">{avatarError}</p>}
-
-                      {/* Quick-Select Official Personnel Real Photos */}
-                      <div className="pt-3 border-t border-white/10 text-left">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">
-                          Or Choose from Official Real Human Portraits:
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-5 gap-2">
-                          {OFFICIAL_PHOTO_PRESETS.map((preset) => {
-                            const isSelected = editingCard.avatarImage === preset.url;
-                            return (
-                              <button
-                                key={preset.url}
-                                type="button"
-                                onClick={() =>
-                                  setEditingCard({
-                                    ...editingCard,
-                                    avatarImage: preset.url,
-                                    speaker: preset.name,
-                                    speakerRole: preset.role
-                                  })
-                                }
-                                className={`flex items-center gap-2 p-1.5 rounded-xl border transition-all text-left ${
-                                  isSelected
-                                    ? 'border-blue-400 bg-blue-600/30 text-white ring-1 ring-blue-400'
-                                    : 'border-white/10 bg-white/5 hover:bg-white/10 text-gray-300'
-                                }`}
-                              >
-                                <img
-                                  src={preset.url}
-                                  alt={preset.name}
-                                  className="w-8 h-8 rounded-lg object-cover shrink-0 bg-white"
-                                />
-                                <div className="min-w-0">
-                                  <p className="text-[10px] font-bold truncate leading-tight">{preset.name}</p>
-                                  <p className="text-[9px] text-gray-400 truncate leading-tight">{preset.role}</p>
-                                </div>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Speaker Info Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Speaker / Authority Name</label>
-                    <input
-                      value={editingCard.speaker}
-                      onChange={(e) => setEditingCard({ ...editingCard, speaker: e.target.value })}
-                      placeholder="e.g. Eng. Osman Kamara"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Role / Department</label>
-                    <input
-                      value={editingCard.speakerRole}
-                      onChange={(e) => setEditingCard({ ...editingCard, speakerRole: e.target.value })}
-                      placeholder="e.g. Senior Grid Safety Specialist"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Title & Badge */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="sm:col-span-2 space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Card Title</label>
-                    <input
-                      value={editingCard.title}
-                      onChange={(e) => setEditingCard({ ...editingCard, title: e.target.value })}
-                      placeholder="e.g. Fallen Cables & Ground Voltage Shock"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white font-bold"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Badge Text</label>
-                    <input
-                      value={editingCard.badge}
-                      onChange={(e) => setEditingCard({ ...editingCard, badge: e.target.value })}
-                      placeholder="e.g. High Voltage Hazard"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Badge Tone & Icon Presets */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Badge Color Tone</label>
-                    <select
-                      value={editingCard.badgeTone}
-                      onChange={(e) => setEditingCard({ ...editingCard, badgeTone: e.target.value as BadgeTone })}
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    >
-                      <option value="blue">Blue (Standard Safety)</option>
-                      <option value="rose">Rose (Immediate Danger)</option>
-                      <option value="amber">Amber (Equipment Caution)</option>
-                      <option value="emerald">Emerald (Life-Saving / Protocol)</option>
-                      <option value="purple">Purple (Grid Compliance)</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Fallback Icon</label>
-                    <select
-                      value={editingCard.avatarIconName || 'HardHat'}
-                      onChange={(e) => setEditingCard({ ...editingCard, avatarIconName: e.target.value })}
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    >
-                      {PRESET_ICONS.map((p) => (
-                        <option key={p.name} value={p.name}>
-                          {p.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Guidance Textarea */}
-                <div className="space-y-1">
-                  <label className="text-xs font-bold uppercase text-gray-400">Educational Guidance Description</label>
-                  <textarea
-                    value={editingCard.guidance}
-                    onChange={(e) => setEditingCard({ ...editingCard, guidance: e.target.value })}
-                    rows={3}
-                    placeholder="Clear, life-saving advice for citizens..."
-                    className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white leading-relaxed"
-                  />
-                </div>
-
-                {/* 3 Key Points */}
-                <div className="space-y-2">
-                  <label className="text-xs font-bold uppercase text-gray-400">Actionable Checklist Points (3 max)</label>
-                  {[0, 1, 2].map((idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-gray-500 font-mono w-5">#{idx + 1}</span>
-                      <input
-                        value={editingCard.keyPoints[idx] || ''}
-                        onChange={(e) => {
-                          const pts = [...(editingCard.keyPoints || [])];
-                          pts[idx] = e.target.value;
-                          setEditingCard({ ...editingCard, keyPoints: pts.filter(Boolean) });
-                        }}
-                        placeholder={`Safety rule ${idx + 1}...`}
-                        className="flex-1 rounded-xl border border-white/10 bg-slate-950 px-3 py-1.5 text-xs text-white"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Action Button & Hazard Mapping */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-white/10">
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Action Button Label</label>
-                    <input
-                      value={editingCard.actionLabel}
-                      onChange={(e) => setEditingCard({ ...editingCard, actionLabel: e.target.value })}
-                      placeholder="e.g. Report Fallen Wire"
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-xs font-bold uppercase text-gray-400">Target Hazard Category to Open</label>
-                    <select
-                      value={editingCard.hazardType || HAZARD_TYPES[0]}
-                      onChange={(e) => setEditingCard({ ...editingCard, hazardType: e.target.value })}
-                      className="w-full rounded-xl border border-white/10 bg-slate-950 px-3 py-2 text-sm text-white"
-                    >
-                      {HAZARD_TYPES.map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                {/* Modal Footer Controls */}
-                <div className="flex items-center justify-end gap-2 pt-4 border-t border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingCard(null);
-                      setIsCreatingCard(false);
-                    }}
-                    className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-gray-300 font-bold text-xs"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleSaveEditedCard}
-                    disabled={busy === 'save-card'}
-                    className="inline-flex items-center gap-1.5 px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md shadow-blue-500/25 active:scale-95 disabled:opacity-50"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    {busy === 'save-card' ? 'Saving...' : 'Save & Publish Card'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </section>
-
-        {/* Direct Vending Readiness */}
         <section className="rounded-lg border border-[#040e40]/20 bg-[#040e40]/[0.06] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-bold text-white">Direct EDSA vending readiness</p>
-              <p className="mt-1 text-xs text-gray-400">{data.directVending.message}</p>
-            </div>
-            <span
-              className={`rounded-full border px-3 py-1 text-xs font-bold ${
-                data.directVending.enabled
-                  ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300'
-                  : 'border-[#040e40]/30 bg-[#040e40]/15 text-blue-200'
-              }`}
-            >
-              {data.directVending.enabled ? 'Ready' : 'Not live'}
-            </span>
+            <div><p className="text-sm font-bold text-white">Direct EDSA vending readiness</p><p className="mt-1 text-xs text-gray-400">{data.directVending.message}</p></div>
+            <span className={`rounded-full border px-3 py-1 text-xs font-bold ${data.directVending.enabled ? 'border-emerald-400/30 bg-emerald-500/10 text-emerald-300' : 'border-[#040e40]/30 bg-[#040e40]/15 text-blue-200'}`}>{data.directVending.enabled ? 'Ready' : 'Not live'}</span>
           </div>
         </section>
-
-        {/* Announcements & Feedback Grid */}
         <section className="grid gap-6 lg:grid-cols-2">
-          {/* Announcements */}
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
-            <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-blue-400" />
-              <h2 className="font-bold">Send in-app announcement</h2>
-            </div>
+            <div className="flex items-center gap-2"><Bell className="h-5 w-5 text-blue-400" /><h2 className="font-bold">Send in-app announcement</h2></div>
             {isSuperAdmin ? (
-              <div className="mt-5 space-y-3">
-                <input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  maxLength={120}
-                  placeholder="Announcement title"
-                  className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
-                />
-                <textarea
-                  value={message}
-                  onChange={(event) => setMessage(event.target.value)}
-                  maxLength={500}
-                  placeholder="Message for all app users"
-                  className="min-h-28 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
-                />
-                <button
-                  disabled={!title.trim() || !message.trim() || busy === 'announcement'}
-                  onClick={() => void perform({ action: 'create-announcement', title, message }, 'announcement')}
-                  className="rounded-lg bg-[#040e40] px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
-                >
-                  {busy === 'announcement' ? 'Sending...' : 'Publish announcement'}
-                </button>
-              </div>
+              <div className="mt-5 space-y-3"><input value={title} onChange={(event) => setTitle(event.target.value)} maxLength={120} placeholder="Announcement title" className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><textarea value={message} onChange={(event) => setMessage(event.target.value)} maxLength={500} placeholder="Message for all app users" className="min-h-28 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" /><button disabled={!title.trim() || !message.trim() || busy === 'announcement'} onClick={() => void perform({ action: 'create-announcement', title, message }, 'announcement')} className="rounded-lg bg-[#040e40] px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{busy === 'announcement' ? 'Sending...' : 'Publish announcement'}</button></div>
             ) : (
               <div className="mt-5 rounded-lg border border-white/10 bg-white/[0.03] p-4 flex items-start gap-3">
                 <span className="text-xl shrink-0">🔒</span>
                 <div>
                   <p className="text-sm font-semibold text-gray-300">Super admin access required</p>
-                  <p className="mt-1 text-xs text-gray-500">
-                    Publishing announcements is restricted to super administrators. You can view and manage existing announcements below.
-                  </p>
+                  <p className="mt-1 text-xs text-gray-500">Publishing announcements is restricted to super administrators. You can view and manage existing announcements below.</p>
                 </div>
               </div>
             )}
             <div className="mt-6 space-y-3">
               <h3 className="text-xs font-bold uppercase tracking-wider text-gray-400">Announcement history</h3>
-              {data.announcements.map((item) =>
-                editingAnnouncementId === item.id ? (
-                  <div key={item.id} className="space-y-3 rounded-lg border border-[#040e40]/30 bg-[#040e40]/[0.06] p-3">
-                    <input
-                      value={editingTitle}
-                      onChange={(event) => setEditingTitle(event.target.value)}
-                      maxLength={120}
-                      className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
-                    />
-                    <textarea
-                      value={editingMessage}
-                      onChange={(event) => setEditingMessage(event.target.value)}
-                      maxLength={500}
-                      className="min-h-24 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm"
-                    />
-                    <div className="flex gap-2">
-                      <button
-                        disabled={!editingTitle.trim() || !editingMessage.trim() || busy === `edit-${item.id}`}
-                        onClick={() =>
-                          void perform(
-                            { action: 'update-announcement', id: item.id, title: editingTitle, message: editingMessage },
-                            `edit-${item.id}`
-                          )
-                        }
-                        className="rounded-lg bg-[#040e40] px-3 py-2 text-xs font-bold text-white disabled:opacity-50"
-                      >
-                        Save changes
-                      </button>
-                      <button onClick={() => setEditingAnnouncementId(null)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-300">
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div key={item.id} className="rounded-lg bg-black/20 p-3 text-sm">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-bold text-white">
-                          {item.title}
-                          <span className={`ml-2 text-xs ${item.active ? 'text-emerald-400' : 'text-gray-500'}`}>
-                            {item.active ? 'Live' : 'Hidden'}
-                          </span>
-                        </p>
-                        <p className="mt-1 text-xs text-gray-400">{item.message}</p>
-                        <p className="mt-2 text-[10px] text-gray-600">{new Date(item.createdAt).toLocaleString()}</p>
-                      </div>
-                      <div className="flex shrink-0 gap-1">
-                        <button
-                          onClick={() => beginEditingAnnouncement(item)}
-                          className="rounded-md p-1.5 text-gray-400 hover:bg-white/10 hover:text-white"
-                          title="Edit announcement"
-                          aria-label="Edit announcement"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => deleteAnnouncement(item.id, item.title)}
-                          disabled={busy === `delete-${item.id}`}
-                          className="rounded-md p-1.5 text-red-300 hover:bg-red-500/10 disabled:opacity-50"
-                          title="Delete announcement"
-                          aria-label="Delete announcement"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => void perform({ action: 'set-announcement-status', id: item.id, active: !item.active }, item.id)}
-                      className="mt-3 text-xs font-bold text-blue-300"
-                    >
-                      {item.active ? 'Disable' : 'Enable'}
-                    </button>
-                  </div>
-                )
-              )}
+              {data.announcements.map((item) => editingAnnouncementId === item.id ? (
+                <div key={item.id} className="space-y-3 rounded-lg border border-[#040e40]/30 bg-[#040e40]/[0.06] p-3">
+                  <input value={editingTitle} onChange={(event) => setEditingTitle(event.target.value)} maxLength={120} className="w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" />
+                  <textarea value={editingMessage} onChange={(event) => setEditingMessage(event.target.value)} maxLength={500} className="min-h-24 w-full rounded-lg border border-white/10 bg-slate-950 px-3 py-2 text-sm" />
+                  <div className="flex gap-2"><button disabled={!editingTitle.trim() || !editingMessage.trim() || busy === `edit-${item.id}`} onClick={() => void perform({ action: 'update-announcement', id: item.id, title: editingTitle, message: editingMessage }, `edit-${item.id}`)} className="rounded-lg bg-[#040e40] px-3 py-2 text-xs font-bold text-white disabled:opacity-50">Save changes</button><button onClick={() => setEditingAnnouncementId(null)} className="rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-300">Cancel</button></div>
+                </div>
+              ) : (
+                <div key={item.id} className="rounded-lg bg-black/20 p-3 text-sm">
+                  <div className="flex items-start justify-between gap-3"><div><p className="font-bold text-white">{item.title}<span className={`ml-2 text-xs ${item.active ? 'text-emerald-400' : 'text-gray-500'}`}>{item.active ? 'Live' : 'Hidden'}</span></p><p className="mt-1 text-xs text-gray-400">{item.message}</p><p className="mt-2 text-[10px] text-gray-600">{new Date(item.createdAt).toLocaleString()}</p></div><div className="flex shrink-0 gap-1"><button onClick={() => beginEditingAnnouncement(item)} className="rounded-md p-1.5 text-gray-400 hover:bg-white/10 hover:text-white" title="Edit announcement" aria-label="Edit announcement"><Pencil className="h-3.5 w-3.5" /></button><button onClick={() => deleteAnnouncement(item.id, item.title)} disabled={busy === `delete-${item.id}`} className="rounded-md p-1.5 text-red-300 hover:bg-red-500/10 disabled:opacity-50" title="Delete announcement" aria-label="Delete announcement"><Trash2 className="h-3.5 w-3.5" /></button></div></div><button onClick={() => void perform({ action: 'set-announcement-status', id: item.id, active: !item.active }, item.id)} className="mt-3 text-xs font-bold text-blue-300">{item.active ? 'Disable' : 'Enable'}</button>
+                </div>
+              ))}
               {data.announcements.length === 0 && <p className="text-sm text-gray-500">No announcements have been created.</p>}
             </div>
           </div>
-
-          {/* Feedback Moderation */}
           <div className="rounded-lg border border-white/10 bg-white/[0.03] p-6 space-y-5">
+            {/* Header */}
             <div className="flex items-center justify-between gap-2 border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-5 w-5 text-blue-400" />
@@ -1135,7 +284,9 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                         </button>
                       </div>
 
-                      <p className="text-sm text-gray-200 leading-relaxed font-medium">{item.message}</p>
+                      <p className="text-sm text-gray-200 leading-relaxed font-medium">
+                        {item.message}
+                      </p>
 
                       <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-white/5 text-[11px] text-gray-400">
                         <span>
@@ -1143,7 +294,9 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
                           {item.area ? ` • 📍 ${item.area}` : ''}
                           {item.category ? ` • ${item.category}` : ''}
                         </span>
-                        <span className="text-gray-500">{new Date(item.createdAt).toLocaleString()}</span>
+                        <span className="text-gray-500">
+                          {new Date(item.createdAt).toLocaleString()}
+                        </span>
                       </div>
                     </article>
                   );
@@ -1253,57 +406,15 @@ export default function AdminOperations({ adminEmail, isSuperAdmin }: { adminEma
             )}
           </div>
         </section>
-
-        {/* Audit Log */}
         <section className="rounded-lg border border-white/10 bg-white/[0.03] p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-bold">Admin activity log</h2>
-              <p className="mt-1 text-xs text-gray-500">{data.logs.length} recent recorded actions</p>
-            </div>
+            <div><h2 className="font-bold">Admin activity log</h2><p className="mt-1 text-xs text-gray-500">{data.logs.length} recent recorded actions</p></div>
             <div className="flex items-center gap-2">
-              {auditLogOpen && data.logs.length > 0 && (
-                <button
-                  onClick={clearAuditLog}
-                  disabled={busy === 'clear-audit-log'}
-                  className="rounded-lg border border-red-400/30 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50"
-                >
-                  {busy === 'clear-audit-log' ? 'Clearing...' : 'Clear log'}
-                </button>
-              )}
-              <button
-                onClick={() => setAuditLogOpen((open) => !open)}
-                className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-200 hover:bg-white/5"
-              >
-                {auditLogOpen ? (
-                  <>
-                    <ChevronUp className="h-4 w-4" /> Close
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-4 w-4" /> Expand
-                  </>
-                )}
-              </button>
+              {auditLogOpen && data.logs.length > 0 && <button onClick={clearAuditLog} disabled={busy === 'clear-audit-log'} className="rounded-lg border border-red-400/30 px-3 py-2 text-xs font-bold text-red-300 hover:bg-red-500/10 disabled:opacity-50">{busy === 'clear-audit-log' ? 'Clearing...' : 'Clear log'}</button>}
+              <button onClick={() => setAuditLogOpen((open) => !open)} className="inline-flex items-center gap-2 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-gray-200 hover:bg-white/5">{auditLogOpen ? <><ChevronUp className="h-4 w-4" /> Close</> : <><ChevronDown className="h-4 w-4" /> Expand</>}</button>
             </div>
           </div>
-          {auditLogOpen && (
-            <div className="mt-4 max-h-80 space-y-2 overflow-y-auto">
-              {data.logs.length ? (
-                data.logs.map((log) => (
-                  <p key={log.id} className="text-sm text-gray-400">
-                    <span className="text-white">{log.action.replaceAll('_', ' ')}</span>
-                    {log.detail ? ` (${log.detail})` : ''}{' '}
-                    <span className="text-gray-600">
-                      by {log.adminEmail} · {new Date(log.createdAt).toLocaleString()}
-                    </span>
-                  </p>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">No admin activity has been recorded.</p>
-              )}
-            </div>
-          )}
+          {auditLogOpen && <div className="mt-4 max-h-80 space-y-2 overflow-y-auto">{data.logs.length ? data.logs.map((log) => <p key={log.id} className="text-sm text-gray-400"><span className="text-white">{log.action.replaceAll('_', ' ')}</span>{log.detail ? ` (${log.detail})` : ''} <span className="text-gray-600">by {log.adminEmail} · {new Date(log.createdAt).toLocaleString()}</span></p>) : <p className="text-sm text-gray-500">No admin activity has been recorded.</p>}</div>}
         </section>
       </div>
     </main>

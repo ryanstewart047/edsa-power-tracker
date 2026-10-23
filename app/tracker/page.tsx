@@ -320,6 +320,14 @@ export default function Home() {
 
   const handleLocationError = useCallback((error: GeolocationPositionError) => {
     setLocationLoading(false);
+    const currentLocation = locationRef.current;
+    const hasRecentAccurateFix = currentLocation &&
+      getLocationAgeMs(currentLocation) <= LOCATION_STALE_AFTER_MS &&
+      currentLocation.accuracy !== null &&
+      currentLocation.accuracy <= MAX_REPORTING_ACCURACY_METERS;
+    if (hasRecentAccurateFix) {
+      return;
+    }
     setLocationError(getGeolocationErrorMessage(error));
   }, []);
 

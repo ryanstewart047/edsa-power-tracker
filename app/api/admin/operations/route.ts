@@ -3,7 +3,6 @@ import { getAdminSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { FEATURE_FLAGS, auditAdminAction, getFeatureFlags } from '@/lib/operations';
 import { getDirectVendingReadiness } from '@/lib/directVending';
-import { getSafetyCardsFromDb, saveSafetyCardsToDb, resetSafetyCardsInDb, SafetySlideData } from '@/lib/safetyCards';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,13 +15,12 @@ export async function GET() {
     const admin = await requireAdmin();
     if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const [flags, feedback, announcements, logs, feedbackCount, safetyCards] = await Promise.all([
+    const [flags, feedback, announcements, logs, feedbackCount] = await Promise.all([
       getFeatureFlags(),
       prisma.feedbackSubmission.findMany({ orderBy: { createdAt: 'desc' }, take: 200 }),
       prisma.announcement.findMany({ orderBy: { createdAt: 'desc' }, take: 20 }),
       prisma.adminAuditLog.findMany({ orderBy: { createdAt: 'desc' }, take: 30 }),
       prisma.feedbackSubmission.count(),
-      getSafetyCardsFromDb(),
     ]);
     return NextResponse.json({
       flags,
@@ -31,7 +29,6 @@ export async function GET() {
       announcements,
       logs,
       feedbackCount,
-      safetyCards,
       directVending: getDirectVendingReadiness(),
       isSuperAdmin: admin.isSuperAdmin,
     });
@@ -102,21 +99,6 @@ export async function POST(req: NextRequest) {
     await prisma.feedbackSubmission.delete({ where: { id: body.id } });
     await auditAdminAction(admin.email, 'feedback_deleted', body.id);
     return NextResponse.json({ success: true });
-  }
-
-  if (body.action === 'save-safety-cards' && Array.isArray(body.cards)) {
-    const cards = body.cards as SafetySlideData[];
-    await saveSafetyCardsToDb(cards, admin.email);
-    await auditAdminAction(admin.email, 'safety_cards_updated', `${cards.length} cards saved`);
-    const updated = await getSafetyCardsFromDb();
-    return NextResponse.json({ success: true, safetyCards: updated });
-  }
-
-  if (body.action === 'reset-safety-cards') {
-    await resetSafetyCardsInDb(admin.email);
-    await auditAdminAction(admin.email, 'safety_cards_reset', 'Restored official defaults');
-    const updated = await getSafetyCardsFromDb();
-    return NextResponse.json({ success: true, safetyCards: updated });
   }
 
   if (body.action === 'clear-audit-log') {

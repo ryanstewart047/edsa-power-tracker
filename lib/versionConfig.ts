@@ -9,22 +9,23 @@ export interface AppRelease {
 }
 
 // Configured to follow Google Play Console release sequence:
-// Previous active bundle: Version code 5 (1.0.4)
-// New release bundle: Version code 6 (1.0.5)
+// Previous active bundle: Version code 4 (1.0.3)
+// New release bundle: Version code 5 (1.0.4)
 export const CURRENT_RELEASE: AppRelease = {
-  version: '1.0.5',
-  releaseNumber: 6,
-  releaseId: 'play-release-6-v1.0.5',
-  releasedAt: '2026-10-21',
-  title: 'EDSA Power Tracker v1.0.5 Update Available',
-  notes: 'Individual meter financial analytics, Sierra Leone numeric keypad shortcodes, private community grid bulletin sync, and EDSA homepage news & events carousel.',
+  version: '1.0.4',
+  releaseNumber: 5,
+  releaseId: 'play-release-5-v1.0.4',
+  releasedAt: '2026-10-17',
+  title: 'EDSA Power Tracker v1.0.4 Update Available',
+  notes: 'Direct camera evidence capture, new hazard & billing services, high-visibility alerts, clean white theme with smooth scrolling, and instant app updates.',
   changelog: [
-    'Per-Meter Financial & Usage Breakdown: Deep-dive spending analytics (weekly/monthly), visual expenditure charts, daily burn rate, and projected token expiry dates',
-    'Interactive Meter Nickname Editing: Rename meters anytime with instant multi-tier persistence',
-    'Numeric-Only Meter Keypad Support: Added direct shortcodes for Sierra Leone prepaid meters without * or # keys (Conlog, Hexing, Holley, Inhemeter, Landis+Gyr, Chint)',
-    'Community Grid Bulletin Synchronization: Persistent neighborhood outage reports with strict area-level privacy and 15-second background sync',
-    'EDSA News & Events Carousel: Interactive homepage slider with smooth-scrolling popup modal and one-click WhatsApp sharing',
-    'News & Events Admin Suite: Control panel for uploading photos, editing announcements, and instantly toggling card visibility',
-    'Clean Meter Management: Fully removed the default demo meter so users start with a clean slate and manage real meters'
+    'Direct camera photo capture with instant client-side compression for hazard reports',
+    'Fixed hazard submission button visibility on mobile devices',
+    'Added new service categories: Billing and Account services, Voltage Issues, and Cut or damaged Wires',
+    'Modern clean white theme with smooth scrolling and dynamic scroll-driven reveal animations',
+    'Interactive homepage quick links with deep-linking to Top-Up and Token Vault',
+    'High-visibility orange-yellow in-app notification banners for urgent operations and alerts',
+    'Smart app update detection with one-click refresh and silent post-update suppression',
+    'Database resilience improvements with self-healing columns and multi-tier offline storage'
   ],
 };
