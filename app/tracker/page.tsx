@@ -206,6 +206,7 @@ export default function Home() {
   const [primaryArea, setPrimaryArea] = useState<string | null>(null);
   const locationRef = useRef<LocationSnapshot | null>(null);
   const lastAutoRefreshLocationRef = useRef<LocationSnapshot | null>(null);
+  const latestStatusRequestRef = useRef(0);
   const hasNearbyAreaRef = useRef(false);
   const isSearchingRef = useRef(false);
 
@@ -278,6 +279,8 @@ export default function Home() {
   }, []);
 
   const fetchStatus = useCallback(async (snapshot: LocationSnapshot | null = null, query = '') => {
+    const requestId = latestStatusRequestRef.current + 1;
+    latestStatusRequestRef.current = requestId;
     try {
       const params = new URLSearchParams();
       if (query.trim()) params.set('search', query.trim());
@@ -293,14 +296,25 @@ export default function Home() {
       }
 
       const data = await res.json();
+      if (requestId !== latestStatusRequestRef.current) {
+        return;
+      }
+      if (!Array.isArray(data)) {
+        throw new Error('The community service returned an invalid response.');
+      }
       setAreas(data);
       setLastRefresh(new Date());
       setStatusError(null);
     } catch (e) {
+      if (requestId !== latestStatusRequestRef.current) {
+        return;
+      }
       console.error('Failed to fetch status', e);
       setStatusError(e instanceof Error ? e.message : 'Failed to fetch status.');
     } finally {
-      setLoading(false);
+      if (requestId === latestStatusRequestRef.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
@@ -329,13 +343,23 @@ export default function Home() {
   const handleLocationError = useCallback((error: GeolocationPositionError) => {
     setLocationLoading(false);
     const currentLocation = locationRef.current;
-    const hasRecentAccurateFix = currentLocation &&
-      getLocationAgeMs(currentLocation) <= LOCATION_STALE_AFTER_MS &&
-      currentLocation.accuracy !== null &&
-      currentLocation.accuracy <= MAX_REPORTING_ACCURACY_METERS;
-    if (hasRecentAccurateFix) {
+
+    // If we already have any recent location fix (even a coarse one), suppress
+    // timeout / unavailable errors silently — the watch will retry automatically.
+    if (currentLocation && getLocationAgeMs(currentLocation) <= LOCATION_STALE_AFTER_MS) {
       return;
     }
+
+    // For TIMEOUT errors with no fix at all, only surface to UI if the user
+    // doesn't have a position yet. Avoid spamming repeated timeout messages.
+    const hasRecentAccurateFix = currentLocation &&
+      currentLocation.accuracy !== null &&
+      currentLocation.accuracy <= MAX_REPORTING_ACCURACY_METERS;
+    if (error.code === error.TIMEOUT && !hasRecentAccurateFix) {
+      // Silently retry — don't show an error for transient timeouts
+      return;
+    }
+
     setLocationError(getGeolocationErrorMessage(error));
   }, []);
 
@@ -362,6 +386,10 @@ export default function Home() {
           handleLocationSuccess,
           (fallbackError) => {
             setLocationLoading(false);
+            // If we already have any location, don't replace it with an error message
+            if (locationRef.current) {
+              return;
+            }
             setLocationError(
               `${getGeolocationErrorMessage(fallbackError)} Try moving outdoors or enabling precise location for your browser.`,
             );
@@ -413,7 +441,7 @@ export default function Home() {
       handleLocationError,
       {
         enableHighAccuracy: true,
-        timeout: GEOLOCATION_TIMEOUT_MS,
+        timeout: GEOLOCATION_TIMEOUT_MS * 6, // 2 minutes — avoids repeated TIMEOUT on mobile indoors
         maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
       },
     );
