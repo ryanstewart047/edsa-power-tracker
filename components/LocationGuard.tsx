@@ -116,10 +116,6 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
     }
   }, []);
 
-  const handleSkipOnDesktop = useCallback(() => {
-    handleSkipLocation();
-  }, [handleSkipLocation]);
-
   // Core function to test GPS availability and acquire coordinates
   const probeLocation = useCallback((silent = false) => {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
