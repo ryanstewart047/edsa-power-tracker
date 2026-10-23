@@ -29,6 +29,13 @@
   "dir": "ltr",
   "categories": ["utilities", "productivity"],
   "prefer_related_applications": false,
+  "related_applications": [
+    {
+      "platform": "play",
+      "id": "com.bridgetech.edsapowertracker",
+      "url": "https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker"
+    }
+  ],
   "icons": [
     {
       "src": "/assets/edsa-icon-v2-192.png",
