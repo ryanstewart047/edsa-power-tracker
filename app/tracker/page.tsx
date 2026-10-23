@@ -227,8 +227,11 @@ export default function Home() {
   }, [location]);
 
   useEffect(() => {
-    hasNearbyAreaRef.current = areas.some((area) => area.isNearby);
-  }, [areas]);
+    hasNearbyAreaRef.current = Boolean(location) && areas.some((area) => (
+      area.isNearby &&
+      calculateDistanceKm(location.lat, location.lng, area.lat, area.lng) <= MAX_REPORTING_DISTANCE_KM
+    ));
+  }, [areas, location]);
 
   useEffect(() => {
     isSearchingRef.current = Boolean(search.trim());

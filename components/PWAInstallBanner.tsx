@@ -13,6 +13,8 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+const PLAY_STORE_URL = 'https://play.google.com/store/apps/details?id=com.bridgetech.edsapowertracker';
+
 export default function PWAInstallBanner() {
   const [show, setShow] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
@@ -25,17 +27,18 @@ export default function PWAInstallBanner() {
     if (isPWAInstalled()) return;
     if (sessionStorage.getItem('edsa-pwa-dismissed')) return;
 
-    // 1. Check if it already fired and was saved globally
-    const globalPrompt = (window as unknown as { deferredPrompt: BeforeInstallPromptEvent }).deferredPrompt;
+    // 1. Check if beforeinstallprompt already fired and was saved globally
+    const globalPrompt = (window as unknown as { deferredPrompt?: BeforeInstallPromptEvent }).deferredPrompt;
     if (globalPrompt) {
       setDeferredPrompt(globalPrompt);
-      setShow(true);
     }
 
-    // 2. Listen for the custom event we dispatch in layout.tsx
+    // 2. Listen for the custom event dispatched in layout.tsx
     const handlePromptReady = () => {
-      const updatedPrompt = (window as unknown as { deferredPrompt: BeforeInstallPromptEvent }).deferredPrompt;
-      setDeferredPrompt(updatedPrompt);
+      const updatedPrompt = (window as unknown as { deferredPrompt?: BeforeInstallPromptEvent }).deferredPrompt;
+      if (updatedPrompt) {
+        setDeferredPrompt(updatedPrompt);
+      }
       setShow(true);
     };
 
@@ -51,78 +54,102 @@ export default function PWAInstallBanner() {
     window.addEventListener('pwa-prompt-ready', handlePromptReady);
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
-    // Fallback for iOS
-    if (d.isIOS) {
-      const timer = setTimeout(() => setShow(true), 3000);
-      return () => clearTimeout(timer);
-    }
+    // Smart banner timer: show smoothly after 2.5s on mobile if not already dismissed
+    const timer = setTimeout(() => {
+      if (!sessionStorage.getItem('edsa-pwa-dismissed') && !isPWAInstalled()) {
+        setShow(true);
+      }
+    }, 2500);
 
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('pwa-prompt-ready', handlePromptReady);
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
 
-  const handleInstall = async () => {
+  const handleDismiss = () => {
+    setShow(false);
+    sessionStorage.setItem('edsa-pwa-dismissed', 'true');
+  };
+
+  const handleWebInstall = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
-        setShow(false);
+        handleDismiss();
       }
       setDeferredPrompt(null);
-    } else if (device.isIOS) {
-      // iOS just needs the instructions, so we keep it open or close it
-      setShow(false);
     }
   };
 
   if (!show || !device.isMobile) return null;
 
   return (
-    <div className="fixed top-6 left-4 right-4 z-[9999] animate-in slide-in-from-top-10 duration-500 pointer-events-auto">
-      <div className="bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.15)] ring-1 ring-slate-100">
+    <div className="fixed top-4 left-4 right-4 z-[9999] animate-in slide-in-from-top-10 duration-500 pointer-events-auto max-w-lg mx-auto">
+      <div className="bg-white/95 backdrop-blur-2xl border border-slate-200 rounded-3xl p-5 shadow-[0_20px_50px_rgba(0,0,0,0.18)] ring-1 ring-slate-100 relative">
         <button 
-          onClick={() => { setShow(false); sessionStorage.setItem('edsa-pwa-dismissed', 'true'); }}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1"
+          onClick={handleDismiss}
+          className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 p-1.5 rounded-full hover:bg-slate-100 transition-colors"
           aria-label="Dismiss banner"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-blue-600 border border-blue-500 flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
-            <Zap className="w-8 h-8 text-white fill-white" />
+          <div className="w-14 h-14 rounded-2xl bg-[#040e40] border border-blue-900/30 flex items-center justify-center shrink-0 shadow-lg shadow-[#040e40]/25">
+            <Zap className="w-8 h-8 text-amber-400 fill-amber-400" />
           </div>
           
           <div className="flex-1 pr-6">
-            <h3 className="font-bold text-slate-900 text-lg leading-tight">Install EDSA Tracker</h3>
-            <p className="text-slate-600 text-sm mt-0.5">
+            <h3 className="font-black text-slate-900 text-lg leading-tight">EDSA Power Tracker</h3>
+            <p className="text-slate-600 text-xs sm:text-sm mt-0.5 font-medium">
               {device.isIOS 
-                ? 'Add to home screen for real-time alerts' 
-                : 'Get the native app for better tracking'}
+                ? 'Add to home screen for real-time outage alerts' 
+                : 'Get the official app on Google Play Store'}
             </p>
           </div>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-4 space-y-2">
           {device.isIOS ? (
-            <div className="flex items-center gap-3 bg-slate-50 rounded-2xl p-3 border border-slate-200">
-              <div className="p-2 bg-blue-100 rounded-xl">
+            <div className="flex items-center gap-3 bg-slate-50 rounded-2xl p-3.5 border border-slate-200">
+              <div className="p-2 bg-blue-100 rounded-xl shrink-0">
                 <Share className="w-5 h-5 text-blue-600" />
               </div>
-              <p className="text-xs text-slate-700">
-                Tap <span className="text-slate-900 font-bold">Share</span> then <span className="text-slate-900 font-bold">Add to Home Screen</span>
+              <p className="text-xs text-slate-700 leading-relaxed">
+                Tap <span className="text-slate-900 font-bold">Share</span> at the bottom of Safari, then tap <span className="text-slate-900 font-bold">Add to Home Screen</span>.
               </p>
             </div>
           ) : (
-            <button
-              onClick={handleInstall}
-              className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20 active:scale-95"
-            >
-              <Download className="w-5 h-5" />
-              Install App
-            </button>
+            <>
+              {/* Primary Action for Android: Google Play Store */}
+              <a
+                href={PLAY_STORE_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={handleDismiss}
+                className="w-full bg-[#040e40] text-white font-black py-3.5 px-5 rounded-2xl flex items-center justify-center gap-3 hover:bg-[#020820] transition-colors shadow-lg shadow-[#040e40]/25 active:scale-95 text-sm"
+              >
+                {/* Google Play Vector Icon */}
+                <svg className="w-5 h-5 fill-current shrink-0 text-white" viewBox="0 0 24 24">
+                  <path d="M3.609 1.814L13.793 12 3.61 22.186c-.198-.198-.3-.464-.3-.756V2.57c0-.292.102-.558.3-.756zm11.603 11.603l2.42 2.42-12.015 6.945 9.595-9.365zm0-2.834L5.617.218 17.632 7.163l-2.42 2.42zm1.417 1.417l3.757 2.172c.704.407.704 1.07 0 1.477l-3.757 2.172-2.316-2.316 2.316-2.316z"/>
+                </svg>
+                <span>Get on Google Play</span>
+              </a>
+
+              {/* Secondary fallback: Web PWA install (if supported by browser) */}
+              {deferredPrompt && (
+                <button
+                  onClick={handleWebInstall}
+                  className="w-full text-[11px] text-slate-500 hover:text-slate-800 font-semibold py-1.5 flex items-center justify-center gap-1.5 transition-colors"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Or install lightweight web version</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>

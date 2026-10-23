@@ -69,8 +69,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       const desktop = isDesktopEnvironment();
       setIsDesktop(desktop);
       const isSkipped =
-        (desktop && localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true') ||
-        localStorage.getItem('edsa_location_skipped_v1') === 'true';
+        desktop && (
+          localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
+          localStorage.getItem('edsa_location_skipped_v1') === 'true'
+        );
       setDesktopLocationSkipped(isSkipped);
     }
   }, []);
@@ -83,8 +85,10 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       const desktop = isDesktopEnvironment();
       setIsDesktop(desktop);
       const isSkipped =
-        (desktop && localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true') ||
-        localStorage.getItem('edsa_location_skipped_v1') === 'true';
+        desktop && (
+          localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
+          localStorage.getItem('edsa_location_skipped_v1') === 'true'
+        );
       setDesktopLocationSkipped(isSkipped);
       if (isSkipped) {
         setState('READY');
