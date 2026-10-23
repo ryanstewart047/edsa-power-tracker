@@ -14,10 +14,10 @@ import {
   ChevronRight
 } from 'lucide-react';
 import {
-  GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
   MAX_LOCATION_ACCESS_ACCURACY_METERS,
 } from '@/lib/locationConfig';
+import { requestSharedLocation } from '@/lib/geolocation';
 
 const LOCATION_ONBOARDING_COMPLETE_EVENT = 'edsa-location-onboarding-complete';
 
@@ -48,7 +48,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   const [isRequesting, setIsRequesting] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
-  const [desktopLocationSkipped, setDesktopLocationSkipped] = useState(false);
+  const [locationSkipped, setLocationSkipped] = useState(false);
   const [onboardingActive, setOnboardingActive] = useState(true);
   const [showManualGuide, setShowManualGuide] = useState(false);
   const [attemptCount, setAttemptCount] = useState(0);
@@ -73,11 +73,12 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       const desktop = isDesktopEnvironment();
       setIsDesktop(desktop);
       const isSkipped =
-        desktop && (
-          localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
-          localStorage.getItem('edsa_location_skipped_v1') === 'true'
-        );
-      setDesktopLocationSkipped(isSkipped);
+        localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
+        localStorage.getItem('edsa_location_skipped_v1') === 'true';
+      setLocationSkipped(isSkipped);
+      if (isSkipped) {
+        setState('READY');
+      }
     }
   }, []);
 
@@ -89,11 +90,9 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       const desktop = isDesktopEnvironment();
       setIsDesktop(desktop);
       const isSkipped =
-        desktop && (
-          localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
-          localStorage.getItem('edsa_location_skipped_v1') === 'true'
-        );
-      setDesktopLocationSkipped(isSkipped);
+        localStorage.getItem('edsa_desktop_location_skipped_v1') === 'true' ||
+        localStorage.getItem('edsa_location_skipped_v1') === 'true';
+      setLocationSkipped(isSkipped);
       if (isSkipped) {
         setState('READY');
       }
@@ -109,16 +108,13 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   }, []);
 
   const handleSkipLocation = useCallback(() => {
-    if (typeof window !== 'undefined' && isDesktopEnvironment()) {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('edsa_location_skipped_v1', 'true');
       localStorage.setItem('edsa_desktop_location_skipped_v1', 'true');
-      setDesktopLocationSkipped(true);
+      setLocationSkipped(true);
       setState('READY');
     }
   }, []);
-
-  const handleSkipOnDesktop = useCallback(() => {
-    handleSkipLocation();
-  }, [handleSkipLocation]);
 
   // Core function to test GPS availability and acquire coordinates
   const probeLocation = useCallback((silent = false) => {
@@ -191,35 +187,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
       }
     };
 
-    const tryBrowserLocation = () => {
-      navigator.geolocation.getCurrentPosition(
-        acceptPosition,
-        reportFailure,
-        {
-          // Desktop browsers frequently have no GPS receiver, but can resolve a
-          // location through the operating system, Wi-Fi, or network provider.
-          enableHighAccuracy: false,
-          timeout: GEOLOCATION_TIMEOUT_MS * 2,
-          maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
-        },
-      );
-    };
-
-    navigator.geolocation.getCurrentPosition(
-      acceptPosition,
-      (error) => {
-        if (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT) {
-          tryBrowserLocation();
-          return;
-        }
-        reportFailure(error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: GEOLOCATION_TIMEOUT_MS,
-        maximumAge: 0,
-      }
-    );
+    requestSharedLocation().then(acceptPosition).catch(reportFailure);
   }, [onLocationReady]);
 
   // Initial check and permission query
@@ -358,7 +326,7 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
   };
 
   // If route is exempt or onboarding still active or location ready, don't block
-  if (isExemptRoute || onboardingActive || desktopLocationSkipped || state === 'READY') {
+  if (isExemptRoute || onboardingActive || locationSkipped || state === 'READY') {
     return null;
   }
 
@@ -551,24 +519,13 @@ export default function LocationGuard({ onLocationReady }: LocationGuardProps) {
               </>
             )}
 
-            {isDesktop && attemptCount >= 2 && (
+            {(attemptCount >= 1 || state === 'GPS_OFF' || state === 'GPS_UNAVAILABLE' || state === 'LOW_ACCURACY' || state === 'PERMISSION_DENIED' || isDesktop) && (
               <button
                 type="button"
                 onClick={handleSkipLocation}
                 className="w-full py-3.5 px-4 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-800 text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-xs"
               >
-                <span>Skip for now & open app (Set up later)</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
-            )}
-
-            {isDesktop && attemptCount < 2 && (
-              <button
-                type="button"
-                onClick={handleSkipOnDesktop}
-                className="w-full py-3.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-800 text-xs font-bold transition-all flex items-center justify-center gap-2"
-              >
-                <span>Continue without location on this computer</span>
+                <span>Continue & Select Area Manually</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
             )}

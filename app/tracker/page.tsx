@@ -31,13 +31,13 @@ import MeterTroubleshooterModal from '@/components/MeterTroubleshooterModal';
 import ApplianceSurgeWarning from '@/components/ApplianceSurgeWarning';
 import AreaCommunityBulletin from '@/components/AreaCommunityBulletin';
 import {
-  GEOLOCATION_MAXIMUM_AGE_MS,
   GEOLOCATION_TIMEOUT_MS,
   GPS_WARNING_ACCURACY_METERS,
   HAZARD_TYPES,
   HazardType,
   MAX_REPORTING_ACCURACY_METERS,
 } from '@/lib/locationConfig';
+import { requestSharedLocation } from '@/lib/geolocation';
 
 const LOCATION_STALE_AFTER_MS = 2 * 60_000;
 const GPS_REFRESH_INTERVAL_MS = 30_000;
@@ -200,6 +200,7 @@ export default function Home() {
   const [reportResult, setReportResult] = useState<SubmissionResult | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [location, setLocation] = useState<LocationSnapshot | null>(null);
+  const [initialLocationReady, setInitialLocationReady] = useState(false);
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [showCommunities, setShowCommunities] = useState(true);
@@ -336,6 +337,7 @@ export default function Home() {
     setLocation((currentLocation) => (
       shouldUseLocationFix(nextLocation, currentLocation) ? nextLocation : currentLocation
     ));
+    setInitialLocationReady(true);
     setLocationError(null);
     setLocationLoading(false);
   }, []);
@@ -371,42 +373,11 @@ export default function Home() {
     }
 
     setLocationLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      handleLocationSuccess,
-      (error) => {
-        const canRetryWithLowerAccuracy =
-          error.code === error.TIMEOUT || error.code === error.POSITION_UNAVAILABLE;
-
-        if (!canRetryWithLowerAccuracy) {
-          handleLocationError(error);
-          return;
-        }
-
-        navigator.geolocation.getCurrentPosition(
-          handleLocationSuccess,
-          (fallbackError) => {
-            setLocationLoading(false);
-            // If we already have any location, don't replace it with an error message
-            if (locationRef.current) {
-              return;
-            }
-            setLocationError(
-              `${getGeolocationErrorMessage(fallbackError)} Try moving outdoors or enabling precise location for your browser.`,
-            );
-          },
-          {
-            enableHighAccuracy: false,
-            timeout: GEOLOCATION_TIMEOUT_MS * 2,
-            maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
-          },
-        );
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: GEOLOCATION_TIMEOUT_MS,
-        maximumAge: GEOLOCATION_MAXIMUM_AGE_MS,
-      },
-    );
+    requestSharedLocation().then(handleLocationSuccess).catch((error: GeolocationPositionError) => {
+      setLocationLoading(false);
+      if (locationRef.current) return;
+      handleLocationError(error);
+    });
   }, [handleLocationError, handleLocationSuccess]);
 
   const refreshLocationWhenNeeded = useCallback(() => {
@@ -430,7 +401,12 @@ export default function Home() {
   }, [requestLocation]);
 
   useEffect(() => {
-    requestLocation();
+    // Do not start a second, independent request beside the initial shared
+    // request. Begin continuous tracking after its first result arrives.
+    if (!initialLocationReady) {
+      requestLocation();
+      return undefined;
+    }
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
       return undefined;
     }
@@ -450,7 +426,7 @@ export default function Home() {
       window.clearInterval(refreshInterval);
       navigator.geolocation.clearWatch(watchId);
     };
-  }, [handleLocationError, handleLocationSuccess, refreshLocationWhenNeeded, requestLocation]);
+  }, [handleLocationError, handleLocationSuccess, initialLocationReady, refreshLocationWhenNeeded, requestLocation]);
 
   const closeReportModal = useCallback(() => {
     setReportModal(null);
