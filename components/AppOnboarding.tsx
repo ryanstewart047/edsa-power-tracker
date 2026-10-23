@@ -421,7 +421,7 @@ export default function AppOnboarding() {
                   onClick={handleSkipLocation}
                   className="w-full py-2.5 px-3 rounded-xl border border-amber-400/35 bg-amber-400/10 hover:bg-amber-400/20 text-amber-200 text-xs font-bold transition-all flex items-center justify-center gap-1.5 shadow-sm mt-1 animate-in fade-in"
                 >
-                  <span>Skip location for now (Set up later)</span>
+                  <span>Continue and select community manually</span>
                   <ChevronRight className="w-3.5 h-3.5 text-amber-300" />
                 </button>
               )}
