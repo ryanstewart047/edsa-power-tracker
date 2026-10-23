@@ -492,6 +492,16 @@ export default function Home() {
       return;
     }
 
+    if (!primaryArea || reportModal.id !== primaryArea) {
+      setReportResult({
+        success: false,
+        confirmed: false,
+        reportsNeeded: 0,
+        message: 'Power status can only be reported for your saved primary community. Hazard reports remain available for nearby communities.',
+      });
+      return;
+    }
+
     if (!location || !locationAccurateEnough) {
       setReportResult({
         success: false,
@@ -522,10 +532,6 @@ export default function Home() {
       const data = await res.json();
 
       if (res.ok) {
-        // Behavioral Learning: Update primary area if user reports for a specific area
-        localStorage.setItem('edsa_primary_area', reportModal.id);
-        setPrimaryArea(reportModal.id);
-
         setReportResult({
           success: true,
           confirmed: Boolean(data.confirmed),
@@ -552,7 +558,7 @@ export default function Home() {
     } finally {
       setReporting(false);
     }
-  }, [closeReportModal, fetchStatus, location, locationAccurateEnough, locationHelpMessage, reportModal]);
+  }, [closeReportModal, fetchStatus, location, locationAccurateEnough, locationHelpMessage, primaryArea, reportModal]);
 
   const handleHazardReport = useCallback(async () => {
     if (!hazardModal) {
@@ -872,6 +878,7 @@ export default function Home() {
                     locationAccurateEnough &&
                     area.distance !== null &&
                     area.distance <= MAX_REPORTING_DISTANCE_KM;
+                  const canReportPowerForArea = canReportForArea && area.id === primaryArea;
 
                   return (
                     <div key={area.id} className={`relative p-5 rounded-2xl border transition-all duration-300 shadow-xs ${area.isSavedArea ? 'border-blue-300 bg-white ring-2 ring-blue-500/20' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
@@ -907,9 +914,9 @@ export default function Home() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setReportModal(area); setReportResult(null); }}
-                          disabled={!canReportForArea}
+                          disabled={!canReportPowerForArea}
                           className="flex-1 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 font-bold transition-all flex items-center justify-center gap-1.5 text-xs disabled:opacity-40 disabled:cursor-not-allowed"
-                          title={!locationAccurateEnough ? "Low GPS accuracy" : area.distance !== null && area.distance > MAX_REPORTING_DISTANCE_KM ? "Too far from this area" : ""}
+                          title={!primaryArea ? 'Choose a primary community first' : area.id !== primaryArea ? 'Power status is limited to your primary community' : !locationAccurateEnough ? 'Low GPS accuracy' : area.distance !== null && area.distance > MAX_REPORTING_DISTANCE_KM ? 'Too far from this area' : ''}
                         >
                           <Zap className="w-3.5 h-3.5 text-blue-600" /> Report Status
                         </button>
@@ -927,7 +934,7 @@ export default function Home() {
                 })}
               </div>
               <p className="text-xs text-slate-500 text-center mt-2 pt-2 border-t border-blue-100">
-                Select the correct exact neighbourhood from above to submit your report.
+                Power status is verified only for your primary community. Hazards can be reported in any nearby area.
               </p>
             </div>
           ) : (
@@ -1085,6 +1092,7 @@ export default function Home() {
                       area.distance !== null &&
                       area.distance <= MAX_REPORTING_DISTANCE_KM &&
                       locationAccurateEnough;
+                    const canReportPower = canReport && area.id === primaryArea;
 
                     return (
                       <div key={area.id} className={`relative group p-4 rounded-2xl border transition-all duration-300 ${meta.card} ${!canReport ? 'opacity-60' : ''}`}>
@@ -1098,8 +1106,8 @@ export default function Home() {
 
                         <div className="mt-4 flex items-center gap-2">
                           <button
-                            onClick={() => { if (canReport) { setReportModal(area); setReportResult(null); } }}
-                            disabled={!canReport}
+                            onClick={() => { if (canReportPower) { setReportModal(area); setReportResult(null); } }}
+                            disabled={!canReportPower}
                             className="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed border border-slate-200"
                           >
                             Report Status
@@ -1117,7 +1125,7 @@ export default function Home() {
                         {!canReport && (
                           <div className="absolute inset-0 flex items-center justify-center bg-white/70 backdrop-blur-[1px] rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity">
                             <p className="text-[10px] bg-slate-900 text-white px-2.5 py-1 rounded-lg uppercase tracking-widest font-bold shadow-sm">
-                              {locationAccurateEnough ? 'Move to report here' : 'Need better GPS to report'}
+                              {!primaryArea ? 'Set primary community first' : area.id !== primaryArea ? 'Power reports use your primary area' : locationAccurateEnough ? 'Move to report here' : 'Need better GPS to report'}
                             </p>
                           </div>
                         )}
@@ -1149,7 +1157,7 @@ export default function Home() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm text-slate-600">Your report for <span className="text-slate-900 font-bold">{reportModal.name}</span> helps verify the local power status.</p>
+                    <p className="text-sm text-slate-600">Your report for <span className="text-slate-900 font-bold">{reportModal.name}</span> helps verify the local power status for your primary community.</p>
                     {location && (
                       <p className="text-xs text-slate-500">
                         Reporting with {formatAccuracy(location.accuracy)} GPS accuracy.
@@ -1158,7 +1166,7 @@ export default function Home() {
                     <div className="grid grid-cols-2 gap-3 pt-2">
                       <button
                         onClick={() => handleReport('on')}
-                        disabled={reporting || !locationAccurateEnough}
+                        disabled={reporting || !locationAccurateEnough || reportModal.id !== primaryArea}
                         className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-300 hover:bg-emerald-100 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       >
                         <Zap className="w-8 h-8 text-emerald-600" />
@@ -1166,7 +1174,7 @@ export default function Home() {
                       </button>
                       <button
                         onClick={() => handleReport('out')}
-                        disabled={reporting || !locationAccurateEnough}
+                        disabled={reporting || !locationAccurateEnough || reportModal.id !== primaryArea}
                         className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-300 hover:bg-rose-100 transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
                       >
                         <ZapOff className="w-8 h-8 text-rose-600" />
@@ -1398,8 +1406,9 @@ export default function Home() {
           }}
           onReportOutage={() => {
             setShowIsItJustMe(false);
-            if (nearbyAreas[0]) {
-              setReportModal(nearbyAreas[0]);
+            const primaryNearbyArea = nearbyAreas.find((area) => area.id === primaryArea);
+            if (primaryNearbyArea) {
+              setReportModal(primaryNearbyArea);
               setReportResult(null);
             }
           }}
